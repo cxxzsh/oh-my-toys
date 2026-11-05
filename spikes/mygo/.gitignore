@@ -1,0 +1,4 @@
+/build/
+/omt-spike
+/omt-e2e
+*.sock

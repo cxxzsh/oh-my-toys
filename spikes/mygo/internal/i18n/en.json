@@ -1,0 +1,733 @@
+{
+  "@@locale": "en",
+  "appName": "oh-my-toys",
+  "@appName": {
+    "description": "The app's name: window title, tray tooltip."
+  },
+  "about": "About",
+  "@about": {
+    "description": "Settings section."
+  },
+  "actions": "Actions",
+  "@actions": {
+    "description": "Palette section of quick actions."
+  },
+  "all": "All",
+  "@all": {
+    "description": "Home filter chip for every category."
+  },
+  "allTools": "All Tools",
+  "@allTools": {
+    "description": "Sidebar item and home page title."
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Settings section."
+  },
+  "awakeName": "Keep Awake",
+  "@awakeName": {
+    "description": "Tool name."
+  },
+  "awakeSummary": "Keeps the computer from sleeping while idle",
+  "@awakeSummary": {
+    "description": "Tool summary."
+  },
+  "awakeFor1h": "Keep awake for 1 hour",
+  "@awakeFor1h": {
+    "description": "Quick action."
+  },
+  "awakeFor2h": "Keep awake for 2 hours",
+  "@awakeFor2h": {
+    "description": "Quick action."
+  },
+  "awakeUntilOff": "Keep awake until turned off",
+  "@awakeUntilOff": {
+    "description": "Quick action."
+  },
+  "awakeSystemOnly": "Keep awake, let the display sleep",
+  "@awakeSystemOnly": {
+    "description": "Quick action: the system stays awake, the display may turn off."
+  },
+  "awakeTurnOff": "Turn off",
+  "@awakeTurnOff": {
+    "description": "Quick action."
+  },
+  "awakeDisplayOn": "Display stays on",
+  "@awakeDisplayOn": {
+    "description": "Mode of Keep Awake."
+  },
+  "awakeDisplayMaySleep": "Display may sleep",
+  "@awakeDisplayMaySleep": {
+    "description": "Mode of Keep Awake."
+  },
+  "awakeRunningLeft": "Running · {time} left",
+  "@awakeRunningLeft": {
+    "description": "Status with the time left, such as 2:29:10.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "awakeRunningUntilOff": "Running · until turned off",
+  "@awakeRunningUntilOff": {
+    "description": "Status without a time limit."
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Button."
+  },
+  "categorySystem": "System",
+  "@categorySystem": {
+    "description": "Category."
+  },
+  "categoryFile": "Files",
+  "@categoryFile": {
+    "description": "Category."
+  },
+  "categoryDev": "Developer",
+  "@categoryDev": {
+    "description": "Category."
+  },
+  "categoryNetwork": "Network",
+  "@categoryNetwork": {
+    "description": "Category."
+  },
+  "categoryText": "Text",
+  "@categoryText": {
+    "description": "Category."
+  },
+  "categoryMedia": "Media",
+  "@categoryMedia": {
+    "description": "Category."
+  },
+  "categoryProductivity": "Productivity",
+  "@categoryProductivity": {
+    "description": "Category."
+  },
+  "categoryApp": "App",
+  "@categoryApp": {
+    "description": "Category of the app's own items."
+  },
+  "chooseFolder": "Choose Folder…",
+  "@chooseFolder": {
+    "description": "Button opening a folder dialog."
+  },
+  "clickToCopy": "Click a row to copy it",
+  "@clickToCopy": {
+    "description": "Hint under a preview."
+  },
+  "colorName": "Color",
+  "@colorName": {
+    "description": "Tool name."
+  },
+  "colorSummary": "Converts colors between formats and checks text contrast",
+  "@colorSummary": {
+    "description": "Tool summary."
+  },
+  "colorField": "Color",
+  "@colorField": {
+    "description": "Field label."
+  },
+  "colorFieldHint": "#0071e3, rgb(0, 113, 227) or hsl(…)",
+  "@colorFieldHint": {
+    "description": "Field placeholder."
+  },
+  "colorBadInput": "Can’t read “{input}”. Type a color like #0071e3, rgb(0, 113, 227) or hsl(210, 100%, 45%)",
+  "@colorBadInput": {
+    "description": "Error for unreadable input.",
+    "placeholders": {
+      "input": {
+        "type": "String"
+      }
+    }
+  },
+  "colorFailsAA": "fails AA",
+  "@colorFailsAA": {
+    "description": "Contrast verdict."
+  },
+  "colorPassesAA": "passes AA",
+  "@colorPassesAA": {
+    "description": "Contrast verdict."
+  },
+  "colorPassesAAA": "passes AAA",
+  "@colorPassesAAA": {
+    "description": "Contrast verdict."
+  },
+  "colorOnWhite": "On white",
+  "@colorOnWhite": {
+    "description": "Row title: contrast with white."
+  },
+  "colorOnBlack": "On black",
+  "@colorOnBlack": {
+    "description": "Row title: contrast with black."
+  },
+  "colorRatio": "{ratio, number, ::.0}:1 · {verdict}",
+  "@colorRatio": {
+    "description": "Contrast ratio and verdict.",
+    "placeholders": {
+      "ratio": {
+        "type": "double"
+      },
+      "verdict": {
+        "type": "String"
+      }
+    }
+  },
+  "comingSoon": "Coming soon",
+  "@comingSoon": {
+    "description": "A tool that is not ready."
+  },
+  "comingSoonDetail": "This tool isn’t ready yet. It’s listed so you know it’s on the way.",
+  "@comingSoonDetail": {
+    "description": "Body of a tool that is not ready."
+  },
+  "copied": "Copied {value}",
+  "@copied": {
+    "description": "Toast after copying.",
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "copyDetails": "Copy Details",
+  "@copyDetails": {
+    "description": "Button on a failed tool's page."
+  },
+  "dupesName": "Find Duplicates",
+  "@dupesName": {
+    "description": "Tool name."
+  },
+  "dupesSummary": "Finds files with the same content, and the space their copies take",
+  "@dupesSummary": {
+    "description": "Tool summary."
+  },
+  "dupesApply": "{count, plural, one {Move # Copy to Trash} other {Move # Copies to Trash}}",
+  "@dupesApply": {
+    "description": "Button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupesDone": "{count, plural, one {Moved # copy to the Trash} other {Moved # copies to the Trash}}",
+  "@dupesDone": {
+    "description": "Result.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dupesFound": "{groups, plural, =0 {No duplicates found} one {# group of duplicates · {size} can be freed} other {# groups of duplicates · {size} can be freed}}",
+  "@dupesFound": {
+    "description": "Summary of a scan.",
+    "placeholders": {
+      "groups": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "dupesKeep": "Kept · {size}",
+  "@dupesKeep": {
+    "description": "Row detail of the copy kept.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "dupesTrash": "To the Trash · {size}",
+  "@dupesTrash": {
+    "description": "Row detail of a copy to remove.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldFolder": "Folder",
+  "@fieldFolder": {
+    "description": "Field label."
+  },
+  "fieldFolderHint": "No folder chosen",
+  "@fieldFolderHint": {
+    "description": "Shown until a folder is chosen."
+  },
+  "followSystem": "System",
+  "@followSystem": {
+    "description": "Choice following the system's setting."
+  },
+  "globalShortcut": "Global shortcut",
+  "@globalShortcut": {
+    "description": "Settings row."
+  },
+  "hintChoose": "Choose",
+  "@hintChoose": {
+    "description": "Palette footer."
+  },
+  "hintOpenInMain": "Open in main window",
+  "@hintOpenInMain": {
+    "description": "Palette footer."
+  },
+  "hintRun": "Run",
+  "@hintRun": {
+    "description": "Palette footer."
+  },
+  "hintSummon": "{keys} to show",
+  "@hintSummon": {
+    "description": "Palette footer: the global shortcut.",
+    "placeholders": {
+      "keys": {
+        "type": "String"
+      }
+    }
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Settings row."
+  },
+  "listSeparator": ", ",
+  "@listSeparator": {
+    "description": "Separator of a list of items."
+  },
+  "measurements": "Measurements",
+  "@measurements": {
+    "description": "Settings section, development builds only."
+  },
+  "menuTools": "Tools",
+  "@menuTools": {
+    "description": "Menu bar menu."
+  },
+  "modeLabel": "Mode",
+  "@modeLabel": {
+    "description": "Label of a switch tool's mode."
+  },
+  "noResults": "No tools or actions found",
+  "@noResults": {
+    "description": "Palette with no match."
+  },
+  "noShortcut": "None available",
+  "@noShortcut": {
+    "description": "No global shortcut could be registered."
+  },
+  "noTools": "No tools found",
+  "@noTools": {
+    "description": "Search with no match."
+  },
+  "open": "Open",
+  "@open": {
+    "description": "Opens a tool."
+  },
+  "openInMain": "Open in Main Window",
+  "@openInMain": {
+    "description": "Context menu item."
+  },
+  "openMain": "Open Main Window",
+  "@openMain": {
+    "description": "Tray item."
+  },
+  "paletteEmpty": "Type a tool’s name, its pinyin initials or a keyword",
+  "@paletteEmpty": {
+    "description": "Palette before typing, with no recent tools."
+  },
+  "paletteHint": "Search tools and actions",
+  "@paletteHint": {
+    "description": "Palette placeholder."
+  },
+  "paletteTitle": "Command Palette",
+  "@paletteTitle": {
+    "description": "Window title and menu item."
+  },
+  "pin": "Pin",
+  "@pin": {
+    "description": "Button."
+  },
+  "unpin": "Unpin",
+  "@unpin": {
+    "description": "Button."
+  },
+  "pinned": "Pinned",
+  "@pinned": {
+    "description": "Section title."
+  },
+  "pinnedTools": "Pinned Tools",
+  "@pinnedTools": {
+    "description": "Tray section title."
+  },
+  "planFailed": "Something went wrong. The details are in the log.",
+  "@planFailed": {
+    "description": "An unexpected error of a tool."
+  },
+  "portsName": "Ports",
+  "@portsName": {
+    "description": "Tool name."
+  },
+  "portsSummary": "Shows which process holds a port, and frees it",
+  "@portsSummary": {
+    "description": "Tool summary."
+  },
+  "portsField": "Port",
+  "@portsField": {
+    "description": "Field label."
+  },
+  "portsFieldHint": "Such as 3000; empty lists every port",
+  "@portsFieldHint": {
+    "description": "Field placeholder."
+  },
+  "portsBadPort": "“{input}” is no port. Type a number from 1 to 65535, such as 3000",
+  "@portsBadPort": {
+    "description": "Error for a bad port.",
+    "placeholders": {
+      "input": {
+        "type": "String"
+      }
+    }
+  },
+  "portsEnd": "{count, plural, one {End # Process} other {End # Processes}}",
+  "@portsEnd": {
+    "description": "Button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "portsEnded": "{count, plural, one {Ended # process} other {Ended # processes}}",
+  "@portsEnded": {
+    "description": "Result.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "portsListening": "{count, plural, =0 {No ports are listening} one {# port listening} other {# ports listening}}",
+  "@portsListening": {
+    "description": "Summary.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "portsOnPort": "{count, plural, =0 {Nothing listens on port {port, number, ::group-off}} one {# process on port {port, number, ::group-off}} other {# processes on port {port, number, ::group-off}}}",
+  "@portsOnPort": {
+    "description": "Summary for one port.",
+    "placeholders": {
+      "port": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "portsRowTitle": "{port, number, ::group-off} · {process}",
+  "@portsRowTitle": {
+    "description": "Row title.",
+    "placeholders": {
+      "port": {
+        "type": "int"
+      },
+      "process": {
+        "type": "String"
+      }
+    }
+  },
+  "portsRowDetail": "PID {pid, number, ::group-off} · {address}",
+  "@portsRowDetail": {
+    "description": "Row detail.",
+    "placeholders": {
+      "pid": {
+        "type": "int"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "portsUnknownProcess": "Unknown process",
+  "@portsUnknownProcess": {
+    "description": "A process without a name."
+  },
+  "preview": "Preview",
+  "@preview": {
+    "description": "Accessible name of a preview list."
+  },
+  "quickActions": "Quick Actions",
+  "@quickActions": {
+    "description": "Section title."
+  },
+  "quit": "Quit",
+  "@quit": {
+    "description": "Tray item."
+  },
+  "recent": "Recently Used",
+  "@recent": {
+    "description": "Section title."
+  },
+  "refresh": "Refresh",
+  "@refresh": {
+    "description": "Button."
+  },
+  "reload": "Reload",
+  "@reload": {
+    "description": "Button on a failed tool's page."
+  },
+  "renameName": "Batch Rename",
+  "@renameName": {
+    "description": "Tool name."
+  },
+  "renameSummary": "Renames files by a rule, showing the result first",
+  "@renameSummary": {
+    "description": "Tool summary."
+  },
+  "renameFind": "Find",
+  "@renameFind": {
+    "description": "Field label."
+  },
+  "renameFindHint": "Text in the names",
+  "@renameFindHint": {
+    "description": "Field placeholder."
+  },
+  "renameReplace": "Replace with",
+  "@renameReplace": {
+    "description": "Field label."
+  },
+  "renameReplaceHint": "New text; empty removes it",
+  "@renameReplaceHint": {
+    "description": "Field placeholder."
+  },
+  "renameApply": "{count, plural, one {Rename # File} other {Rename # Files}}",
+  "@renameApply": {
+    "description": "Button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "renameConflict": "Can’t rename: “{name}” is taken",
+  "@renameConflict": {
+    "description": "Row detail.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "renameDone": "{count, plural, one {Renamed # file} other {Renamed # files}}",
+  "@renameDone": {
+    "description": "Result.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "renamePlanned": "{count, plural, =0 {No files to rename} one {# file will be renamed · nothing has changed yet} other {# files will be renamed · nothing has changed yet}}",
+  "@renamePlanned": {
+    "description": "Summary of a preview.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "run": "Run",
+  "@run": {
+    "description": "Runs an action."
+  },
+  "running": "Running",
+  "@running": {
+    "description": "Tray section title."
+  },
+  "searchNTools": "{count, plural, one {Search # tool} other {Search # tools}}",
+  "@searchNTools": {
+    "description": "Tray search placeholder.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchTools": "Search Tools",
+  "@searchTools": {
+    "description": "Sidebar search placeholder."
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Page and button."
+  },
+  "shortcutTaken": "Taken: {keys}",
+  "@shortcutTaken": {
+    "description": "Shortcuts another app holds.",
+    "placeholders": {
+      "keys": {
+        "type": "String"
+      }
+    }
+  },
+  "sidebar": "Sidebar",
+  "@sidebar": {
+    "description": "Accessible name."
+  },
+  "sizeBytes": "{count, plural, one {# byte} other {# bytes}}",
+  "@sizeBytes": {
+    "description": "A size.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sizeKB": "{size, number, ::.0} KB",
+  "@sizeKB": {
+    "description": "A size.",
+    "placeholders": {
+      "size": {
+        "type": "double"
+      }
+    }
+  },
+  "sizeMB": "{size, number, ::.0} MB",
+  "@sizeMB": {
+    "description": "A size.",
+    "placeholders": {
+      "size": {
+        "type": "double"
+      }
+    }
+  },
+  "sizeGB": "{size, number, ::.0} GB",
+  "@sizeGB": {
+    "description": "A size.",
+    "placeholders": {
+      "size": {
+        "type": "double"
+      }
+    }
+  },
+  "statusLabel": "Status",
+  "@statusLabel": {
+    "description": "Metric label."
+  },
+  "statusOff": "Off",
+  "@statusOff": {
+    "description": "Switch tool state."
+  },
+  "statusOn": "Running",
+  "@statusOn": {
+    "description": "Switch tool state."
+  },
+  "statusWithDetail": "{status} · {detail}",
+  "@statusWithDetail": {
+    "description": "Status and mode on one line.",
+    "placeholders": {
+      "status": {
+        "type": "String"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "stop": "Stop",
+  "@stop": {
+    "description": "Button."
+  },
+  "stopTool": "Stop {name}",
+  "@stopTool": {
+    "description": "Accessible name of a Stop button.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "switchHint": "In the tray panel, a click on this tool turns it on or off with the last settings.",
+  "@switchHint": {
+    "description": "Hint on a switch tool's page."
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "Settings row."
+  },
+  "themeLight": "Light",
+  "@themeLight": {
+    "description": "Theme choice."
+  },
+  "themeDark": "Dark",
+  "@themeDark": {
+    "description": "Theme choice."
+  },
+  "toolApply": "Apply",
+  "@toolApply": {
+    "description": "Generic apply button."
+  },
+  "toolFailed": "{name} ran into a problem. Other tools aren’t affected.",
+  "@toolFailed": {
+    "description": "Failed tool page.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "toolActionTitle": "{tool}: {action}",
+  "@toolActionTitle": {
+    "description": "A quick action in search results.",
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "tools": "Tools",
+  "@tools": {
+    "description": "Section title."
+  },
+  "toolsRunning": "{count, plural, one {# tool running} other {# tools running}}",
+  "@toolsRunning": {
+    "description": "Toolbar pill.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trayTitle": "Quick Panel",
+  "@trayTitle": {
+    "description": "Tray panel name."
+  },
+  "turnOnOff": "Turn On/Off",
+  "@turnOnOff": {
+    "description": "Palette hint for switch tools."
+  },
+  "version": "Version",
+  "@version": {
+    "description": "Settings row."
+  },
+  "versionPortable": "{version} · Portable",
+  "@versionPortable": {
+    "description": "The version of the portable app, which keeps its data next to it and does not update itself.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "working": "Working…",
+  "@working": {
+    "description": "While a tool works."
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "oh-my-toys",
+  "identifier": "dev.ohmytoys.spike",
+  "version": "0.1.0",
+  "copyright": "© 2026 oh-my-toys",
+  "out": "build",
+  "updates": {
+    "publicKey": "ZR4vCYTSbJmJ2Dr0BINaU6ao8S8/mntMSlrK3gX3vKA=",
+    "url": "https://downloads.ohmytoys.invalid/spike/"
+  },
+  "macos": {
+    "minimumSystemVersion": "12.0"
+  },
+  "windows": {
+    "displayName": "oh-my-toys"
+  },
+  "linux": {
+    "webview": false,
+    "comment": "一盒小工具（MyGo 技术验证）",
+    "categories": [
+      "Utility"
+    ],
+    "maintainer": "oh-my-toys <dev@ohmytoys.invalid>",
+    "depends": [
+      "libayatana-appindicator3-1"
+    ]
+  },
+  "i18n": {
+    "dir": "internal/i18n",
+    "source": "en"
+  },
+  "main": "./cmd/oh-my-toys",
+  "icon": "design/app-icon.png"
+}
