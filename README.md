@@ -6,7 +6,7 @@ A box of small, handy tools for your desktop. Each tool does one thing, and they
 
 ## Status
 
-oh-my-toys is being rewritten from scratch. We are validating the UI framework ([MyGo](https://github.com/egoist/mygo), Go) before building the app, so there is nothing to install yet.
+oh-my-toys is being rewritten from scratch. The UI framework ([MyGo](https://github.com/egoist/mygo), Go) is being validated before the app is built, so there is nothing to install yet.
 
 ## Planned tools
 
