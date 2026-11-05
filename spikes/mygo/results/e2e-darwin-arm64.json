@@ -1,0 +1,56 @@
+{
+  "a11y_roles": {
+    "button": 43,
+    "group": 6,
+    "heading": 4,
+    "list": 2,
+    "listItem": 25,
+    "switch": 1,
+    "text": 16,
+    "textField": 1
+  },
+  "a11y_sidebar": [
+    "所有工具 [focusable,checked]",
+    "钉住 [focusable,expanded]",
+    "防睡眠 [focusable]",
+    "批量重命名 [focusable]",
+    "颜色 [focusable]",
+    "端口 [focusable]",
+    "崩溃测试 [focusable]",
+    "系统 [focusable]",
+    "文件 [focusable]",
+    "开发 [focusable]",
+    "网络 [focusable]",
+    "文本 [focusable]",
+    "媒体 [focusable]",
+    "效率 [focusable]",
+    "设置 [focusable]"
+  ],
+  "a11y_unnamed_controls": 0,
+  "awake_assertion": "pid 52177(omt-e2e): [0x0007dbfa00019010] 00:00:00 PreventUserIdleSystemSleep named: \"\"\npid 52177(omt-e2e): [0x0007dbfa00059011] 00:00:00 PreventUserIdleDisplaySleep named: \"\"",
+  "awake_assertion_after_off": "(none)",
+  "home_scroll_roundtrip": {
+    "N": 60,
+    "MedianMs": 12.473,
+    "P95Ms": 18.076,
+    "Max": 28.597
+  },
+  "os": "darwin-arm64",
+  "palette_first_fangshuimian": "防睡眠",
+  "palette_first_fsm": "防睡眠",
+  "palette_first_jsongsh": "",
+  "palette_first_monitor": "监控内存",
+  "palette_first_yasuotupian": "压缩图片",
+  "palette_first_防睡眠": "防睡眠",
+  "palette_keystroke_roundtrip": {
+    "N": 43,
+    "MedianMs": 6.163,
+    "P95Ms": 13.574,
+    "Max": 20.385
+  },
+  "panic_isolated": {
+    "在后台 goroutine 里 panic": true,
+    "在按钮动作里 panic": true,
+    "在界面构建里 panic": true
+  }
+}
