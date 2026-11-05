@@ -7,8 +7,9 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing anything; it is the sour
 - **No cgo**: everything builds with `CGO_ENABLED=0`.
 - **Tools**: a manifest plus either `Start` / `Stop` / `Status` (switch) or `Plan` / `Apply` (action). `Plan` never changes anything.
 - **i18n**: no user-visible string literals. Add every message to `internal/i18n/en.json` and `zh-Hans.json` in the same commit; use ICU plurals.
-- **Docs**: user-facing docs change in English and Simplified Chinese together.
+- **Docs**: write repository docs in English. Only the README is bilingual: `README.md` and `README.zh-CN.md` change together.
 - **Commits**: Conventional Commits, `type(scope): summary`, English, imperative, lowercase, no trailing period. Never force-push `main`.
+- **CI**: see `docs/ci-cd.md`; pull request titles must follow the commit format.
 - **Public repository**: never commit secrets, personal paths or private links.
 - **Before committing**: `gofmt`, `golangci-lint`, `go vet` and `go test -race ./...` pass.
 

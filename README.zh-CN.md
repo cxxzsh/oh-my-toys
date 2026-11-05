@@ -24,4 +24,4 @@ oh-my-toys 正在从零重写。我们正在验证界面框架（[MyGo](https://
 
 ## 参与开发
 
-代码规范和提交格式见 [CONTRIBUTING.zh-CN.md](CONTRIBUTING.zh-CN.md)。
+代码规范和提交格式见 [CONTRIBUTING.md](CONTRIBUTING.md)（英文）。

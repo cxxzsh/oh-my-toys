@@ -1,7 +1,5 @@
 # Contributing to oh-my-toys
 
-English | [简体中文](CONTRIBUTING.zh-CN.md)
-
 These are the rules every change follows, whether a person or a coding agent writes it. When a rule and a shortcut disagree, the rule wins; when a rule is wrong, change this file in its own commit first.
 
 ## 1. Architecture
@@ -102,7 +100,7 @@ Lists longer than 60 items are virtualised. A change that misses a budget needs 
 ## 11. Comments and documentation
 
 - Code comments and identifiers are in English. Every exported identifier has a doc comment that starts with its name.
-- User-facing documentation (README, user guides) is in English and Simplified Chinese, and both are updated in the same commit.
+- Repository documentation is written in English. The one exception is the README, which has an English and a Simplified Chinese version (`README.md`, `README.zh-CN.md`) that change together in the same commit.
 
 ## 12. Commits and pull requests
 
@@ -116,7 +114,11 @@ Lists longer than 60 items are virtualised. A change that misses a budget needs 
 - Pull requests are squash-merged; the PR title becomes the commit message, so it follows the same format.
 - Never force-push to `main`.
 
-## 13. Security
+## 13. CI and releases
+
+Every pull request runs CI; merging to `main` keeps a release PR up to date, and merging that release PR publishes a release for every platform. The details are in [docs/ci-cd.md](docs/ci-cd.md). Because releases and changelogs are generated from commit messages, the commit format in section 12 is enforced on pull request titles.
+
+## 14. Security
 
 This repository is public.
 
