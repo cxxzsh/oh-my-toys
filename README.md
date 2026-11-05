@@ -25,3 +25,7 @@ The app and its documentation come in English and Simplified Chinese.
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for the code conventions and commit format.
+
+## License
+
+[MIT](LICENSE)
