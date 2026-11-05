@@ -86,9 +86,11 @@ Code is read far more often than it is written. Keep it small, plain and obvious
 Every tool provides a manifest and implements one of two contracts.
 
 - **Manifest**: id, name and summary (as i18n keys), category, kind (`switch` or `action`), Lucide icon name, search keywords, quick actions, supported platforms.
+- **Actions**: every action declares a typed `input` and `output` schema, a `risk` (`read`, `write`, `process` or `system`) and whether it is idempotent. The desktop UI, the `omt` flags and `--json` output, and the MCP tools are generated from these declarations, so no action exists in only one front end. See [docs/agents.md](docs/agents.md).
 - **Switch tools** (keep running, like Keep awake): `Start`, `Stop`, `Status`. State lives in the core, not in the tool.
 - **Action tools** (run once, like Batch rename): `Plan` computes what would happen and changes nothing; `Apply` performs exactly what a plan lists and nothing else. The command line shows the plan by default and applies it only with `--apply`.
 - A tool must work without the UI: the CLI and tests call it directly.
+- Actions with risk `write` or `process` never run for an agent without a person's confirmation, and file tools stay inside the allowed folders.
 - Adding a tool never requires a change in the UI or another tool, only a registration line.
 
 ## 7. Errors, context and concurrency

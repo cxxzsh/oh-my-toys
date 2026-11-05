@@ -22,6 +22,10 @@ More tools will follow. The app is designed to hold many of them: search, pinned
 
 The app and its documentation come in English and Simplified Chinese.
 
+## For scripts and AI agents
+
+Every tool is also available from the command line (`omt`, with `--json` output) and, planned, as an MCP server (`omt mcp`) for AI agents, with a preview before any change and a person's confirmation for anything that modifies files or processes. See [docs/agents.md](docs/agents.md).
+
 ## Contributing
 
 Read [CONTRIBUTING.md](CONTRIBUTING.md) for the code conventions and commit format.

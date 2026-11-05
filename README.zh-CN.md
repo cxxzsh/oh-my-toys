@@ -22,6 +22,10 @@ oh-my-toys 正在从零重写。目前正在验证界面框架（[MyGo](https://
 
 应用和文档都提供英文和简体中文。
 
+## 给脚本和 AI 用
+
+每个工具也可以通过命令行 `omt` 使用（支持 `--json` 输出），并计划提供 MCP 服务器（`omt mcp`）给 AI 助手调用。任何修改之前都会先预览，修改文件或结束进程前需要人确认。详见 [docs/agents.md](docs/agents.md)（英文）。
+
 ## 参与开发
 
 代码规范和提交格式见 [CONTRIBUTING.md](CONTRIBUTING.md)（英文）。

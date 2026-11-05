@@ -5,7 +5,7 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing anything; it is the sour
 - **Layers**: entry → UI → core → tools → platform. A layer imports only the layers below it. The UI never names a specific tool; tools never import the UI, the core or each other.
 - **Two programs**: `cmd/oh-my-toys` (desktop, MyGo) and `cmd/omt` (command line) share `internal/core`, `internal/tools` and `internal/platform`.
 - **No cgo**: everything builds with `CGO_ENABLED=0`.
-- **Tools**: a manifest plus either `Start` / `Stop` / `Status` (switch) or `Plan` / `Apply` (action). `Plan` never changes anything.
+- **Tools**: a manifest plus either `Start` / `Stop` / `Status` (switch) or `Plan` / `Apply` (action). `Plan` never changes anything. Every action declares typed `input` / `output` and a `risk`; UI, CLI and MCP are generated from them (see `docs/agents.md`).
 - **i18n**: no user-visible string literals. Add every message to `internal/i18n/en.json` and `zh-Hans.json` in the same commit; use ICU plurals.
 - **Docs**: write repository docs in English. Only the README is bilingual: `README.md` and `README.zh-CN.md` change together.
 - **Commits**: Conventional Commits, `type(scope): summary`, English, imperative, lowercase, no trailing period. Never force-push `main`.
