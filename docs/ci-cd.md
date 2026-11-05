@@ -63,7 +63,7 @@ Until the Apple and Windows signing secrets exist, releases are built unsigned a
 
 ## Repository settings
 
-- `main` is protected: changes arrive through pull requests, CI must pass, and force pushes are blocked.
+- `main` is protected: changes arrive through pull requests, CI must pass, force pushes are blocked and history must be linear (no merge commits).
 - Only squash merging is allowed, so each pull request becomes one Conventional Commit.
 - Branches are deleted after merging.
 - Dependabot opens weekly pull requests for Go modules and GitHub Actions.

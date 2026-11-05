@@ -148,7 +148,8 @@ Lists longer than 60 items are virtualised. A change that misses a budget needs 
 - One logical change per commit. Formatting-only changes go in their own commit.
 - Branches: `<type>/<short-topic>`, such as `feat/tray-panel`.
 - Pull requests are squash-merged; the PR title becomes the commit message, so it follows the same format.
-- Never force-push to `main`.
+- History stays linear: no merge commits anywhere. Update a branch with `git rebase main`, never `git merge`. After a rebase, push a feature branch with `git push --force-with-lease`; this is the only force push allowed, and only on your own feature branch.
+- Never force-push to `main`; branch protection also rejects merge commits there.
 
 ## 14. CI and releases
 
