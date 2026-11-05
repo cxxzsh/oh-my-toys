@@ -17,7 +17,7 @@ Runs on every pull request and on every push to `main`.
 | Job | Runner | What it checks |
 |---|---|---|
 | PR title | ubuntu | The title follows Conventional Commits (it becomes the squash-merge commit message) |
-| Lint | ubuntu | `gofmt`, `goimports`, `go vet`, `golangci-lint` with `depguard` enforcing the layers |
+| Lint | ubuntu | `gofumpt`, `goimports`, `go vet`, and `golangci-lint` with the linters in CONTRIBUTING.md section 4, including `depguard` for the layers |
 | Test | ubuntu, macOS, Windows | `go test -race ./...` on each operating system |
 | Build | ubuntu | `CGO_ENABLED=0` cross-builds of `cmd/omt` and `cmd/oh-my-toys` for darwin, windows and linux on amd64 and arm64 |
 | i18n | ubuntu | Every key in `en.json` exists in `zh-Hans.json`, and the catalogs compile |

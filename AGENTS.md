@@ -11,6 +11,5 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before changing anything; it is the sour
 - **Commits**: Conventional Commits, `type(scope): summary`, English, imperative, lowercase, no trailing period. Never force-push `main`.
 - **CI**: see `docs/ci-cd.md`; pull request titles must follow the commit format.
 - **Public repository**: never commit secrets, personal paths or private links.
-- **Before committing**: `gofmt`, `golangci-lint`, `go vet` and `go test -race ./...` pass.
-
-When the user writes in Chinese, answer in Chinese.
+- **Clean code**: follow section 4 of CONTRIBUTING.md strictly: small functions (≤ 60 lines, nesting ≤ 3), no dead or commented-out code, no `util`/`helpers` packages, no magic values, no `init()`, `//nolint` only with a reason. Clean-ups go in their own commits.
+- **Before committing**: `gofumpt`, `golangci-lint`, `go vet` and `go test -race ./...` pass.
