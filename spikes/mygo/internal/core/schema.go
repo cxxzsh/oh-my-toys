@@ -45,19 +45,24 @@ func JSONSchema(s tool.Schema, msgs i18n.Messages) map[string]any {
 		out["items"] = JSONSchema(*s.Items, msgs)
 	}
 	if s.Type == tool.TypeObject {
-		props, required := map[string]any{}, []string{}
-		for _, p := range s.Properties {
-			props[p.Name] = JSONSchema(p.Schema, msgs)
-			if p.Required {
-				required = append(required, p.Name)
-			}
-		}
+		props, required := objectSchema(s, msgs)
 		out["properties"], out["additionalProperties"] = props, false
 		if len(required) > 0 {
 			out["required"] = required
 		}
 	}
 	return out
+}
+
+func objectSchema(s tool.Schema, msgs i18n.Messages) (map[string]any, []string) {
+	props, required := map[string]any{}, []string{}
+	for _, p := range s.Properties {
+		props[p.Name] = JSONSchema(p.Schema, msgs)
+		if p.Required {
+			required = append(required, p.Name)
+		}
+	}
+	return props, required
 }
 
 // Validate checks an action's declaration: a name, a summary, a known

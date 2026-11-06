@@ -157,5 +157,20 @@
   "schemaChangeTone": "语气",
   "schemaStatusOn": "开启",
   "schemaStatusText": "状态",
-  "schemaStatusDetail": "模式"
+  "schemaStatusDetail": "模式",
+  "cliUsage": "omt [--json] <tool> <action> [--flag value]",
+  "cliUnknownTool": "没有工具“{name}”。",
+  "cliUnknownAction": "“{tool}”没有操作“{action}”。",
+  "cliUnknownFlag": "未知参数“{flag}”。",
+  "cliMissingFlag": "缺少 --{flag}。",
+  "cliBadValue": "“{flag}”不能是“{value}”。",
+  "cliConfirm": "{summary}\n要执行吗？[y/N] ",
+  "cliConfirmRequired": "需要确认。",
+  "cliRefused": "未执行。",
+  "cliPlanMissing": "没有预览 {id}。",
+  "cliPlanExpired": "预览 {id} 已过期，请重新预览。",
+  "cliPlanStale": "预览 {id} 和当前文件不一致，请重新预览。",
+  "cliPlanTool": "预览 {id} 属于 {tool}。",
+  "cliApplyHint": "omt {tool} apply --plan {id}",
+  "cliHolding": "命令结束前一直运行。按 Ctrl+C 停止。"
 }

@@ -2257,3 +2257,215 @@ func SchemaStatusDetail() string { return In(i18n.Locale()).SchemaStatusDetail()
 func (msgs Messages) SchemaStatusDetail() string {
 	return Catalog.Format(msgs.locale, "schemaStatusDetail", nil)
 }
+
+// CliUsage says "omt [--json] <tool> <action> [--flag value]"
+// in the language the app shows.
+//
+// CLI usage line. The command and flags stay in English.
+func CliUsage() string { return In(i18n.Locale()).CliUsage() }
+
+// CliUsage says "omt [--json] <tool> <action> [--flag value]"
+// in the language of msgs.
+//
+// CLI usage line. The command and flags stay in English.
+func (msgs Messages) CliUsage() string {
+	return Catalog.Format(msgs.locale, "cliUsage", nil)
+}
+
+// CliUnknownTool says "No tool “{name}”."
+// in the language the app shows.
+//
+// CLI error: that tool id is not registered.
+func CliUnknownTool(name string) string { return In(i18n.Locale()).CliUnknownTool(name) }
+
+// CliUnknownTool says "No tool “{name}”."
+// in the language of msgs.
+//
+// CLI error: that tool id is not registered.
+func (msgs Messages) CliUnknownTool(name string) string {
+	return Catalog.Format(msgs.locale, "cliUnknownTool", map[string]any{"name": name})
+}
+
+// CliUnknownAction says "“{tool}” has no action “{action}”."
+// in the language the app shows.
+//
+// CLI error: that action is not declared.
+func CliUnknownAction(tool string, action string) string {
+	return In(i18n.Locale()).CliUnknownAction(tool, action)
+}
+
+// CliUnknownAction says "“{tool}” has no action “{action}”."
+// in the language of msgs.
+//
+// CLI error: that action is not declared.
+func (msgs Messages) CliUnknownAction(tool string, action string) string {
+	return Catalog.Format(msgs.locale, "cliUnknownAction", map[string]any{"tool": tool, "action": action})
+}
+
+// CliUnknownFlag says "Unknown flag “{flag}”."
+// in the language the app shows.
+//
+// CLI error: a flag the action does not take.
+func CliUnknownFlag(flag string) string { return In(i18n.Locale()).CliUnknownFlag(flag) }
+
+// CliUnknownFlag says "Unknown flag “{flag}”."
+// in the language of msgs.
+//
+// CLI error: a flag the action does not take.
+func (msgs Messages) CliUnknownFlag(flag string) string {
+	return Catalog.Format(msgs.locale, "cliUnknownFlag", map[string]any{"flag": flag})
+}
+
+// CliMissingFlag says "Missing --{flag}."
+// in the language the app shows.
+//
+// CLI error: a required flag was left out.
+func CliMissingFlag(flag string) string { return In(i18n.Locale()).CliMissingFlag(flag) }
+
+// CliMissingFlag says "Missing --{flag}."
+// in the language of msgs.
+//
+// CLI error: a required flag was left out.
+func (msgs Messages) CliMissingFlag(flag string) string {
+	return Catalog.Format(msgs.locale, "cliMissingFlag", map[string]any{"flag": flag})
+}
+
+// CliBadValue says "“{flag}” cannot be “{value}”."
+// in the language the app shows.
+//
+// CLI error: a flag value is the wrong type or not allowed.
+func CliBadValue(flag string, value string) string { return In(i18n.Locale()).CliBadValue(flag, value) }
+
+// CliBadValue says "“{flag}” cannot be “{value}”."
+// in the language of msgs.
+//
+// CLI error: a flag value is the wrong type or not allowed.
+func (msgs Messages) CliBadValue(flag string, value string) string {
+	return Catalog.Format(msgs.locale, "cliBadValue", map[string]any{"flag": flag, "value": value})
+}
+
+// CliConfirm says "{summary}\nApply? [y/N] "
+// in the language the app shows.
+//
+// CLI prompt before a change. The answer y is not translated.
+func CliConfirm(summary string) string { return In(i18n.Locale()).CliConfirm(summary) }
+
+// CliConfirm says "{summary}\nApply? [y/N] "
+// in the language of msgs.
+//
+// CLI prompt before a change. The answer y is not translated.
+func (msgs Messages) CliConfirm(summary string) string {
+	return Catalog.Format(msgs.locale, "cliConfirm", map[string]any{"summary": summary})
+}
+
+// CliConfirmRequired says "Confirmation required."
+// in the language the app shows.
+//
+// CLI error when a change needs a person and none can be asked.
+func CliConfirmRequired() string { return In(i18n.Locale()).CliConfirmRequired() }
+
+// CliConfirmRequired says "Confirmation required."
+// in the language of msgs.
+//
+// CLI error when a change needs a person and none can be asked.
+func (msgs Messages) CliConfirmRequired() string {
+	return Catalog.Format(msgs.locale, "cliConfirmRequired", nil)
+}
+
+// CliRefused says "Not applied."
+// in the language the app shows.
+//
+// CLI result when a person refuses a change.
+func CliRefused() string { return In(i18n.Locale()).CliRefused() }
+
+// CliRefused says "Not applied."
+// in the language of msgs.
+//
+// CLI result when a person refuses a change.
+func (msgs Messages) CliRefused() string {
+	return Catalog.Format(msgs.locale, "cliRefused", nil)
+}
+
+// CliPlanMissing says "No plan {id}."
+// in the language the app shows.
+//
+// CLI error: that plan id is not stored.
+func CliPlanMissing(id string) string { return In(i18n.Locale()).CliPlanMissing(id) }
+
+// CliPlanMissing says "No plan {id}."
+// in the language of msgs.
+//
+// CLI error: that plan id is not stored.
+func (msgs Messages) CliPlanMissing(id string) string {
+	return Catalog.Format(msgs.locale, "cliPlanMissing", map[string]any{"id": id})
+}
+
+// CliPlanExpired says "Plan {id} has expired. Plan again."
+// in the language the app shows.
+//
+// CLI error: a plan is older than 10 minutes.
+func CliPlanExpired(id string) string { return In(i18n.Locale()).CliPlanExpired(id) }
+
+// CliPlanExpired says "Plan {id} has expired. Plan again."
+// in the language of msgs.
+//
+// CLI error: a plan is older than 10 minutes.
+func (msgs Messages) CliPlanExpired(id string) string {
+	return Catalog.Format(msgs.locale, "cliPlanExpired", map[string]any{"id": id})
+}
+
+// CliPlanStale says "Plan {id} no longer matches. Plan again."
+// in the language the app shows.
+//
+// CLI error: files or processes changed since the plan.
+func CliPlanStale(id string) string { return In(i18n.Locale()).CliPlanStale(id) }
+
+// CliPlanStale says "Plan {id} no longer matches. Plan again."
+// in the language of msgs.
+//
+// CLI error: files or processes changed since the plan.
+func (msgs Messages) CliPlanStale(id string) string {
+	return Catalog.Format(msgs.locale, "cliPlanStale", map[string]any{"id": id})
+}
+
+// CliPlanTool says "Plan {id} belongs to {tool}."
+// in the language the app shows.
+//
+// CLI error: apply was asked of a different tool than planned.
+func CliPlanTool(id string, tool string) string { return In(i18n.Locale()).CliPlanTool(id, tool) }
+
+// CliPlanTool says "Plan {id} belongs to {tool}."
+// in the language of msgs.
+//
+// CLI error: apply was asked of a different tool than planned.
+func (msgs Messages) CliPlanTool(id string, tool string) string {
+	return Catalog.Format(msgs.locale, "cliPlanTool", map[string]any{"id": id, "tool": tool})
+}
+
+// CliApplyHint says "omt {tool} apply --plan {id}"
+// in the language the app shows.
+//
+// CLI hint: the command that applies a plan. The command stays in English.
+func CliApplyHint(tool string, id string) string { return In(i18n.Locale()).CliApplyHint(tool, id) }
+
+// CliApplyHint says "omt {tool} apply --plan {id}"
+// in the language of msgs.
+//
+// CLI hint: the command that applies a plan. The command stays in English.
+func (msgs Messages) CliApplyHint(tool string, id string) string {
+	return Catalog.Format(msgs.locale, "cliApplyHint", map[string]any{"tool": tool, "id": id})
+}
+
+// CliHolding says "Running until this command stops. Press Ctrl+C to stop."
+// in the language the app shows.
+//
+// CLI note while a switch tool runs for the life of the command.
+func CliHolding() string { return In(i18n.Locale()).CliHolding() }
+
+// CliHolding says "Running until this command stops. Press Ctrl+C to stop."
+// in the language of msgs.
+//
+// CLI note while a switch tool runs for the life of the command.
+func (msgs Messages) CliHolding() string {
+	return Catalog.Format(msgs.locale, "cliHolding", nil)
+}

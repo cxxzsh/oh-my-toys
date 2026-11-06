@@ -817,5 +817,132 @@
   "schemaStatusDetail": "Mode",
   "@schemaStatusDetail": {
     "description": "Output field: a switch tool's mode."
+  },
+  "cliUsage": "omt [--json] <tool> <action> [--flag value]",
+  "@cliUsage": {
+    "description": "CLI usage line. The command and flags stay in English."
+  },
+  "cliUnknownTool": "No tool “{name}”.",
+  "@cliUnknownTool": {
+    "description": "CLI error: that tool id is not registered.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "cliUnknownAction": "“{tool}” has no action “{action}”.",
+  "@cliUnknownAction": {
+    "description": "CLI error: that action is not declared.",
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      },
+      "action": {
+        "type": "String"
+      }
+    }
+  },
+  "cliUnknownFlag": "Unknown flag “{flag}”.",
+  "@cliUnknownFlag": {
+    "description": "CLI error: a flag the action does not take.",
+    "placeholders": {
+      "flag": {
+        "type": "String"
+      }
+    }
+  },
+  "cliMissingFlag": "Missing --{flag}.",
+  "@cliMissingFlag": {
+    "description": "CLI error: a required flag was left out.",
+    "placeholders": {
+      "flag": {
+        "type": "String"
+      }
+    }
+  },
+  "cliBadValue": "“{flag}” cannot be “{value}”.",
+  "@cliBadValue": {
+    "description": "CLI error: a flag value is the wrong type or not allowed.",
+    "placeholders": {
+      "flag": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "cliConfirm": "{summary}\nApply? [y/N] ",
+  "@cliConfirm": {
+    "description": "CLI prompt before a change. The answer y is not translated.",
+    "placeholders": {
+      "summary": {
+        "type": "String"
+      }
+    }
+  },
+  "cliConfirmRequired": "Confirmation required.",
+  "@cliConfirmRequired": {
+    "description": "CLI error when a change needs a person and none can be asked."
+  },
+  "cliRefused": "Not applied.",
+  "@cliRefused": {
+    "description": "CLI result when a person refuses a change."
+  },
+  "cliPlanMissing": "No plan {id}.",
+  "@cliPlanMissing": {
+    "description": "CLI error: that plan id is not stored.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "cliPlanExpired": "Plan {id} has expired. Plan again.",
+  "@cliPlanExpired": {
+    "description": "CLI error: a plan is older than 10 minutes.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "cliPlanStale": "Plan {id} no longer matches. Plan again.",
+  "@cliPlanStale": {
+    "description": "CLI error: files or processes changed since the plan.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "cliPlanTool": "Plan {id} belongs to {tool}.",
+  "@cliPlanTool": {
+    "description": "CLI error: apply was asked of a different tool than planned.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "tool": {
+        "type": "String"
+      }
+    }
+  },
+  "cliApplyHint": "omt {tool} apply --plan {id}",
+  "@cliApplyHint": {
+    "description": "CLI hint: the command that applies a plan. The command stays in English.",
+    "placeholders": {
+      "tool": {
+        "type": "String"
+      },
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "cliHolding": "Running until this command stops. Press Ctrl+C to stop.",
+  "@cliHolding": {
+    "description": "CLI note while a switch tool runs for the life of the command."
   }
 }

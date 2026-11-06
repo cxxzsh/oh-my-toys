@@ -46,6 +46,7 @@ func PlanOutput() Schema {
 		{Name: "changes", Schema: Schema{Type: TypeArray, Title: i18n.Messages.SchemaPlanChanges, Items: &change}, Required: true},
 		{Name: "apply_label", Schema: text(i18n.Messages.SchemaPlanApplyLabel)},
 		{Name: "destructive", Schema: Schema{Type: TypeBoolean, Title: i18n.Messages.SchemaPlanDestructive}},
+		{Name: "plan_id", Schema: text(i18n.Messages.SchemaPlanID), Required: true},
 	}}
 }
 

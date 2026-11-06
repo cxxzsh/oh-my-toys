@@ -14,26 +14,41 @@ import (
 // languages, and action and switch tools have the actions they must.
 func TestDeclarations(t *testing.T) {
 	for _, tl := range tools(&core.Events{}, true) {
-		id := tl.Manifest().ID
-		names := map[string]tool.Spec{}
-		for _, s := range tl.Specs() {
-			if err := core.Validate(s); err != nil {
-				t.Errorf("%s: %v", id, err)
-			}
-			if _, dup := names[s.Name]; dup {
-				t.Errorf("%s: action %q twice", id, s.Name)
-			}
-			names[s.Name] = s
-			for _, lang := range core.Languages() {
-				if _, err := json.Marshal(core.JSONSchema(s.Input, i18n.In(lang))); err != nil {
-					t.Errorf("%s %s: %v", id, s.Name, err)
-				}
-				if s.Summary(i18n.In(lang)) == "" {
-					t.Errorf("%s %s: no %s summary", id, s.Name, lang)
-				}
-			}
-		}
-		checkKind(t, tl, names)
+		checkDeclarations(t, tl)
+	}
+}
+
+func checkDeclarations(t *testing.T, tl tool.Tool) {
+	t.Helper()
+	id := tl.Manifest().ID
+	names := map[string]tool.Spec{}
+	for _, s := range tl.Specs() {
+		checkSpec(t, id, s, names)
+		names[s.Name] = s
+	}
+	checkKind(t, tl, names)
+}
+
+func checkSpec(t *testing.T, id string, s tool.Spec, names map[string]tool.Spec) {
+	t.Helper()
+	if err := core.Validate(s); err != nil {
+		t.Errorf("%s: %v", id, err)
+	}
+	if _, dup := names[s.Name]; dup {
+		t.Errorf("%s: action %q twice", id, s.Name)
+	}
+	for _, lang := range core.Languages() {
+		checkSpecLang(t, id, s, lang)
+	}
+}
+
+func checkSpecLang(t *testing.T, id string, s tool.Spec, lang string) {
+	t.Helper()
+	if _, err := json.Marshal(core.JSONSchema(s.Input, i18n.In(lang))); err != nil {
+		t.Errorf("%s %s: %v", id, s.Name, err)
+	}
+	if s.Summary(i18n.In(lang)) == "" {
+		t.Errorf("%s %s: no %s summary", id, s.Name, lang)
 	}
 }
 
