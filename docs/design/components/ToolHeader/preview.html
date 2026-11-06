@@ -1,0 +1,12 @@
+<!-- @dsCard group="工具页" height=110 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>ToolHeader</title></head>
+<body class="omt">
+<div class="pad"><div class="th"><span class="ti l orange"><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /> <path d="M12 2v2" /> <path d="M12 20v2" /> <path d="m4.93 4.93 1.41 1.41" /> <path d="m17.66 17.66 1.41 1.41" /> <path d="M2 12h2" /> <path d="M20 12h2" /> <path d="m6.34 17.66-1.41 1.41" /> <path d="m19.07 4.93-1.41 1.41" /></svg></span><div class="grow"><h1 class="large-title">防睡眠</h1><p class="desc">让电脑保持清醒，不会因为空闲而睡眠。适合下载、编译、演示时使用。</p></div><button class="sw" role="switch" aria-checked="true" aria-label="防睡眠"></button></div></div>
+<script>
+document.querySelectorAll('.sw').forEach(function (s) { s.addEventListener('click', function () { s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); }); });
+document.querySelectorAll('.seg').forEach(function (g) { var bs = g.querySelectorAll('button'); bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b); }); }); }); });
+</script>
+</body>
+</html>

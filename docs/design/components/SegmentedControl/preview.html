@@ -1,0 +1,12 @@
+<!-- @dsCard group="控件" height=110 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>SegmentedControl</title></head>
+<body class="omt">
+<div class="pad stack"><div class="seg" role="group" aria-label="时长"><button aria-pressed="false">不限</button><button aria-pressed="false">30 分钟</button><button aria-pressed="true">1 小时</button><button aria-pressed="false">2 小时</button><button aria-pressed="false">4 小时</button><button aria-pressed="false">8 小时</button></div><div class="seg" role="group" aria-label="分组方式"><button aria-pressed="false">客户端</button><button aria-pressed="true">端口</button><button aria-pressed="false">进程</button></div></div>
+<script>
+document.querySelectorAll('.sw').forEach(function (s) { s.addEventListener('click', function () { s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); }); });
+document.querySelectorAll('.seg').forEach(function (g) { var bs = g.querySelectorAll('button'); bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b); }); }); }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<!-- @dsCard group="控件" height=100 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>Switch</title></head>
+<body class="omt">
+<div class="pad row" style="gap:20px"><button class="sw" role="switch" aria-checked="true" aria-label="开"></button><button class="sw" role="switch" aria-checked="false" aria-label="关"></button><button class="sw sm" role="switch" aria-checked="true" aria-label="小号开"></button><button class="sw sm" role="switch" aria-checked="false" aria-label="小号关"></button><span class="callout muted">点击可切换</span></div>
+<script>
+document.querySelectorAll('.sw').forEach(function (s) { s.addEventListener('click', function () { s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); }); });
+document.querySelectorAll('.seg').forEach(function (g) { var bs = g.querySelectorAll('button'); bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b); }); }); }); });
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!-- @dsCard group="命令行" height=330 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>CliOutput</title></head>
+<body class="omt">
+<div class="pad"><pre class="console"><span class="p">$ </span>omt rename 'IMG_(\d)\.jpeg$' 'holiday_${1}_{n}.jpg' ./photos --width 3
+photos/IMG_1.jpeg -&gt; photos/holiday_1_001.jpg
+photos/IMG_2.jpeg -&gt; photos/holiday_2_002.jpg
+
+<span class="p">2 rename(s) planned (dry-run, nothing changed; pass --apply to execute)</span>
+
+<span class="p">$ </span>omt color '#767676' --contrast white
+contrast with #ffffff: 4.54:1
+  AA  normal text (4.5)  <span class="ok">pass</span>
+  AAA normal text (7.0)  <span class="bad">FAIL</span>
+
+<span class="p">$ </span>omt ports kill 18765
+port 18765 is held by pid 12036 (python.exe)
+Terminate 1 process(es)? [y/N]</pre></div>
+</body>
+</html>

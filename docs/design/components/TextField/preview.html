@@ -1,0 +1,12 @@
+<!-- @dsCard group="控件" height=280 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>TextField</title></head>
+<body class="omt">
+<div class="pad stack" style="max-width:420px">
+<div><label class="label">查找（正则）</label><input class="field mono" value="IMG_(\d+)\.jpeg$"></div>
+<div><label class="label">替换为</label><input class="field mono focus" value="holiday_${1}_{n}.jpg"></div>
+<div><label class="label">自定义时长</label><input class="field error" value="2h3x"><div class="field-msg"><svg class="g sm" viewBox="0 0 24 24" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /> <path d="M12 9v4" /> <path d="M12 17h.01" /></svg>格式不对：请输入 90m、2h30m 这样的时长，或 18:30 这样的时刻</div></div>
+<div class="search"><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" /> <path d="m21 21-4.3-4.3" /></svg><input class="field" placeholder="搜索工具"><span class="kbd">⌘K</span></div></div>
+</body>
+</html>

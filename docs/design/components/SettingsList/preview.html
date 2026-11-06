@@ -1,0 +1,18 @@
+<!-- @dsCard group="工具页" height=250 -->
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>SettingsList</title></head>
+<body class="omt">
+<div class="pad" style="max-width:640px">
+<p class="eyebrow group-title">设置</p>
+<div class="card list">
+<div class="list-row"><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><rect width="20" height="14" x="2" y="3" rx="2" /> <line x1="8" x2="16" y1="21" y2="21" /> <line x1="12" x2="12" y1="17" y2="21" /></svg><div class="grow"><p class="headline">同时保持屏幕常亮</p><p class="desc">屏幕不会因为空闲而自动关闭</p></div><button class="sw" role="switch" aria-checked="false" aria-label="同时保持屏幕常亮"></button></div>
+<div class="list-row"><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v10" /> <path d="M18.4 6.6a9 9 0 1 1-12.77.04" /></svg><div class="grow"><p class="headline">拔掉电源时自动关闭</p><p class="desc">用电池时恢复正常睡眠，省电</p></div><button class="sw" role="switch" aria-checked="true" aria-label="拔掉电源时自动关闭"></button></div>
+<div class="list-row"><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" /></svg><div class="grow"><p class="headline">默认文件夹</p></div><span class="val">~/Downloads</span><svg class="g" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg></div>
+</div></div>
+<script>
+document.querySelectorAll('.sw').forEach(function (s) { s.addEventListener('click', function () { s.setAttribute('aria-checked', s.getAttribute('aria-checked') !== 'true'); }); });
+document.querySelectorAll('.seg').forEach(function (g) { var bs = g.querySelectorAll('button'); bs.forEach(function (b) { b.addEventListener('click', function () { bs.forEach(function (o) { o.setAttribute('aria-pressed', o === b); }); }); }); });
+</script>
+</body>
+</html>
