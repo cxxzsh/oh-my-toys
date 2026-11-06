@@ -1,6 +1,7 @@
 // Command omt runs the same tools as the desktop app from a terminal.
 //
 //	omt [--json] <tool> <action> [--flag value]
+//	omt mcp
 package main
 
 import (
@@ -16,6 +17,7 @@ import (
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
+	"github.com/cxxzsh/oh-my-toys/internal/mcp"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/awake"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/color"
@@ -26,6 +28,10 @@ import (
 
 func main() {
 	args := os.Args[1:]
+	if len(args) > 0 && args[0] == "mcp" {
+		mygoi18n.SetLocaleFunc(func() string { return "" })
+		os.Exit(runMCP())
+	}
 	locale := core.OutputLocale(slices.Contains(args, "--json"), systemLocale())
 	mygoi18n.SetLocaleFunc(func() string { return locale })
 	code := run(args, locale)
@@ -53,6 +59,7 @@ func run(args []string, locale string) int {
 		Out:      os.Stdout,
 		Err:      os.Stderr,
 		Terminal: isTerminal(os.Stdin),
+		Remote:   true,
 	}.Run(ctx, args)
 }
 
@@ -73,4 +80,19 @@ func planDir() (string, error) {
 		return "", err
 	}
 	return filepath.Join(cache, "oh-my-toys", "plans"), nil
+}
+
+func runMCP() int {
+	reg, err := core.NewRegistry(tools()...)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return core.ExitError
+	}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	if err := (mcp.Server{Registry: reg}).Run(ctx); err != nil && ctx.Err() == nil {
+		fmt.Fprintln(os.Stderr, err)
+		return core.ExitError
+	}
+	return core.ExitOK
 }

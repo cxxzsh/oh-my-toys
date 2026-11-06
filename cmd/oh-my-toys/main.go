@@ -5,6 +5,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -97,6 +98,8 @@ func main() {
 		OnFirstFrame:  firstFrame(f.exitAfterFirstFrame),
 	})
 	mygo.App.OnSecondInstance(func([]string, string) { app.Post(app.ShowMain) })
+	ipcCtx, stopIPC := context.WithCancel(context.Background())
+	go serveIPC(ipcCtx, reg)
 	mygo.App.WhenReady(app.Start)
 	switch {
 	case f.update && portable:
@@ -106,7 +109,9 @@ func main() {
 	case f.update:
 		mygo.App.WhenReady(func() { go selfUpdate() })
 	}
-	if err := mygo.App.Run(); err != nil {
+	err = mygo.App.Run()
+	stopIPC()
+	if err != nil {
 		log.Fatal(err)
 	}
 }
@@ -151,4 +156,15 @@ func dataDir() string {
 		return os.TempDir()
 	}
 	return dir
+}
+
+func serveIPC(ctx context.Context, reg *core.Registry) {
+	ln, err := core.ListenSwitch(ctx)
+	if err != nil {
+		log.Printf("ipc: %v", err)
+		return
+	}
+	if err := core.ServeSwitch(ctx, reg, ln); err != nil && ctx.Err() == nil {
+		log.Printf("ipc: %v", err)
+	}
 }

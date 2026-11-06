@@ -24,7 +24,7 @@ The app and its documentation come in English and Simplified Chinese.
 
 ## For scripts and AI agents
 
-Every tool is also available from the command line (`omt`, with `--json` output) and, planned, as an MCP server (`omt mcp`) for AI agents, with a preview before any change and a person's confirmation for anything that modifies files or processes. See [docs/agents.md](docs/agents.md).
+Every tool is also available from the command line (`omt`, with `--json` output) and as an MCP server (`omt mcp`) for AI agents. `omt mcp` exposes read actions and switch tools. Actions that change files or end processes are not exposed yet. See [docs/agents.md](docs/agents.md).
 
 ## Contributing
 

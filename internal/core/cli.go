@@ -39,6 +39,7 @@ type CLI struct {
 	Err      io.Writer
 	JSON     bool
 	Terminal bool // a person can answer a prompt
+	Remote   bool // ask the running desktop app before running a switch locally
 }
 
 // Run parses args, with the leading program name already removed, and
@@ -160,6 +161,14 @@ func (c CLI) confirmFail() int {
 }
 
 func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string) int {
+	if c.Remote {
+		if st, err := c.askApp(ctx, sw.Manifest().ID, action); err == nil {
+			c.printStatus(st)
+			return ExitOK
+		} else if !errors.Is(err, ErrNoApp) {
+			return c.fail(err)
+		}
+	}
 	switch action {
 	case tool.ActionStart:
 		return c.hold(ctx, sw)
@@ -170,6 +179,14 @@ func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string) int {
 	}
 	c.printStatus(sw.Status())
 	return ExitOK
+}
+
+func (c CLI) askApp(ctx context.Context, id, action string) (tool.Status, error) {
+	network, address, err := dialSwitch()
+	if err != nil {
+		return tool.Status{}, fmt.Errorf("%w: %w", ErrNoApp, err)
+	}
+	return CallSwitch(ctx, network, address, id, action)
 }
 
 // hold runs a switch tool until ctx ends, then stops it. Without the
