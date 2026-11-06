@@ -79,6 +79,16 @@ type Fake struct {
 // Manifest describes the tool.
 func (f *Fake) Manifest() tool.Manifest { return f.manifest }
 
+// Specs declares a plan that changes nothing.
+func (f *Fake) Specs() []tool.Spec {
+	return []tool.Spec{tool.PlanSpec(f.manifest.Summary, tool.NoInput())}
+}
+
+// Specs declares start, stop and status.
+func (f *FakeSwitch) Specs() []tool.Spec {
+	return tool.SwitchSpecs(f.manifest.Summary, f.manifest.Summary, f.manifest.Summary)
+}
+
 // FakeSwitch is a made-up switch tool.
 type FakeSwitch struct {
 	Fake

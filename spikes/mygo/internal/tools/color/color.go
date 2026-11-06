@@ -58,9 +58,17 @@ func (*Tool) Manifest() tool.Manifest {
 	}
 }
 
-// Fields asks for a color.
-func (*Tool) Fields() []tool.Field {
-	return []tool.Field{{ID: fieldColor, Label: i18n.Messages.ColorField, Placeholder: i18n.Messages.ColorFieldHint}}
+// Specs declares the tool's one action: a plan that shows a color in
+// every format, which reads its input and changes nothing. There is
+// nothing to apply.
+func (*Tool) Specs() []tool.Spec {
+	return []tool.Spec{
+		tool.PlanSpec(i18n.Messages.ColorPlanSummary, tool.Schema{Type: tool.TypeObject, Properties: []tool.Property{{
+			Name:     fieldColor,
+			Schema:   tool.Schema{Type: tool.TypeString, Title: i18n.Messages.ColorField, Hint: i18n.Messages.ColorFieldHint},
+			Required: true,
+		}}}),
+	}
 }
 
 // Plan shows the color in every format and its contrast; it changes

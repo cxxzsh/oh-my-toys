@@ -46,9 +46,20 @@ func (*Tool) Manifest() tool.Manifest {
 	}
 }
 
-// Fields asks for a port; empty lists every listening port.
-func (*Tool) Fields() []tool.Field {
-	return []tool.Field{{ID: fieldPort, Label: i18n.Messages.PortsField, Placeholder: i18n.Messages.PortsFieldHint}}
+// Specs declares the tool's actions: a plan that lists the listeners of
+// every port, or of one, and changes nothing; and an apply that ends the
+// processes on that port.
+func (*Tool) Specs() []tool.Spec {
+	port := tool.Schema{
+		Type: tool.TypeInteger, Title: i18n.Messages.PortsField, Hint: i18n.Messages.PortsFieldHint,
+		Minimum: tool.Bounds(1), Maximum: tool.Bounds(maxPort),
+	}
+	return []tool.Spec{
+		tool.PlanSpec(i18n.Messages.PortsPlanSummary, tool.Schema{
+			Type: tool.TypeObject, Properties: []tool.Property{{Name: fieldPort, Schema: port}},
+		}),
+		tool.ApplySpec(i18n.Messages.PortsApplySummary, tool.RiskProcess),
+	}
 }
 
 // Plan lists the listeners, of one port when the field names one. With a

@@ -50,12 +50,21 @@ func (*Tool) Manifest() tool.Manifest {
 	}
 }
 
-// Fields asks for a folder, the text to find and its replacement.
-func (*Tool) Fields() []tool.Field {
-	return []tool.Field{
-		{ID: fieldFolder, Label: i18n.Messages.FieldFolder, Placeholder: i18n.Messages.FieldFolderHint, Kind: tool.FieldFolder},
-		{ID: fieldFind, Label: i18n.Messages.RenameFind, Placeholder: i18n.Messages.RenameFindHint},
-		{ID: fieldReplace, Label: i18n.Messages.RenameReplace, Placeholder: i18n.Messages.RenameReplaceHint},
+// Specs declares the tool's actions: a plan that lists the new names and
+// changes nothing, and an apply that renames the files it lists.
+func (*Tool) Specs() []tool.Spec {
+	str := func(title, hint tool.Message) tool.Schema {
+		return tool.Schema{Type: tool.TypeString, Title: title, Hint: hint}
+	}
+	folder := str(i18n.Messages.FieldFolder, i18n.Messages.FieldFolderHint)
+	folder.Format = tool.FormatPath
+	return []tool.Spec{
+		tool.PlanSpec(i18n.Messages.RenamePlanSummary, tool.Schema{Type: tool.TypeObject, Properties: []tool.Property{
+			{Name: fieldFolder, Schema: folder, Required: true},
+			{Name: fieldFind, Schema: str(i18n.Messages.RenameFind, i18n.Messages.RenameFindHint), Required: true},
+			{Name: fieldReplace, Schema: str(i18n.Messages.RenameReplace, i18n.Messages.RenameReplaceHint)},
+		}}),
+		tool.ApplySpec(i18n.Messages.RenameApplySummary, tool.RiskWrite),
 	}
 }
 

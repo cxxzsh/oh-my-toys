@@ -11,6 +11,8 @@ type fake struct{ m tool.Manifest }
 
 func (f fake) Manifest() tool.Manifest { return f.m }
 
+func (f fake) Specs() []tool.Spec { return nil }
+
 func named(en, zh string) tool.Message {
 	return func(m i18n.Messages) string {
 		if m == i18n.In("zh-Hans") {

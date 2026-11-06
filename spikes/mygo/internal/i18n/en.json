@@ -667,10 +667,6 @@
   "@themeDark": {
     "description": "Theme choice."
   },
-  "toolApply": "Apply",
-  "@toolApply": {
-    "description": "Generic apply button."
-  },
   "toolFailed": "{name} ran into a problem. Other tools aren’t affected.",
   "@toolFailed": {
     "description": "Failed tool page.",
@@ -729,5 +725,97 @@
   "working": "Working…",
   "@working": {
     "description": "While a tool works."
+  },
+  "awakeStartSummary": "Keeps the computer awake with the settings used last",
+  "@awakeStartSummary": {
+    "description": "Summary of the start action, for the command line and agents."
+  },
+  "awakeStopSummary": "Lets the computer sleep again",
+  "@awakeStopSummary": {
+    "description": "Summary of the stop action."
+  },
+  "awakeStatusSummary": "Tells whether the computer is kept awake, and for how long",
+  "@awakeStatusSummary": {
+    "description": "Summary of the status action."
+  },
+  "portsPlanSummary": "Lists the processes listening on TCP ports, or on one port",
+  "@portsPlanSummary": {
+    "description": "Summary of the plan action."
+  },
+  "portsApplySummary": "Ends the processes a plan found on a port",
+  "@portsApplySummary": {
+    "description": "Summary of the apply action."
+  },
+  "colorPlanSummary": "Shows a color as HEX, RGB and HSL, with its contrast on white and black",
+  "@colorPlanSummary": {
+    "description": "Summary of the plan action."
+  },
+  "renamePlanSummary": "Lists the files of a folder whose names contain a text, with their new names",
+  "@renamePlanSummary": {
+    "description": "Summary of the plan action."
+  },
+  "renameApplySummary": "Renames the files a plan lists",
+  "@renameApplySummary": {
+    "description": "Summary of the apply action."
+  },
+  "dupesPlanSummary": "Finds files with the same content under a folder",
+  "@dupesPlanSummary": {
+    "description": "Summary of the plan action."
+  },
+  "dupesApplySummary": "Moves the extra copies a plan found to the Trash",
+  "@dupesApplySummary": {
+    "description": "Summary of the apply action."
+  },
+  "schemaPlanSummary": "Summary",
+  "@schemaPlanSummary": {
+    "description": "Output field: a plan's summary."
+  },
+  "schemaPlanChanges": "Changes",
+  "@schemaPlanChanges": {
+    "description": "Output field: what a plan would change."
+  },
+  "schemaPlanApplyLabel": "Apply label",
+  "@schemaPlanApplyLabel": {
+    "description": "Output field: what applying the plan does, as a button says it."
+  },
+  "schemaPlanDestructive": "Destructive",
+  "@schemaPlanDestructive": {
+    "description": "Output field: whether applying removes or ends something."
+  },
+  "schemaPlanID": "Plan ID",
+  "@schemaPlanID": {
+    "description": "Input field: the plan to apply."
+  },
+  "schemaApplySummary": "Result",
+  "@schemaApplySummary": {
+    "description": "Output field: what applying did."
+  },
+  "schemaChangeTitle": "Title",
+  "@schemaChangeTitle": {
+    "description": "Output field of a change."
+  },
+  "schemaChangeDetail": "Detail",
+  "@schemaChangeDetail": {
+    "description": "Output field of a change."
+  },
+  "schemaChangeValue": "Value",
+  "@schemaChangeValue": {
+    "description": "Output field of a change: what copying it copies."
+  },
+  "schemaChangeTone": "Tone",
+  "@schemaChangeTone": {
+    "description": "Output field of a change: normal, success, warning or danger."
+  },
+  "schemaStatusOn": "On",
+  "@schemaStatusOn": {
+    "description": "Output field: whether a switch tool runs."
+  },
+  "schemaStatusText": "Status",
+  "@schemaStatusText": {
+    "description": "Output field: a switch tool's status."
+  },
+  "schemaStatusDetail": "Mode",
+  "@schemaStatusDetail": {
+    "description": "Output field: a switch tool's mode."
   }
 }

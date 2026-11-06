@@ -1806,20 +1806,6 @@ func (msgs Messages) ThemeDark() string {
 	return Catalog.Format(msgs.locale, "themeDark", nil)
 }
 
-// ToolApply says "Apply"
-// in the language the app shows.
-//
-// Generic apply button.
-func ToolApply() string { return In(i18n.Locale()).ToolApply() }
-
-// ToolApply says "Apply"
-// in the language of msgs.
-//
-// Generic apply button.
-func (msgs Messages) ToolApply() string {
-	return Catalog.Format(msgs.locale, "toolApply", nil)
-}
-
 // ToolFailed says "{name} ran into a problem. Other tools aren’t affected."
 // in the language the app shows.
 //
@@ -1948,4 +1934,326 @@ func Working() string { return In(i18n.Locale()).Working() }
 // While a tool works.
 func (msgs Messages) Working() string {
 	return Catalog.Format(msgs.locale, "working", nil)
+}
+
+// AwakeStartSummary says "Keeps the computer awake with the settings used last"
+// in the language the app shows.
+//
+// Summary of the start action, for the command line and agents.
+func AwakeStartSummary() string { return In(i18n.Locale()).AwakeStartSummary() }
+
+// AwakeStartSummary says "Keeps the computer awake with the settings used last"
+// in the language of msgs.
+//
+// Summary of the start action, for the command line and agents.
+func (msgs Messages) AwakeStartSummary() string {
+	return Catalog.Format(msgs.locale, "awakeStartSummary", nil)
+}
+
+// AwakeStopSummary says "Lets the computer sleep again"
+// in the language the app shows.
+//
+// Summary of the stop action.
+func AwakeStopSummary() string { return In(i18n.Locale()).AwakeStopSummary() }
+
+// AwakeStopSummary says "Lets the computer sleep again"
+// in the language of msgs.
+//
+// Summary of the stop action.
+func (msgs Messages) AwakeStopSummary() string {
+	return Catalog.Format(msgs.locale, "awakeStopSummary", nil)
+}
+
+// AwakeStatusSummary says "Tells whether the computer is kept awake, and for how long"
+// in the language the app shows.
+//
+// Summary of the status action.
+func AwakeStatusSummary() string { return In(i18n.Locale()).AwakeStatusSummary() }
+
+// AwakeStatusSummary says "Tells whether the computer is kept awake, and for how long"
+// in the language of msgs.
+//
+// Summary of the status action.
+func (msgs Messages) AwakeStatusSummary() string {
+	return Catalog.Format(msgs.locale, "awakeStatusSummary", nil)
+}
+
+// PortsPlanSummary says "Lists the processes listening on TCP ports, or on one port"
+// in the language the app shows.
+//
+// Summary of the plan action.
+func PortsPlanSummary() string { return In(i18n.Locale()).PortsPlanSummary() }
+
+// PortsPlanSummary says "Lists the processes listening on TCP ports, or on one port"
+// in the language of msgs.
+//
+// Summary of the plan action.
+func (msgs Messages) PortsPlanSummary() string {
+	return Catalog.Format(msgs.locale, "portsPlanSummary", nil)
+}
+
+// PortsApplySummary says "Ends the processes a plan found on a port"
+// in the language the app shows.
+//
+// Summary of the apply action.
+func PortsApplySummary() string { return In(i18n.Locale()).PortsApplySummary() }
+
+// PortsApplySummary says "Ends the processes a plan found on a port"
+// in the language of msgs.
+//
+// Summary of the apply action.
+func (msgs Messages) PortsApplySummary() string {
+	return Catalog.Format(msgs.locale, "portsApplySummary", nil)
+}
+
+// ColorPlanSummary says "Shows a color as HEX, RGB and HSL, with its contrast on white and black"
+// in the language the app shows.
+//
+// Summary of the plan action.
+func ColorPlanSummary() string { return In(i18n.Locale()).ColorPlanSummary() }
+
+// ColorPlanSummary says "Shows a color as HEX, RGB and HSL, with its contrast on white and black"
+// in the language of msgs.
+//
+// Summary of the plan action.
+func (msgs Messages) ColorPlanSummary() string {
+	return Catalog.Format(msgs.locale, "colorPlanSummary", nil)
+}
+
+// RenamePlanSummary says "Lists the files of a folder whose names contain a text, with their new names"
+// in the language the app shows.
+//
+// Summary of the plan action.
+func RenamePlanSummary() string { return In(i18n.Locale()).RenamePlanSummary() }
+
+// RenamePlanSummary says "Lists the files of a folder whose names contain a text, with their new names"
+// in the language of msgs.
+//
+// Summary of the plan action.
+func (msgs Messages) RenamePlanSummary() string {
+	return Catalog.Format(msgs.locale, "renamePlanSummary", nil)
+}
+
+// RenameApplySummary says "Renames the files a plan lists"
+// in the language the app shows.
+//
+// Summary of the apply action.
+func RenameApplySummary() string { return In(i18n.Locale()).RenameApplySummary() }
+
+// RenameApplySummary says "Renames the files a plan lists"
+// in the language of msgs.
+//
+// Summary of the apply action.
+func (msgs Messages) RenameApplySummary() string {
+	return Catalog.Format(msgs.locale, "renameApplySummary", nil)
+}
+
+// DupesPlanSummary says "Finds files with the same content under a folder"
+// in the language the app shows.
+//
+// Summary of the plan action.
+func DupesPlanSummary() string { return In(i18n.Locale()).DupesPlanSummary() }
+
+// DupesPlanSummary says "Finds files with the same content under a folder"
+// in the language of msgs.
+//
+// Summary of the plan action.
+func (msgs Messages) DupesPlanSummary() string {
+	return Catalog.Format(msgs.locale, "dupesPlanSummary", nil)
+}
+
+// DupesApplySummary says "Moves the extra copies a plan found to the Trash"
+// in the language the app shows.
+//
+// Summary of the apply action.
+func DupesApplySummary() string { return In(i18n.Locale()).DupesApplySummary() }
+
+// DupesApplySummary says "Moves the extra copies a plan found to the Trash"
+// in the language of msgs.
+//
+// Summary of the apply action.
+func (msgs Messages) DupesApplySummary() string {
+	return Catalog.Format(msgs.locale, "dupesApplySummary", nil)
+}
+
+// SchemaPlanSummary says "Summary"
+// in the language the app shows.
+//
+// Output field: a plan's summary.
+func SchemaPlanSummary() string { return In(i18n.Locale()).SchemaPlanSummary() }
+
+// SchemaPlanSummary says "Summary"
+// in the language of msgs.
+//
+// Output field: a plan's summary.
+func (msgs Messages) SchemaPlanSummary() string {
+	return Catalog.Format(msgs.locale, "schemaPlanSummary", nil)
+}
+
+// SchemaPlanChanges says "Changes"
+// in the language the app shows.
+//
+// Output field: what a plan would change.
+func SchemaPlanChanges() string { return In(i18n.Locale()).SchemaPlanChanges() }
+
+// SchemaPlanChanges says "Changes"
+// in the language of msgs.
+//
+// Output field: what a plan would change.
+func (msgs Messages) SchemaPlanChanges() string {
+	return Catalog.Format(msgs.locale, "schemaPlanChanges", nil)
+}
+
+// SchemaPlanApplyLabel says "Apply label"
+// in the language the app shows.
+//
+// Output field: what applying the plan does, as a button says it.
+func SchemaPlanApplyLabel() string { return In(i18n.Locale()).SchemaPlanApplyLabel() }
+
+// SchemaPlanApplyLabel says "Apply label"
+// in the language of msgs.
+//
+// Output field: what applying the plan does, as a button says it.
+func (msgs Messages) SchemaPlanApplyLabel() string {
+	return Catalog.Format(msgs.locale, "schemaPlanApplyLabel", nil)
+}
+
+// SchemaPlanDestructive says "Destructive"
+// in the language the app shows.
+//
+// Output field: whether applying removes or ends something.
+func SchemaPlanDestructive() string { return In(i18n.Locale()).SchemaPlanDestructive() }
+
+// SchemaPlanDestructive says "Destructive"
+// in the language of msgs.
+//
+// Output field: whether applying removes or ends something.
+func (msgs Messages) SchemaPlanDestructive() string {
+	return Catalog.Format(msgs.locale, "schemaPlanDestructive", nil)
+}
+
+// SchemaPlanID says "Plan ID"
+// in the language the app shows.
+//
+// Input field: the plan to apply.
+func SchemaPlanID() string { return In(i18n.Locale()).SchemaPlanID() }
+
+// SchemaPlanID says "Plan ID"
+// in the language of msgs.
+//
+// Input field: the plan to apply.
+func (msgs Messages) SchemaPlanID() string {
+	return Catalog.Format(msgs.locale, "schemaPlanID", nil)
+}
+
+// SchemaApplySummary says "Result"
+// in the language the app shows.
+//
+// Output field: what applying did.
+func SchemaApplySummary() string { return In(i18n.Locale()).SchemaApplySummary() }
+
+// SchemaApplySummary says "Result"
+// in the language of msgs.
+//
+// Output field: what applying did.
+func (msgs Messages) SchemaApplySummary() string {
+	return Catalog.Format(msgs.locale, "schemaApplySummary", nil)
+}
+
+// SchemaChangeTitle says "Title"
+// in the language the app shows.
+//
+// Output field of a change.
+func SchemaChangeTitle() string { return In(i18n.Locale()).SchemaChangeTitle() }
+
+// SchemaChangeTitle says "Title"
+// in the language of msgs.
+//
+// Output field of a change.
+func (msgs Messages) SchemaChangeTitle() string {
+	return Catalog.Format(msgs.locale, "schemaChangeTitle", nil)
+}
+
+// SchemaChangeDetail says "Detail"
+// in the language the app shows.
+//
+// Output field of a change.
+func SchemaChangeDetail() string { return In(i18n.Locale()).SchemaChangeDetail() }
+
+// SchemaChangeDetail says "Detail"
+// in the language of msgs.
+//
+// Output field of a change.
+func (msgs Messages) SchemaChangeDetail() string {
+	return Catalog.Format(msgs.locale, "schemaChangeDetail", nil)
+}
+
+// SchemaChangeValue says "Value"
+// in the language the app shows.
+//
+// Output field of a change: what copying it copies.
+func SchemaChangeValue() string { return In(i18n.Locale()).SchemaChangeValue() }
+
+// SchemaChangeValue says "Value"
+// in the language of msgs.
+//
+// Output field of a change: what copying it copies.
+func (msgs Messages) SchemaChangeValue() string {
+	return Catalog.Format(msgs.locale, "schemaChangeValue", nil)
+}
+
+// SchemaChangeTone says "Tone"
+// in the language the app shows.
+//
+// Output field of a change: normal, success, warning or danger.
+func SchemaChangeTone() string { return In(i18n.Locale()).SchemaChangeTone() }
+
+// SchemaChangeTone says "Tone"
+// in the language of msgs.
+//
+// Output field of a change: normal, success, warning or danger.
+func (msgs Messages) SchemaChangeTone() string {
+	return Catalog.Format(msgs.locale, "schemaChangeTone", nil)
+}
+
+// SchemaStatusOn says "On"
+// in the language the app shows.
+//
+// Output field: whether a switch tool runs.
+func SchemaStatusOn() string { return In(i18n.Locale()).SchemaStatusOn() }
+
+// SchemaStatusOn says "On"
+// in the language of msgs.
+//
+// Output field: whether a switch tool runs.
+func (msgs Messages) SchemaStatusOn() string {
+	return Catalog.Format(msgs.locale, "schemaStatusOn", nil)
+}
+
+// SchemaStatusText says "Status"
+// in the language the app shows.
+//
+// Output field: a switch tool's status.
+func SchemaStatusText() string { return In(i18n.Locale()).SchemaStatusText() }
+
+// SchemaStatusText says "Status"
+// in the language of msgs.
+//
+// Output field: a switch tool's status.
+func (msgs Messages) SchemaStatusText() string {
+	return Catalog.Format(msgs.locale, "schemaStatusText", nil)
+}
+
+// SchemaStatusDetail says "Mode"
+// in the language the app shows.
+//
+// Output field: a switch tool's mode.
+func SchemaStatusDetail() string { return In(i18n.Locale()).SchemaStatusDetail() }
+
+// SchemaStatusDetail says "Mode"
+// in the language of msgs.
+//
+// Output field: a switch tool's mode.
+func (msgs Messages) SchemaStatusDetail() string {
+	return Catalog.Format(msgs.locale, "schemaStatusDetail", nil)
 }

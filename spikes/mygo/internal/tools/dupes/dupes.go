@@ -51,9 +51,19 @@ func (*Tool) Manifest() tool.Manifest {
 	}
 }
 
-// Fields asks for a folder.
-func (*Tool) Fields() []tool.Field {
-	return []tool.Field{{ID: fieldFolder, Label: i18n.Messages.FieldFolder, Placeholder: i18n.Messages.FieldFolderHint, Kind: tool.FieldFolder}}
+// Specs declares the tool's actions: a plan that finds the duplicates and
+// changes nothing, and an apply that moves the extra copies to the Trash.
+func (*Tool) Specs() []tool.Spec {
+	folder := tool.Schema{
+		Type: tool.TypeString, Format: tool.FormatPath,
+		Title: i18n.Messages.FieldFolder, Hint: i18n.Messages.FieldFolderHint,
+	}
+	return []tool.Spec{
+		tool.PlanSpec(i18n.Messages.DupesPlanSummary, tool.Schema{
+			Type: tool.TypeObject, Properties: []tool.Property{{Name: fieldFolder, Schema: folder, Required: true}},
+		}),
+		tool.ApplySpec(i18n.Messages.DupesApplySummary, tool.RiskWrite),
+	}
 }
 
 // Plan finds the groups of identical files under the folder: files of the

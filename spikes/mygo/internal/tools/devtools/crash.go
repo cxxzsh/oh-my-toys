@@ -35,9 +35,14 @@ func (Crash) Manifest() tool.Manifest {
 	}
 }
 
-// Fields asks where to fail.
-func (Crash) Fields() []tool.Field {
-	return []tool.Field{{ID: fieldWhere, Label: named("Where", "在哪里出错"), Placeholder: named("plan", "plan")}}
+// Specs declares the crash test's one action, a plan.
+func (Crash) Specs() []tool.Spec {
+	return []tool.Spec{tool.PlanSpec(named("Fails on purpose", "故意出错"), tool.Schema{
+		Type: tool.TypeObject, Properties: []tool.Property{{
+			Name:   fieldWhere,
+			Schema: tool.Schema{Type: tool.TypeString, Title: named("Where", "在哪里出错"), Hint: named("plan", "plan")},
+		}},
+	})}
 }
 
 // Plan panics when asked to.
@@ -45,7 +50,7 @@ func (Crash) Plan(_ context.Context, in tool.Input) (tool.Plan, error) {
 	if in[fieldWhere] == "plan" {
 		panic("crash test: Plan panicked")
 	}
-	return tool.Plan{Summary: i18n.StatusOn(), ApplyLabel: i18n.ToolApply()}, nil
+	return tool.Plan{Summary: i18n.StatusOn()}, nil
 }
 
 // Apply always fails.

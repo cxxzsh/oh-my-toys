@@ -10,6 +10,7 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"github.com/cxxzsh/oh-my-toys/spikes/mygo/internal/core"
 	"github.com/cxxzsh/oh-my-toys/spikes/mygo/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/spikes/mygo/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/spikes/mygo/internal/ui/comp"
@@ -60,8 +61,14 @@ func (a *App) actionPage(c *ui.Context, t tool.Action) {
 	})
 }
 
+// fields draws the form of the tool's plan, generated from the input
+// schema it declares.
 func (a *App) fields(c *ui.Context, t tool.Action, s *actionState) {
-	fs := t.Fields()
+	spec, ok := core.SpecOf(t, tool.ActionPlan)
+	if !ok {
+		return
+	}
+	fs := core.Form(spec, msgs())
 	if len(fs) == 0 {
 		return
 	}
@@ -72,32 +79,34 @@ func (a *App) fields(c *ui.Context, t tool.Action, s *actionState) {
 	})
 }
 
-func (a *App) field(c *ui.Context, t tool.Action, s *actionState, f tool.Field) {
+// field draws one field of the form: a folder chooser for a path, a text
+// field for anything else, numbers included, which the tool checks.
+func (a *App) field(c *ui.Context, t tool.Action, s *actionState, f core.Field) {
 	p := ds.P(c)
-	v, ok := s.inputs[f.ID]
+	v, ok := s.inputs[f.Name]
 	if !ok {
 		v = new(string)
-		s.inputs[f.ID] = v
+		s.inputs[f.Name] = v
 	}
-	ui.Row(c.Key(f.ID)).FillWidth().Gap(ds.Space3).AlignItems(ui.Center).Children(func() {
-		comp.Text(c, f.Label(msgs()), ds.Headline, p.TextPrimary).Width(ds.FieldLabelWidth)
-		if f.Kind == tool.FieldFolder {
+	ui.Row(c.Key(f.Name)).FillWidth().Gap(ds.Space3).AlignItems(ui.Center).Children(func() {
+		comp.Text(c, f.Label, ds.Headline, p.TextPrimary).Width(ds.FieldLabelWidth)
+		if f.Kind == core.FieldPath {
 			a.folderField(c, t, s, f, v)
 			return
 		}
-		in := comp.Field(c, v, f.Placeholder(msgs())).Grow(1)
+		in := comp.Field(c, v, f.Hint).Grow(1)
 		if in.Changed() {
-			s.input[f.ID] = *v
+			s.input[f.Name] = *v
 			a.replan(context.Background(), t, s)
 		}
 	})
 }
 
-func (a *App) folderField(c *ui.Context, t tool.Action, s *actionState, f tool.Field, v *string) {
+func (a *App) folderField(c *ui.Context, t tool.Action, s *actionState, f core.Field, v *string) {
 	p := ds.P(c)
 	shown, color := *v, p.TextPrimary
 	if shown == "" {
-		shown, color = f.Placeholder(msgs()), p.TextTertiary
+		shown, color = f.Hint, p.TextTertiary
 	}
 	comp.Text(c, shown, ds.Body, color).Grow(1).SingleLine().Ellipsis("…")
 	if !comp.Button(c, i18n.ChooseFolder(), comp.Secondary).Clicked() {
@@ -110,7 +119,7 @@ func (a *App) folderField(c *ui.Context, t tool.Action, s *actionState, f tool.F
 		}
 		a.Post(func() {
 			*v = paths[0]
-			s.input[f.ID] = paths[0]
+			s.input[f.Name] = paths[0]
 			a.replan(context.Background(), t, s)
 		})
 	}()

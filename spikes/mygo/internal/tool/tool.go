@@ -69,9 +69,12 @@ type Manifest struct {
 	Soon      bool // listed, but not usable yet
 }
 
-// Tool is anything with a manifest.
+// Tool is anything with a manifest and declared actions.
 type Tool interface {
 	Manifest() Manifest
+	// Specs declares the tool's actions; every front end is generated
+	// from them (docs/agents.md section 1).
+	Specs() []Spec
 }
 
 // Status is what a switch tool reports.
@@ -90,32 +93,15 @@ type Switch interface {
 }
 
 // Action is a tool that runs once: Plan works out what would happen and
-// changes nothing; Apply does exactly what a plan lists.
+// changes nothing; Apply does exactly what a plan lists. The input of Plan
+// is described by the input schema of its "plan" spec.
 type Action interface {
 	Tool
-	Fields() []Field
 	Plan(ctx context.Context, in Input) (Plan, error)
 	Apply(ctx context.Context, p Plan) (Result, error)
 }
 
-// FieldKind says how the UI asks for a field.
-type FieldKind int
-
-// The kinds of fields.
-const (
-	FieldText FieldKind = iota
-	FieldFolder
-)
-
-// Field is an input an action tool asks for.
-type Field struct {
-	ID          string
-	Label       Message
-	Placeholder Message
-	Kind        FieldKind
-}
-
-// Input holds the values of an action tool's fields, by field ID.
+// Input holds the values of a plan's input, by property name.
 type Input map[string]string
 
 // Tone colors a row of a plan.
