@@ -1,0 +1,114 @@
+# Lint setup of CONTRIBUTING.md section 4.
+version: "2"
+
+linters:
+  default: none
+  enable:
+    # correctness
+    - errcheck
+    - govet
+    - staticcheck
+    - ineffassign
+    - bodyclose
+    - contextcheck
+    - noctx
+    - errorlint
+    - exhaustive
+    # dead code
+    - unused
+    - unparam
+    # size and complexity
+    - funlen
+    - gocognit
+    - cyclop
+    - nestif
+    # duplication
+    - dupl
+    - goconst
+    # style
+    - revive
+    - gocritic
+    - nakedret
+    - misspell
+    - predeclared
+    - prealloc
+    # layers
+    - depguard
+    # security
+    - gosec
+    # a //nolint names its linter and says why
+    - nolintlint
+  settings:
+    funlen:
+      lines: 60
+      statements: 40
+    gocognit:
+      min-complexity: 15
+    cyclop:
+      max-complexity: 15
+    nestif:
+      min-complexity: 4
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+    exhaustive:
+      default-signifies-exhaustive: true
+    depguard:
+      rules:
+        # CONTRIBUTING.md section 1: a layer imports only the layers below it.
+        tool-contract:
+          files: ["**/internal/tool/**"]
+          deny:
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/core
+              desc: the tool contract sits below the core
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/tools
+              desc: the tool contract sits below the tools
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/ui
+              desc: the tool contract sits below the UI
+        tools:
+          files: ["**/internal/tools/**"]
+          deny:
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/core
+              desc: tools sit below the core
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/ui
+              desc: tools have no UI
+            - pkg: github.com/egoist/mygo
+              desc: tools reach the system through internal/platform
+        platform:
+          files: ["**/internal/platform/**"]
+          deny:
+            - pkg: github.com/cxxzsh/oh-my-toys/internal
+              desc: platform code depends on nothing of the app
+        core:
+          files: ["**/internal/core/**"]
+          deny:
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/ui
+              desc: the core sits below the UI
+            - pkg: github.com/egoist/mygo
+              desc: the core is shared with the command line, which has no MyGo
+        ui:
+          files: ["**/internal/ui/**"]
+          deny:
+            - pkg: github.com/cxxzsh/oh-my-toys/internal/tools
+              desc: the UI never names a tool; it reads the registry
+  exclusions:
+    # Generated code (marked "Code generated ... DO NOT EDIT") is not
+    # linted: internal/i18n/catalog_gen.go, which `mygo generate` writes
+    # with an init() that registers the catalogs, and
+    # internal/ui/ds/tokens_gen.go, which dev/gentokens writes.
+    generated: strict
+    rules:
+      # Tests may be long tables, may repeat themselves for clarity, and
+      # may build fixtures from any layer, such as the UI's tests from the
+      # made-up tools of internal/tools/devtools.
+      - path: _test\.go
+        linters: [funlen, dupl, goconst, gosec, depguard]
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/cxxzsh/oh-my-toys

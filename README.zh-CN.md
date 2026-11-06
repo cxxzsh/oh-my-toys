@@ -6,7 +6,7 @@
 
 ## 当前状态
 
-oh-my-toys 正在从零重写。目前正在验证界面框架（[MyGo](https://github.com/egoist/mygo)，Go 语言），验证通过后才开始开发应用，所以暂时还没有可以安装的版本。
+应用和命令行 `omt` 已在本仓库。桌面应用：`go run ./cmd/oh-my-toys`。命令行：`go run ./cmd/omt`。macOS 上试用过。Windows 和 Linux 可以打包，但还没有在对应系统上跑过。还没有签名的发布版。
 
 ## 计划中的工具
 
