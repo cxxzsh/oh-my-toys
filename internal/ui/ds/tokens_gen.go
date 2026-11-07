@@ -253,8 +253,8 @@ var (
 // Font stacks: the bundled family first, then the system fonts that
 // cover Chinese, which neither bundled font has.
 const (
-	FontSans = "Geist, PingFang SC, Microsoft YaHei UI, Noto Sans CJK SC"
-	FontMono = "JetBrains Mono, PingFang SC, Microsoft YaHei UI, Noto Sans CJK SC"
+	FontSans = "Geist, Hiragino Sans GB, Heiti SC, Microsoft YaHei UI, Noto Sans CJK SC"
+	FontMono = "JetBrains Mono, Hiragino Sans GB, Heiti SC, Microsoft YaHei UI, Noto Sans CJK SC"
 )
 
 // Spacing.
