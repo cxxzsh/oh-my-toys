@@ -45,7 +45,8 @@ func (*Tool) Manifest() tool.Manifest {
 		Summary:   i18n.Messages.DupesSummary,
 		Category:  tool.CategoryFile,
 		Kind:      tool.KindAction,
-		Icon:      "files",
+		Icon:      "content_copy",
+		Art:       "find-duplicates",
 		Keywords:  []string{"duplicates", "dupes", "same files", "重复", "去重"},
 		Platforms: []string{"macos", "windows", "linux"},
 	}

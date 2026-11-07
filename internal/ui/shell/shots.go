@@ -19,8 +19,8 @@ const (
 func (a *App) ShowMain() { a.openMain("") }
 
 // screenshots goes through the main screens in each language and theme,
-// capturing the native UI of each window with Window.CapturePage (MyGo's
-// drawing alone, without the system's material behind it), then quits.
+// capturing the native UI of each window with Window.CapturePage, then
+// quits.
 func (a *App) screenshots(dir string) {
 	if err := os.MkdirAll(dir, 0o750); err != nil {
 		log.Print(err)
@@ -49,9 +49,9 @@ func (a *App) shootScreens(dir, suffix string) {
 	}
 	a.Post(func() { a.open(pageSettings) })
 	a.capture(a.main, dir, "settings-"+suffix)
-	a.Post(a.showPalette)
-	a.capture(a.palette, dir, "palette-"+suffix)
-	a.Post(func() { a.palette.Hide(); a.toggleTray() })
+	a.Post(func() { a.open(pageHome); a.showPalette() })
+	a.capture(a.main, dir, "palette-"+suffix)
+	a.Post(func() { a.pal.open = false; a.toggleTray() })
 	a.capture(a.panel, dir, "tray-"+suffix)
 	a.Post(a.hideTray)
 }

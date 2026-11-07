@@ -7,14 +7,23 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/icons"
 )
 
 // TestDeclarations checks every tool the app registers, the made-up ones
 // of -dev too: each action is valid, renders as JSON Schema in both
 // languages, and action and switch tools have the actions they must.
 func TestDeclarations(t *testing.T) {
+	set, err := icons.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, tl := range tools(&core.Events{}, true) {
 		checkDeclarations(t, tl)
+		m := tl.Manifest()
+		if !set.Has(m.Icon) {
+			t.Errorf("%s: glyph %q is not in design/assets/glyphs", m.ID, m.Icon)
+		}
 	}
 }
 

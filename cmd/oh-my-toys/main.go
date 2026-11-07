@@ -25,6 +25,7 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/tools/dupes"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/ports"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/rename"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/shell"
 )
 
@@ -80,6 +81,9 @@ func main() {
 	reg, err := core.NewRegistry(tools(events, f.dev)...)
 	if err != nil {
 		log.Fatal(err)
+	}
+	if err := ds.RegisterFonts(); err != nil {
+		log.Print(err) // the system's fonts stand in
 	}
 	mygo.App.SetName("oh-my-toys")
 	app := shell.New(shell.Options{

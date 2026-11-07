@@ -26,7 +26,7 @@ func (Crash) Manifest() tool.Manifest {
 		Summary:  named("Fails on purpose: type “plan” to panic while planning", "故意出错：输入 plan 会在预览时 panic"),
 		Category: tool.CategoryDev,
 		Kind:     tool.KindAction,
-		Icon:     "bug",
+		Icon:     "apps",
 		Keywords: []string{"panic", "crash"},
 		Actions: []tool.QuickAction{{
 			ID: "panic", Title: named("Panic in an action", "在动作里 panic"),

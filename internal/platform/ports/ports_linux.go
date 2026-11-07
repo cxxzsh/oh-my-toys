@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strconv"
@@ -42,12 +43,16 @@ func parseSSLine(line string) []Listener {
 	}
 	users := ssUser.FindAllStringSubmatch(line, -1)
 	if len(users) == 0 {
-		return []Listener{{Port: port, Address: host}}
+		return []Listener{{Port: port, Address: host, System: true}}
 	}
 	ls := make([]Listener, 0, len(users))
 	for _, u := range users {
 		pid, _ := strconv.Atoi(u[2])
-		ls = append(ls, Listener{Port: port, Address: host, PID: pid, Process: u[1]})
+		path, _ := os.Readlink(fmt.Sprintf("/proc/%d/exe", pid))
+		ls = append(ls, Listener{
+			Port: port, Address: host, PID: pid, Process: u[1],
+			Path: path, System: isSystemPath(path),
+		})
 	}
 	return ls
 }

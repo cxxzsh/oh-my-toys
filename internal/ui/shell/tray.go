@@ -23,7 +23,7 @@ func (a *App) setUpTray() {
 		ID:             "oh-my-toys",
 		Icon:           a.trayIcon.png(look),
 		IconIsTemplate: runtime.GOOS == goosMac,
-		ToolTip:        i18n.AppName(),
+		ToolTip:        a.trayTooltip(),
 	})
 	if err != nil {
 		log.Print("tray: ", err)
@@ -42,18 +42,22 @@ func (a *App) setUpTray() {
 	a.panel = a.newTrayPanel()
 }
 
+func (a *App) trayTooltip() string {
+	running := a.reg.Running()
+	if len(running) == 0 {
+		return i18n.AppName()
+	}
+	return i18n.TrayActiveTooltip(i18n.AppName(), running[0].Manifest().Name(msgs()))
+}
+
 func (a *App) trayMenu() *mygo.Menu {
 	return mygo.NewMenu([]*mygo.MenuItem{
-		{Label: i18n.TrayTitle(), Click: func(*mygo.MenuItem, *mygo.Window) { a.toggleTray() }},
-		{Label: i18n.OpenMain(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openMain(pageHome) }},
+		{Label: i18n.OpenApp(), Click: func(*mygo.MenuItem, *mygo.Window) { a.openMain(pageHome) }},
 		mygo.Separator(),
 		{Label: i18n.Quit(), Role: mygo.RoleQuit},
 	})
 }
 
-// setTrayMenu gives the icon a menu on Linux, whose AppIndicator tells no
-// clicks; on macOS and Windows a left click opens the panel and a right
-// click the menu, made anew each time in the language shown.
 func (a *App) setTrayMenu() {
 	if a.tray != nil && runtime.GOOS == goosLinux {
 		a.tray.SetMenu(a.trayMenu())
@@ -67,14 +71,13 @@ func (a *App) trayRightClick() {
 	a.tray.PopUpMenu()
 }
 
-// newTrayPanel makes the panel once, hidden: a click only shows it.
 func (a *App) newTrayPanel() *mygo.Window {
 	fl := mygo.NewFlyout(mygo.FlyoutOptions{
 		Tray:      a.tray,
-		Placement: mygo.PlacementBottom,
+		Placement: mygo.PlacementBottomEnd,
 		Gap:       ds.TrayGap,
 		Width:     ds.TrayWidth,
-		Height:    ds.TrayFirstHeight,
+		Height:    ds.TrayWidth,
 		Focusable: true,
 		Hidden:    true,
 		Shadow:    true,
@@ -102,8 +105,7 @@ func (a *App) toggleTray() {
 		return
 	}
 	a.metrics.trayClicked()
-	a.trayQuery = ""
-	a.trayInput.Focus()
+	a.trayChosen = 0
 	a.panel.Show()
 }
 
@@ -113,83 +115,49 @@ func (a *App) hideTray() {
 	}
 }
 
-// trayView is the TrayPanel: search, what runs, the pinned tools, and the
-// main window and quit at the bottom.
 func (a *App) trayView(c *ui.Context) {
 	a.theme(c)
 	p := ds.P(c)
 	c.Root().Background(ui.Transparent)
-	if c.Shortcut(ui.Cmd, ui.KeyO) {
-		a.hideTray()
-		a.openMain(pageHome)
-	}
-	panel := ui.Column(c).FillWidth().Radius(ds.RadiusXl).Background(p.BgElevated).Padding(ds.Space3).Gap(ds.Space3)
+	items := a.trayItems()
+	a.trayKeys(c, items)
+	panel := ui.Column(c).FillWidth().Radius(ds.RadiusLg).Background(p.BgPopover).
+		Border(ds.LineWidth, p.LineControl).Padding(ds.Space8)
 	if runtime.GOOS == goosLinux {
-		ds.ApplyShadow(panel, ds.S(c).ShadowPopover) // macOS and Windows draw the system's shadow
+		ds.ApplyShadow(panel, ds.S(c).ShadowPopover)
 	}
 	panel.Children(func() {
 		a.trayHead(c)
-		if a.trayQuery != "" {
-			a.trayResults(c)
-		} else {
-			a.trayRunning(c)
-			a.trayLaunch(c)
-		}
-		ui.Box(c).FillWidth().Height(1).Margin(0, ds.TrayInset).Background(p.Separator)
-		ui.Row(c).FillWidth().Padding(0, ds.TrayFootPad).Gap(ds.TrayFootPad).Children(func() {
-			a.trayItem(c, "layout-grid", i18n.OpenMain(), modKey("O"), true, func() { a.hideTray(); a.openMain(pageHome) })
-			a.trayItem(c, "log-out", i18n.Quit(), "", false, mygo.App.Quit)
-		})
+		a.trayBody(c, items)
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.trayPainted() })
 	fitHeight(c, a.panel, panel)
 }
 
 func (a *App) trayHead(c *ui.Context) {
 	p := ds.P(c)
-	ui.Row(c).FillWidth().Padding(ds.Space1, ds.TrayInset, 0).Gap(ds.Space2).AlignItems(ui.Center).Children(func() {
-		ui.Box(c).Grow(1).Children(func() {
-			a.searchField(c, &a.trayQuery, &a.trayInput, i18n.SearchNTools(len(a.reg.All())), "")
+	ui.Row(c).FillWidth().Padding(ds.Space4, ds.Space4, ds.Space8, ds.Space8).AlignItems(ui.Center).
+		Children(func() {
+			ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Grow(1).Children(func() {
+				a.kit.AppIcon(c, ds.TrayHeaderIcon)
+				comp.Text(c, i18n.AppName(), ds.Headline, p.TextStrong).SingleLine()
+			})
+			ui.Row(c).Gap(ds.Space2).Children(func() {
+				if a.kit.Button(c.Key("tray-set"), "", comp.ButtonOpts{
+					Kind: comp.Plain, Glyph: glyphSettings, Tooltip: i18n.Settings(),
+				}).Clicked() {
+					a.hideTray()
+					a.openMain(pageSettings)
+				}
+				if a.kit.Button(c.Key("tray-open"), "", comp.ButtonOpts{
+					Kind: comp.Plain, Glyph: "open_in_new", Tooltip: i18n.OpenApp(),
+				}).Clicked() {
+					a.hideTray()
+					a.openMain(pageHome)
+				}
+			})
 		})
-		set := ui.ButtonBase(c).Label(i18n.Settings())
-		if set.Clicked() {
-			a.hideTray()
-			a.openMain(pageSettings)
-		}
-		set.Children(func() { comp.Glyph(c, "settings", ds.Glyph, p.TextSecondary) })
-	})
 }
 
-func (a *App) trayItem(c *ui.Context, icon, label, hint string, grow bool, fn func()) {
-	p := ds.P(c)
-	b := ui.ButtonBase(c.Key(label)).Label(label)
-	if b.Clicked() {
-		fn()
-	}
-	bg := ui.Transparent
-	if b.Hovered() {
-		bg = p.FillHover
-	}
-	if grow {
-		b.Grow(1).Basis(0)
-	} else {
-		b.Shrink(0)
-	}
-	b.Height(ds.TrayItemHeight).Padding(0, ds.TrayInset).Gap(ds.Space2).Radius(ds.RadiusSm).Background(bg).
-		AlignItems(ui.Center).Children(func() {
-		comp.Glyph(c, icon, ds.Glyph, p.TextSecondary)
-		comp.Text(c, label, ds.Body, p.TextPrimary).NoWrap()
-		if grow {
-			ui.Spacer(c)
-		}
-		if hint != "" {
-			comp.Text(c, hint, ds.Callout, p.TextTertiary)
-		}
-	})
-}
-
-// fitHeight resizes a window to the height its content laid out at.
-// MyGo v0.7.4 fits only web pages to their content (FitContent); its next
-// version does native UI too, which would replace this.
 func fitHeight(c *ui.Context, w *mygo.Window, content ui.Element) {
 	if w == nil {
 		return

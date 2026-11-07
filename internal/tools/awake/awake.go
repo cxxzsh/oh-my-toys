@@ -44,7 +44,8 @@ func (t *Tool) Manifest() tool.Manifest {
 		Summary:   i18n.Messages.AwakeSummary,
 		Category:  tool.CategorySystem,
 		Kind:      tool.KindSwitch,
-		Icon:      "sun",
+		Icon:      "bedtime_off",
+		Art:       "keep-awake",
 		Keywords:  []string{"caffeinate", "keep awake", "amphetamine", "sleep", "不睡眠", "咖啡因"},
 		Platforms: []string{"macos", "windows", "linux"},
 		Actions: []tool.QuickAction{

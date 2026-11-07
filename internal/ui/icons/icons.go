@@ -1,185 +1,61 @@
-// Package icons looks Lucide icons up by their kebab-case names, as tool
-// manifests give them. The SVGs come from onevra's lucide package, which
-// has a function per icon but no lookup by name, so this switch names the
-// icons the app uses; an unknown name falls back to a square.
+// Package icons looks the design system's interface glyphs up by name. The
+// glyphs are Material Symbols Outlined SVGs, embedded in the app; tool
+// manifests refer to them by their snake_case names, and an unknown name
+// falls back to Fallback.
 package icons
 
 import (
+	"fmt"
+
 	"github.com/egoist/mygo/ui"
-	"github.com/oneo-me/onevra/source/icons/lucide"
+
+	"github.com/cxxzsh/oh-my-toys/design"
 )
 
-// Get returns the icon of a name.
-func Get(name string) *ui.SVG { //nolint:funlen,cyclop // a flat table of names, one case per icon
-	switch name {
-	case "search":
-		return lucide.Search()
-	case "layout-grid":
-		return lucide.LayoutGrid()
-	case "settings":
-		return lucide.Settings()
-	case "pin":
-		return lucide.Pin()
-	case "pin-off":
-		return lucide.PinOff()
-	case "chevron-down":
-		return lucide.ChevronDown()
-	case "chevron-right":
-		return lucide.ChevronRight()
-	case "log-out":
-		return lucide.LogOut()
-	case "x":
-		return lucide.X()
-	case "circle-alert":
-		return lucide.CircleAlert()
-	case "triangle-alert":
-		return lucide.TriangleAlert()
-	case "square":
-		return lucide.Square()
-	case "command":
-		return lucide.Command()
-	case "corner-down-left":
-		return lucide.CornerDownLeft()
-	case "arrow-up":
-		return lucide.ArrowUp()
-	case "arrow-down":
-		return lucide.ArrowDown()
-	case "bug":
-		return lucide.Bug()
-	case "sun":
-		return lucide.Sun()
-	case "text-cursor-input":
-		return lucide.TextCursorInput()
-	case "files":
-		return lucide.Files()
-	case "plug":
-		return lucide.Plug()
-	case "pipette":
-		return lucide.Pipette()
-	case "braces":
-		return lucide.Braces()
-	case "hash":
-		return lucide.Hash()
-	case "clock":
-		return lucide.Clock()
-	case "clock-3":
-		return lucide.Clock3()
-	case "scan-text":
-		return lucide.ScanText()
-	case "qr-code":
-		return lucide.QrCode()
-	case "clipboard-list":
-		return lucide.ClipboardList()
-	case "cpu":
-		return lucide.Cpu()
-	case "battery":
-		return lucide.Battery()
-	case "monitor":
-		return lucide.Monitor()
-	case "power":
-		return lucide.Power()
-	case "hard-drive":
-		return lucide.HardDrive()
-	case "gauge":
-		return lucide.Gauge()
-	case "fan":
-		return lucide.Fan()
-	case "thermometer":
-		return lucide.Thermometer()
-	case "file":
-		return lucide.File()
-	case "folder":
-		return lucide.Folder()
-	case "archive":
-		return lucide.Archive()
-	case "folder-tree":
-		return lucide.FolderTree()
-	case "file-search":
-		return lucide.FileSearch()
-	case "copy":
-		return lucide.Copy()
-	case "file-text":
-		return lucide.FileText()
-	case "code":
-		return lucide.Code()
-	case "terminal":
-		return lucide.Terminal()
-	case "git-branch":
-		return lucide.GitBranch()
-	case "regex":
-		return lucide.Regex()
-	case "binary":
-		return lucide.Binary()
-	case "database":
-		return lucide.Database()
-	case "wifi":
-		return lucide.Wifi()
-	case "globe":
-		return lucide.Globe()
-	case "network":
-		return lucide.Network()
-	case "router":
-		return lucide.Router()
-	case "server":
-		return lucide.Server()
-	case "cloud":
-		return lucide.Cloud()
-	case "radio":
-		return lucide.Radio()
-	case "link":
-		return lucide.Link()
-	case "type":
-		return lucide.Type()
-	case "case-sensitive":
-		return lucide.CaseSensitive()
-	case "quote":
-		return lucide.Quote()
-	case "list":
-		return lucide.List()
-	case "languages":
-		return lucide.Languages()
-	case "spell-check":
-		return lucide.SpellCheck()
-	case "image":
-		return lucide.Image()
-	case "music":
-		return lucide.Music()
-	case "video":
-		return lucide.Video()
-	case "camera":
-		return lucide.Camera()
-	case "film":
-		return lucide.Film()
-	case "mic":
-		return lucide.Mic()
-	case "palette":
-		return lucide.Palette()
-	case "scan":
-		return lucide.Scan()
-	case "clipboard":
-		return lucide.Clipboard()
-	case "calendar":
-		return lucide.Calendar()
-	case "timer":
-		return lucide.Timer()
-	case "notebook-pen":
-		return lucide.NotebookPen()
-	case "list-todo":
-		return lucide.ListTodo()
-	case "alarm-clock":
-		return lucide.AlarmClock()
-	case "bookmark":
-		return lucide.Bookmark()
-	case "calculator":
-		return lucide.Calculator()
-	case "zap":
-		return lucide.Zap()
-	case "moon":
-		return lucide.Moon()
-	case "coffee":
-		return lucide.Coffee()
-	case "play":
-		return lucide.Play()
+// Fallback is the glyph of a name the set does not have.
+const Fallback = "apps"
+
+const glyphDir = "assets/glyphs"
+
+// Set holds the parsed glyphs. Parse them once, at start, not in a view.
+type Set struct {
+	byName map[string]*ui.SVG
+}
+
+// Load parses every glyph of the design system.
+func Load() (*Set, error) {
+	names, err := design.Names(glyphDir)
+	if err != nil {
+		return nil, fmt.Errorf("list glyphs: %w", err)
 	}
-	return lucide.Square()
+	s := &Set{byName: make(map[string]*ui.SVG, len(names))}
+	for _, name := range names {
+		data, err := design.Read(glyphDir + "/" + name + ".svg")
+		if err != nil {
+			return nil, fmt.Errorf("read glyph %s: %w", name, err)
+		}
+		svg, err := ui.ParseSVG(data)
+		if err != nil {
+			return nil, fmt.Errorf("parse glyph %s: %w", name, err)
+		}
+		s.byName[name] = svg
+	}
+	if s.byName[Fallback] == nil {
+		return nil, fmt.Errorf("glyph %s is missing", Fallback)
+	}
+	return s, nil
+}
+
+// Has reports whether the set has a glyph of the name.
+func (s *Set) Has(name string) bool {
+	_, ok := s.byName[name]
+	return ok
+}
+
+// Get returns the glyph of a name, or the fallback glyph.
+func (s *Set) Get(name string) *ui.SVG {
+	if g, ok := s.byName[name]; ok {
+		return g
+	}
+	return s.byName[Fallback]
 }

@@ -6,7 +6,6 @@ require (
 	github.com/egoist/mygo v0.7.4
 	github.com/modelcontextprotocol/go-sdk v1.7.0
 	github.com/mozillazg/go-pinyin v0.21.0
-	github.com/oneo-me/onevra/source v0.2026.17
 )
 
 require (

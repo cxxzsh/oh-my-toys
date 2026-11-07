@@ -49,13 +49,13 @@ func nouns() map[tool.Category][]word {
 
 func icons() map[tool.Category][]string {
 	return map[tool.Category][]string{
-		tool.CategorySystem:       {"cpu", "battery", "monitor", "power", "hard-drive"},
-		tool.CategoryFile:         {"file", "folder", "archive", "folder-tree", "file-search"},
-		tool.CategoryDev:          {"code", "terminal", "braces", "git-branch", "regex"},
-		tool.CategoryNetwork:      {"wifi", "globe", "network", "router", "server"},
-		tool.CategoryText:         {"type", "case-sensitive", "quote", "list", "languages"},
-		tool.CategoryMedia:        {"image", "music", "video", "camera", "film"},
-		tool.CategoryProductivity: {"clipboard", "calendar", "timer", "notebook-pen", "list-todo"},
+		tool.CategorySystem:       {"memory", "power_settings_new", "settings", "tune", "dark_mode"},
+		tool.CategoryFile:         {"drive_file_rename", "content_copy", "upload", "preview", "lock"},
+		tool.CategoryDev:          {"terminal", "colorize", "keyboard", "smart_toy", "tune"},
+		tool.CategoryNetwork:      {"lan", "open_in_new", "upload", "lock", "terminal"},
+		tool.CategoryText:         {"language", "drive_file_rename", "search", "keyboard", "apps"},
+		tool.CategoryMedia:        {"palette", "contrast", "colorize", "preview", "open_in_new"},
+		tool.CategoryProductivity: {"keep", "bedtime_off", "smart_toy", "language", "palette"},
 	}
 }
 

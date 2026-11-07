@@ -1,0 +1,57 @@
+<!-- @dsCard height=288 -->
+<!doctype html>
+<html lang="en">
+<head><link rel="stylesheet" href="../../preview/tokens.css"><link rel="stylesheet" href="../../preview/components.css"><script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||"light")</script>
+<meta charset="utf-8">
+<title>oh-my-toys</title>
+<style>
+  html, body { margin: 0; height: 100%; }
+  body { background: var(--bg-canvas); color: var(--text-strong); font-family: var(--font-sans); overflow: hidden; }
+  .cover { position: relative; width: 960px; height: 288px; overflow: hidden; }
+  .art { position: absolute; top: 0; left: 480px; width: 480px; height: 288px; overflow: hidden; }
+  .art svg { display: block; }
+  .ink { fill: var(--inverse); }
+  .file { fill: var(--cat-file); }
+  .system { fill: var(--cat-system); }
+  .dev { fill: var(--cat-dev); }
+  .media { fill: var(--cat-media); }
+  .hole { fill: var(--bg-canvas); }
+  .words { position: absolute; left: var(--space-28); bottom: var(--space-28); max-width: 440px; }
+  .name { margin: 0; font-size: 72px; line-height: .92; font-weight: 600; letter-spacing: -0.025em; color: var(--text-strong); }
+  .tag { margin: var(--space-12) 0 0 2px; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
+</style>
+</head>
+<body>
+<div class="cover">
+<div class="art" aria-hidden="true">
+<svg viewBox="0 0 480 288" width="480" height="288">
+<!--
+  blocks      inverse slab 132x276 bled off the top (the shell, 13%) · cat-file 180x114 · cat-system 156x114 bled off the right · cat-dev 96x114 · cat-media 240x114 bled off the right · together about 39% of 960x288
+  arrangement a sidebar-and-workbench split: one tall slab, then a flush 2x2 modular grid of tool blocks, like the window itself
+  pattern     dot grid, from "a rigid 4px module" and mono telemetry: 40 dots at a space-12 pitch cut out of the slab in bg-canvas
+  scales      gutters space-12; bottom edge space-24 above the cover edge; block corners radius-md (12); dot pitch space-12
+-->
+<rect class="ink" x="0" y="-12" width="132" height="276" rx="12"/>
+<rect class="file" x="144" y="24" width="180" height="114" rx="12"/>
+<rect class="system" x="336" y="24" width="156" height="114" rx="12"/>
+<rect class="dev" x="144" y="150" width="96" height="114" rx="12"/>
+<rect class="media" x="252" y="150" width="240" height="114" rx="12"/>
+<g class="hole">
+<circle cx="30" cy="156" r="1.5"/><circle cx="42" cy="156" r="1.5"/><circle cx="54" cy="156" r="1.5"/><circle cx="66" cy="156" r="1.5"/><circle cx="78" cy="156" r="1.5"/>
+<circle cx="30" cy="168" r="1.5"/><circle cx="42" cy="168" r="1.5"/><circle cx="54" cy="168" r="1.5"/><circle cx="66" cy="168" r="1.5"/><circle cx="78" cy="168" r="1.5"/>
+<circle cx="30" cy="180" r="1.5"/><circle cx="42" cy="180" r="1.5"/><circle cx="54" cy="180" r="1.5"/><circle cx="66" cy="180" r="1.5"/><circle cx="78" cy="180" r="1.5"/>
+<circle cx="30" cy="192" r="1.5"/><circle cx="42" cy="192" r="1.5"/><circle cx="54" cy="192" r="1.5"/><circle cx="66" cy="192" r="1.5"/><circle cx="78" cy="192" r="1.5"/>
+<circle cx="30" cy="204" r="1.5"/><circle cx="42" cy="204" r="1.5"/><circle cx="54" cy="204" r="1.5"/><circle cx="66" cy="204" r="1.5"/><circle cx="78" cy="204" r="1.5"/>
+<circle cx="30" cy="216" r="1.5"/><circle cx="42" cy="216" r="1.5"/><circle cx="54" cy="216" r="1.5"/><circle cx="66" cy="216" r="1.5"/><circle cx="78" cy="216" r="1.5"/>
+<circle cx="30" cy="228" r="1.5"/><circle cx="42" cy="228" r="1.5"/><circle cx="54" cy="228" r="1.5"/><circle cx="66" cy="228" r="1.5"/><circle cx="78" cy="228" r="1.5"/>
+<circle cx="30" cy="240" r="1.5"/><circle cx="42" cy="240" r="1.5"/><circle cx="54" cy="240" r="1.5"/><circle cx="66" cy="240" r="1.5"/><circle cx="78" cy="240" r="1.5"/>
+</g>
+</svg>
+</div>
+<div class="words">
+<h1 class="name">oh-my-toys</h1>
+<p class="tag">The application is the box; the tools are the heroes.</p>
+</div>
+</div>
+</body>
+</html>

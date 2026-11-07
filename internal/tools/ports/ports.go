@@ -40,7 +40,8 @@ func (*Tool) Manifest() tool.Manifest {
 		Summary:   i18n.Messages.PortsSummary,
 		Category:  tool.CategoryNetwork,
 		Kind:      tool.KindAction,
-		Icon:      "plug",
+		Icon:      "lan",
+		Art:       "ports",
 		Keywords:  []string{"port", "lsof", "netstat", "kill", "listen", "端口占用"},
 		Platforms: []string{"macos", "windows", "linux"},
 	}
@@ -76,7 +77,11 @@ func (*Tool) Plan(ctx context.Context, in tool.Input) (tool.Plan, error) {
 	if port > 0 {
 		ls = only(ls, port)
 	}
-	p := tool.Plan{Summary: i18n.PortsListening(len(ls)), Rows: rows(ls)}
+	p := tool.Plan{
+		Summary: i18n.PortsListening(len(ls)),
+		Columns: []string{i18n.ColPort(), i18n.ColProcess(), i18n.ColPID(), i18n.ColAddress()},
+		Rows:    rows(ls),
+	}
 	if port > 0 && len(ls) > 0 {
 		p.Summary = i18n.PortsOnPort(port, len(ls))
 		p.ApplyLabel = i18n.PortsEnd(len(ls))
@@ -130,10 +135,13 @@ func rows(ls []ports.Listener) []tool.Row {
 		if name == "" {
 			name = i18n.PortsUnknownProcess()
 		}
+		proc := l.Path
 		out = append(out, tool.Row{
-			Title:  i18n.PortsRowTitle(l.Port, name),
-			Detail: i18n.PortsRowDetail(l.PID, l.Address),
-			Value:  strconv.Itoa(l.Port),
+			Title:   i18n.PortsRowTitle(l.Port, name),
+			Detail:  i18n.PortsRowDetail(l.PID, l.Address),
+			Cells:   []string{":" + strconv.Itoa(l.Port), name, strconv.Itoa(l.PID), l.Address},
+			Value:   strconv.Itoa(l.Port),
+			Process: &tool.Process{Path: proc, System: l.System},
 		})
 	}
 	return out

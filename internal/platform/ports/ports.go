@@ -19,6 +19,8 @@ type Listener struct {
 	Address string // "*", "127.0.0.1", "[::1]"
 	PID     int
 	Process string
+	Path    string // executable path, when the OS tells it
+	System  bool   // owned by the system, or run from an OS directory
 }
 
 // Listening returns the listening TCP ports, by port then PID, each port
@@ -44,6 +46,15 @@ func Kill(pid int) error {
 		return fmt.Errorf("end process %d: %w", pid, err)
 	}
 	return nil
+}
+
+func isSystemPath(path string) bool {
+	for _, p := range []string{"/System/", "/usr/libexec/", "/usr/sbin/", "/sbin/", `C:\Windows\`, `c:\windows\`} {
+		if strings.HasPrefix(path, p) {
+			return true
+		}
+	}
+	return false
 }
 
 // splitHostPort splits "127.0.0.1:8080", "[::1]:5432" or "*:3000" at the

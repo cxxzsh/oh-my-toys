@@ -52,7 +52,8 @@ func (*Tool) Manifest() tool.Manifest {
 		Summary:   i18n.Messages.ColorSummary,
 		Category:  tool.CategoryDev,
 		Kind:      tool.KindAction,
-		Icon:      "pipette",
+		Icon:      "colorize",
+		Art:       "color",
 		Keywords:  []string{"color", "colour", "hex", "rgb", "hsl", "contrast", "wcag", "取色", "对比度"},
 		Platforms: []string{"macos", "windows", "linux"},
 	}
