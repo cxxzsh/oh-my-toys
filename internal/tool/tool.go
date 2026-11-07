@@ -62,7 +62,8 @@ type Manifest struct {
 	Summary   Message
 	Category  Category
 	Kind      Kind
-	Icon      string // a Lucide icon name
+	Icon      string // a Material Symbols glyph name, in snake_case
+	Art       string // an icon in design/assets/tool-icons, when the tool has one
 	Keywords  []string
 	Actions   []QuickAction
 	Platforms []string
@@ -115,18 +116,28 @@ const (
 	ToneDanger
 )
 
+// Process names an executable for a row's process icon: its path, and
+// whether the tool classes it as a system or protected service.
+type Process struct {
+	Path   string
+	System bool
+}
+
 // Row is one line of a plan: what would happen to one thing.
 type Row struct {
-	Title  string
-	Detail string
-	Value  string // copied when the row is clicked, if set
-	Tone   Tone
+	Title   string
+	Detail  string
+	Cells   []string // columns of a DataTable: port, process, pid, address…
+	Value   string   // copied when the row is clicked, if set
+	Tone    Tone
+	Process *Process // the executable of the row, when it names a process
 }
 
 // Plan is what an action tool would do. ApplyLabel is empty for tools that
 // only show information.
 type Plan struct {
 	Summary     string
+	Columns     []string // column headers when Rows carry Cells
 	Rows        []Row
 	ApplyLabel  string
 	Destructive bool

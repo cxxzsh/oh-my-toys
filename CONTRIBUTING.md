@@ -85,7 +85,7 @@ Code is read far more often than it is written. Keep it small, plain and obvious
 
 Every tool provides a manifest and implements one of two contracts.
 
-- **Manifest**: id, name and summary (as i18n keys), category, kind (`switch` or `action`), Lucide icon name, search keywords, quick actions, supported platforms.
+- **Manifest**: id, name and summary (as i18n keys), category, kind (`switch` or `action`), Material Symbols glyph name (`snake_case`), search keywords, quick actions, supported platforms.
 - **Actions**: every action declares a typed `input` and `output` schema, a `risk` (`read`, `write`, `process` or `system`) and whether it is idempotent. The desktop UI, the `omt` flags and `--json` output, and the MCP tools are generated from these declarations, so no action exists in only one front end. See [docs/agents.md](docs/agents.md).
 - **Switch tools** (keep running, like Keep awake): `Start`, `Stop`, `Status`. State lives in the core, not in the tool.
 - **Action tools** (run once, like Batch rename): `Plan` computes what would happen and changes nothing; `Apply` performs exactly what a plan lists and nothing else. The command line shows the plan by default and applies it only with `--apply`.
@@ -112,7 +112,7 @@ Every tool provides a manifest and implements one of two contracts.
 ## 9. UI
 
 - Follow the design system: colours, type, spacing, radii and components come from its tokens and rules, never from literal values in a view.
-- Colours are assigned per category, not per tool. Icons come from Lucide.
+- Colours are assigned per category, not per tool. Interface glyphs come from Material Symbols Outlined (embedded in `design/assets/glyphs`).
 - Every control has an accessible name. Check both light and dark themes.
 
 ## 10. Performance budgets
