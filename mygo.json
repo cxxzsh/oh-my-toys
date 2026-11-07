@@ -30,5 +30,10 @@
     "source": "en"
   },
   "main": "./cmd/oh-my-toys",
-  "icon": "design/app-icon.png"
+  "icon": "design/app-icon.png",
+  "resources": [
+    "design/next/fonts/Geist-OFL.txt",
+    "design/next/fonts/JetBrainsMono-OFL.txt",
+    "design/next/fonts/NOTICE.txt"
+  ]
 }
