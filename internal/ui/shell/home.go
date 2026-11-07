@@ -165,7 +165,7 @@ func (a *App) toolCard(c *ui.Context, t tool.Tool) {
 		AlignItems(ui.Start), shadow)
 	card.Children(func() {
 		ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.Center).Children(func() {
-			a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconMedium})
+			a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconMedium, Tint: true})
 			comp.Text(c, m.Name(msgs()), ds.Headline, p.TextStrong).Grow(1).SingleLine().Ellipsis("…")
 			a.pinButton(c, t)
 		})

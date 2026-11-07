@@ -44,19 +44,13 @@ func (k *Kit) ToolIcon(c *ui.Context, m tool.Manifest, o ToolIconOpts) ui.Elemen
 	p := ds.P(c)
 	mt := metricsOf(o.Size)
 	tile := ui.Box(c).Size(mt.box, mt.box).Radius(mt.radius).Center().Shrink(0)
-	art := k.toolArt(c, m.Art)
-	switch {
-	case o.Tint:
+	if o.Tint {
 		ink, fill := CategoryColors(c, m.Category)
 		tile.Background(fill)
 		return k.finishTile(c, tile, o, func() { k.Glyph(c, m.Icon, mt.glyph, ink) })
-	case art != nil:
-		tile.Clip()
-	default:
-		tile.Gradient(p.IconTile, p.IconTileEnd, 180).Border(ds.LineWidth, p.LineHairline)
-		return k.finishTile(c, tile, o, func() { k.Glyph(c, m.Icon, mt.glyph, p.IconInk) })
 	}
-	return k.finishTile(c, tile, o, func() { ui.Image(c, art).Size(mt.box, mt.box) })
+	tile.Gradient(p.IconTile, p.IconTileEnd, 180).Border(ds.LineWidth, p.LineHairline)
+	return k.finishTile(c, tile, o, func() { k.Glyph(c, m.Icon, mt.glyph, p.IconInk) })
 }
 
 func (k *Kit) finishTile(c *ui.Context, tile ui.Element, o ToolIconOpts, face func()) ui.Element {
@@ -73,16 +67,4 @@ func (k *Kit) finishTile(c *ui.Context, tile ui.Element, o ToolIconOpts, face fu
 		ui.Box(c).Absolute().Top(off).Right(off).Size(size, size).Radius(ds.RadiusFull).Background(p.Live).
 			Border(ring, p.BgCanvas)
 	})
-}
-
-// toolArt is the tool's icon image for the theme, or nil.
-func (k *Kit) toolArt(c *ui.Context, art string) *ui.Bitmap {
-	if art == "" {
-		return nil
-	}
-	theme := "-light"
-	if c.Theme().Dark {
-		theme = "-dark"
-	}
-	return k.bitmaps[toolIconDir+art+theme+".png"]
 }
