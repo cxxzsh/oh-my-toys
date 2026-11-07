@@ -10,7 +10,7 @@ The app and `omt` are in this repository. Run the desktop app with `go run ./cmd
 
 ## Planned tools
 
-- **Keep awake**: stop the computer from sleeping, for a set time or until you turn it off.
+- **Keep awake**: stop the computer from sleeping, with a preset, a length or a time of day you type in, or a daily plan of time spans that turns it on and off by itself.
 - **Batch rename**: rename files by rules; see a preview before anything changes.
 - **Find duplicates**: find files with the same content and how much space they take.
 - **Ports**: see which process holds a port, and free it.

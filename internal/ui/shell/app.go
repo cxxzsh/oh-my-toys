@@ -152,6 +152,7 @@ func (a *App) Start() {
 	} else {
 		a.settings = s
 	}
+	a.applySchedules()
 	a.opt.Events.OnChanged(func() { a.Post(nil) })
 	a.createMain()
 	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { a.quitting = true })

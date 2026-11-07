@@ -96,6 +96,10 @@ func Clock(d time.Duration) string {
 	return fmt.Sprintf("%d:%02d:%02d", int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60)
 }
 
+// ActivePlan is the Active of a Status held on by the tool's plan, not by
+// a quick action.
+const ActivePlan = "plan"
+
 // Switch is a tool that keeps running in the background once started.
 type Switch interface {
 	Tool
@@ -110,6 +114,15 @@ type Switch interface {
 type Timed interface {
 	Switch
 	StartFor(ctx context.Context, d time.Duration) error
+}
+
+// Scheduled is a switch tool that turns itself on and off by a plan. A
+// tool turned off by hand stays off for the stretch of the plan it was
+// turned off in.
+type Scheduled interface {
+	Switch
+	Schedule() Schedule
+	SetSchedule(Schedule)
 }
 
 // Action is a tool that runs once: Plan works out what would happen and

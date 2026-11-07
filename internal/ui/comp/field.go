@@ -13,6 +13,7 @@ type FieldOpts struct {
 	Help        string // below, in caption
 	Error       string // below, in danger: the fix ("Use a number of 0 or more")
 	Mono        bool   // patterns and paths
+	Invalid     bool   // marks the border as an error, with no text
 }
 
 // TextField is a single-line input for a value a tool needs. It returns
@@ -47,7 +48,7 @@ func fieldInput(c *ui.Context, v *string, o FieldOpts) ui.Element {
 	ds.Style(in, style)
 	in.FillWidth().Height(ds.ControlLg).Padding(0, ds.Space10).Radius(ds.RadiusSm).Background(p.FillControl)
 	switch {
-	case o.Error != "":
+	case o.Error != "" || o.Invalid:
 		in.Border(ds.LineWidth, p.Danger)
 	case in.Focused():
 		in.Background(p.BgCard).Border(ds.LineWidth, p.AccentStrong).Shadow(0, 0, 0, ds.FieldHaloWidth, p.AccentSoft)

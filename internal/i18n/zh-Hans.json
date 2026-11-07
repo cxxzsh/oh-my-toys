@@ -239,5 +239,22 @@
   "switchStart": "开始",
   "switchEndsAt": "将在 {time} 结束，还有 {left}",
   "switchBadLength": "请输入小时和分钟，最多 99 小时 59 分钟。",
-  "switchCustomHint": "设定一个时长或截止时刻，然后开始。"
+  "switchCustomHint": "设定一个时长或截止时刻，然后开始。",
+  "awakeRunningPlan": "运行中 · 按计划 · 剩余 {time}",
+  "switchPlan": "计划",
+  "switchPlanOn": "按计划运行",
+  "switchPlanDisplay": "保持屏幕常亮",
+  "switchAddSpan": "添加时间段",
+  "switchRemoveSpan": "删除这个时间段",
+  "switchPlanEmpty": "还没有时间段，添加一个即可按计划运行。",
+  "switchSpanBad": "每个时间段需要形如 09:00 的时间，并至少选一天。",
+  "switchSpanLimit": "{count, plural, other {最多 # 个时间段。}}",
+  "switchNextRun": "下次开启：{day} {time}",
+  "weekdayMon": "一",
+  "weekdayTue": "二",
+  "weekdayWed": "三",
+  "weekdayThu": "四",
+  "weekdayFri": "五",
+  "weekdaySat": "六",
+  "weekdaySun": "日"
 }

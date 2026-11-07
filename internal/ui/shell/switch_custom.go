@@ -18,6 +18,7 @@ import (
 const (
 	tabPresets = iota
 	tabCustom
+	tabPlan
 )
 
 // The ways to say how long a custom run lasts.
@@ -33,11 +34,16 @@ const notALength = "?"
 // switchForm is what a person has typed into a switch tool's page. It
 // lives as long as the app, so a tool's page keeps its tab and its fields.
 type switchForm struct {
-	tab     int
+	tab     int // which of the tabs the tool has, in order
 	mode    int // holdLength or holdClock
 	hours   string
 	minutes string
 	clock   string
+
+	rows   []planRow // the spans of the plan, as typed
+	loaded bool      // rows were read from the tool
+	drop   int       // the row a click asked to remove, from 1
+	list   ui.ListState
 }
 
 func (a *App) switchForm(id string) *switchForm {

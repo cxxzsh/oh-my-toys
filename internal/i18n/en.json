@@ -1256,5 +1256,91 @@
   "switchCustomHint": "Set a length or a time of day, then start.",
   "@switchCustomHint": {
     "description": "Shown under the empty custom fields."
+  },
+  "awakeRunningPlan": "Running · by plan · {time} left",
+  "@awakeRunningPlan": {
+    "description": "Switch tool state while its plan holds it on.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "switchPlan": "Plan",
+  "@switchPlan": {
+    "description": "Tab: a tool that turns itself on and off by the time of day."
+  },
+  "switchPlanOn": "Run by plan",
+  "@switchPlanOn": {
+    "description": "Switch that turns a plan on."
+  },
+  "switchPlanDisplay": "Keep the display on",
+  "@switchPlanDisplay": {
+    "description": "Switch: the plan keeps the display on too."
+  },
+  "switchAddSpan": "Add a time span",
+  "@switchAddSpan": {
+    "description": "Button that adds a span of the day to a plan."
+  },
+  "switchRemoveSpan": "Remove this time span",
+  "@switchRemoveSpan": {
+    "description": "Tooltip of the button that removes a span."
+  },
+  "switchPlanEmpty": "No time spans yet. Add one to run by plan.",
+  "@switchPlanEmpty": {
+    "description": "Shown in a plan without spans."
+  },
+  "switchSpanBad": "Each time span needs a time such as 09:00 and at least one day.",
+  "@switchSpanBad": {
+    "description": "Error under a plan's spans."
+  },
+  "switchSpanLimit": "{count, plural, one {Up to # time span.} other {Up to # time spans.}}",
+  "@switchSpanLimit": {
+    "description": "Shown when a plan has the most spans it can.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "switchNextRun": "Next: {day} {time}",
+  "@switchNextRun": {
+    "description": "When the plan next turns the tool on.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weekdayMon": "Mon",
+  "@weekdayMon": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdayTue": "Tue",
+  "@weekdayTue": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdayWed": "Wed",
+  "@weekdayWed": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdayThu": "Thu",
+  "@weekdayThu": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdayFri": "Fri",
+  "@weekdayFri": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdaySat": "Sat",
+  "@weekdaySat": {
+    "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdaySun": "Sun",
+  "@weekdaySun": {
+    "description": "Short name of a day of the week, on a toggle."
   }
 }

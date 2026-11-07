@@ -3413,3 +3413,243 @@ func SwitchCustomHint() string { return In(i18n.Locale()).SwitchCustomHint() }
 func (msgs Messages) SwitchCustomHint() string {
 	return Catalog.Format(msgs.locale, "switchCustomHint", nil)
 }
+
+// AwakeRunningPlan says "Running · by plan · {time} left"
+// in the language the app shows.
+//
+// Switch tool state while its plan holds it on.
+func AwakeRunningPlan(time_ string) string { return In(i18n.Locale()).AwakeRunningPlan(time_) }
+
+// AwakeRunningPlan says "Running · by plan · {time} left"
+// in the language of msgs.
+//
+// Switch tool state while its plan holds it on.
+func (msgs Messages) AwakeRunningPlan(time_ string) string {
+	return Catalog.Format(msgs.locale, "awakeRunningPlan", map[string]any{"time": time_})
+}
+
+// SwitchPlan says "Plan"
+// in the language the app shows.
+//
+// Tab: a tool that turns itself on and off by the time of day.
+func SwitchPlan() string { return In(i18n.Locale()).SwitchPlan() }
+
+// SwitchPlan says "Plan"
+// in the language of msgs.
+//
+// Tab: a tool that turns itself on and off by the time of day.
+func (msgs Messages) SwitchPlan() string {
+	return Catalog.Format(msgs.locale, "switchPlan", nil)
+}
+
+// SwitchPlanOn says "Run by plan"
+// in the language the app shows.
+//
+// Switch that turns a plan on.
+func SwitchPlanOn() string { return In(i18n.Locale()).SwitchPlanOn() }
+
+// SwitchPlanOn says "Run by plan"
+// in the language of msgs.
+//
+// Switch that turns a plan on.
+func (msgs Messages) SwitchPlanOn() string {
+	return Catalog.Format(msgs.locale, "switchPlanOn", nil)
+}
+
+// SwitchPlanDisplay says "Keep the display on"
+// in the language the app shows.
+//
+// Switch: the plan keeps the display on too.
+func SwitchPlanDisplay() string { return In(i18n.Locale()).SwitchPlanDisplay() }
+
+// SwitchPlanDisplay says "Keep the display on"
+// in the language of msgs.
+//
+// Switch: the plan keeps the display on too.
+func (msgs Messages) SwitchPlanDisplay() string {
+	return Catalog.Format(msgs.locale, "switchPlanDisplay", nil)
+}
+
+// SwitchAddSpan says "Add a time span"
+// in the language the app shows.
+//
+// Button that adds a span of the day to a plan.
+func SwitchAddSpan() string { return In(i18n.Locale()).SwitchAddSpan() }
+
+// SwitchAddSpan says "Add a time span"
+// in the language of msgs.
+//
+// Button that adds a span of the day to a plan.
+func (msgs Messages) SwitchAddSpan() string {
+	return Catalog.Format(msgs.locale, "switchAddSpan", nil)
+}
+
+// SwitchRemoveSpan says "Remove this time span"
+// in the language the app shows.
+//
+// Tooltip of the button that removes a span.
+func SwitchRemoveSpan() string { return In(i18n.Locale()).SwitchRemoveSpan() }
+
+// SwitchRemoveSpan says "Remove this time span"
+// in the language of msgs.
+//
+// Tooltip of the button that removes a span.
+func (msgs Messages) SwitchRemoveSpan() string {
+	return Catalog.Format(msgs.locale, "switchRemoveSpan", nil)
+}
+
+// SwitchPlanEmpty says "No time spans yet. Add one to run by plan."
+// in the language the app shows.
+//
+// Shown in a plan without spans.
+func SwitchPlanEmpty() string { return In(i18n.Locale()).SwitchPlanEmpty() }
+
+// SwitchPlanEmpty says "No time spans yet. Add one to run by plan."
+// in the language of msgs.
+//
+// Shown in a plan without spans.
+func (msgs Messages) SwitchPlanEmpty() string {
+	return Catalog.Format(msgs.locale, "switchPlanEmpty", nil)
+}
+
+// SwitchSpanBad says "Each time span needs a time such as 09:00 and at least one day."
+// in the language the app shows.
+//
+// Error under a plan's spans.
+func SwitchSpanBad() string { return In(i18n.Locale()).SwitchSpanBad() }
+
+// SwitchSpanBad says "Each time span needs a time such as 09:00 and at least one day."
+// in the language of msgs.
+//
+// Error under a plan's spans.
+func (msgs Messages) SwitchSpanBad() string {
+	return Catalog.Format(msgs.locale, "switchSpanBad", nil)
+}
+
+// SwitchSpanLimit says "{count, plural, one {Up to # time span.} other {Up to # time spans.}}"
+// in the language the app shows.
+//
+// Shown when a plan has the most spans it can.
+func SwitchSpanLimit(count int) string { return In(i18n.Locale()).SwitchSpanLimit(count) }
+
+// SwitchSpanLimit says "{count, plural, one {Up to # time span.} other {Up to # time spans.}}"
+// in the language of msgs.
+//
+// Shown when a plan has the most spans it can.
+func (msgs Messages) SwitchSpanLimit(count int) string {
+	return Catalog.Format(msgs.locale, "switchSpanLimit", map[string]any{"count": count})
+}
+
+// SwitchNextRun says "Next: {day} {time}"
+// in the language the app shows.
+//
+// When the plan next turns the tool on.
+func SwitchNextRun(day string, time_ string) string {
+	return In(i18n.Locale()).SwitchNextRun(day, time_)
+}
+
+// SwitchNextRun says "Next: {day} {time}"
+// in the language of msgs.
+//
+// When the plan next turns the tool on.
+func (msgs Messages) SwitchNextRun(day string, time_ string) string {
+	return Catalog.Format(msgs.locale, "switchNextRun", map[string]any{"day": day, "time": time_})
+}
+
+// WeekdayMon says "Mon"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdayMon() string { return In(i18n.Locale()).WeekdayMon() }
+
+// WeekdayMon says "Mon"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdayMon() string {
+	return Catalog.Format(msgs.locale, "weekdayMon", nil)
+}
+
+// WeekdayTue says "Tue"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdayTue() string { return In(i18n.Locale()).WeekdayTue() }
+
+// WeekdayTue says "Tue"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdayTue() string {
+	return Catalog.Format(msgs.locale, "weekdayTue", nil)
+}
+
+// WeekdayWed says "Wed"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdayWed() string { return In(i18n.Locale()).WeekdayWed() }
+
+// WeekdayWed says "Wed"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdayWed() string {
+	return Catalog.Format(msgs.locale, "weekdayWed", nil)
+}
+
+// WeekdayThu says "Thu"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdayThu() string { return In(i18n.Locale()).WeekdayThu() }
+
+// WeekdayThu says "Thu"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdayThu() string {
+	return Catalog.Format(msgs.locale, "weekdayThu", nil)
+}
+
+// WeekdayFri says "Fri"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdayFri() string { return In(i18n.Locale()).WeekdayFri() }
+
+// WeekdayFri says "Fri"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdayFri() string {
+	return Catalog.Format(msgs.locale, "weekdayFri", nil)
+}
+
+// WeekdaySat says "Sat"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdaySat() string { return In(i18n.Locale()).WeekdaySat() }
+
+// WeekdaySat says "Sat"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdaySat() string {
+	return Catalog.Format(msgs.locale, "weekdaySat", nil)
+}
+
+// WeekdaySun says "Sun"
+// in the language the app shows.
+//
+// Short name of a day of the week, on a toggle.
+func WeekdaySun() string { return In(i18n.Locale()).WeekdaySun() }
+
+// WeekdaySun says "Sun"
+// in the language of msgs.
+//
+// Short name of a day of the week, on a toggle.
+func (msgs Messages) WeekdaySun() string {
+	return Catalog.Format(msgs.locale, "weekdaySun", nil)
+}

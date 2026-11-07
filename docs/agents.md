@@ -70,6 +70,8 @@ People can allow a tool to run without confirmation for a given client in Settin
 
 A switch tool that can run for a set time (Keep awake) takes two optional inputs on `start`, one at most: `for`, a length such as `90m` or `1h30m` (1 second to 99 hours 59 minutes), and `until`, a time of day such as `18:30` in 24 hours, which is tomorrow's when today's has passed. On the command line they are `--for` and `--until`. A start with neither uses the settings used last. Without the desktop app, `omt` holds the tool for that length and then exits by itself.
 
+A switch tool may also run by a daily plan of time spans, which is set in the desktop app only and works while the app runs. `status` shows when a plan holds the tool on, and `stop` turns it off for the rest of that span.
+
 ## 6. Activity log
 
 Every call from an agent is recorded locally: time, client name, tool, action, inputs, result. The log is visible in the desktop app under Settings and never leaves the computer.

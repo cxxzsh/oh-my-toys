@@ -3,6 +3,8 @@ package core
 import (
 	"slices"
 	"testing"
+
+	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
 
 func TestMoveWithinKeepsOtherGroups(t *testing.T) {
@@ -65,5 +67,32 @@ func TestMoveSectionKeepsTheRest(t *testing.T) {
 	s.Reset(Settings{})
 	if s.Sections != nil {
 		t.Error("reset kept the section order")
+	}
+}
+
+// TestSchedulesSurviveResetAndRestart: a plan is not part of the sidebar,
+// so resetting the sidebar leaves it, and it comes back from the file.
+func TestSchedulesSurviveResetAndRestart(t *testing.T) {
+	plan := tool.Schedule{Enabled: true, Display: true, Segments: []tool.Segment{
+		{Days: tool.Workdays, From: 9 * 60, To: 12 * 60}, {Days: tool.AllDays, From: 22 * 60, To: 6 * 60},
+	}}
+	var s Settings
+	s.SetSchedule("awake", plan)
+	plan.Segments[0].From = 0 // the caller's slice is not the settings'
+	s.Reset(Settings{})
+
+	store := NewStore(t.TempDir())
+	if err := store.Save(s); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load(Settings{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := tool.Schedule{Enabled: true, Display: true, Segments: []tool.Segment{
+		{Days: tool.Workdays, From: 9 * 60, To: 12 * 60}, {Days: tool.AllDays, From: 22 * 60, To: 6 * 60},
+	}}
+	if !got.Schedules["awake"].Equal(want) {
+		t.Errorf("plan after reset and reload: %+v, want %+v", got.Schedules["awake"], want)
 	}
 }

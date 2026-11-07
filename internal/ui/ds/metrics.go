@@ -30,6 +30,9 @@ const (
 	PresetHeight     = 44
 	CustomFieldWidth = 96  // hours and minutes of a custom run
 	ClockFieldWidth  = 128 // a time of day
+	SpanFieldWidth   = 84  // a time in a span of a plan
+	DayToggleWidth   = 36  // a day of the week in a span
+	PlanRowsShown    = 4   // spans a plan shows before its list scrolls
 	StripHeight      = 10  // PaletteStrip
 	SearchGlyph      = 16  // SearchField glyph
 	SelectGlyph      = 16  // Select's unfold glyph

@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+
+	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
 
 // Limits of the lists the settings keep.
@@ -28,9 +30,20 @@ type Settings struct {
 	// Sections is the sidebar sections (the pinned one and the categories)
 	// in the order the user dragged them into. Empty is the default order.
 	Sections []string `json:"sections,omitempty"`
+	// Schedules are the plans of the tools that run by a plan, by tool ID.
+	Schedules map[string]tool.Schedule `json:"schedules,omitempty"`
 	// Language is the language chosen in the settings; empty follows the
 	// system.
 	Language string `json:"language,omitempty"`
+}
+
+// SetSchedule remembers the plan of a tool.
+func (v *Settings) SetSchedule(id string, s tool.Schedule) {
+	if v.Schedules == nil {
+		v.Schedules = map[string]tool.Schedule{}
+	}
+	s.Segments = slices.Clone(s.Segments)
+	v.Schedules[id] = s
 }
 
 // Store keeps settings in a JSON file.
