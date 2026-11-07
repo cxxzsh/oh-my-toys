@@ -1,6 +1,7 @@
 package shell
 
 import (
+	"fmt"
 	"log"
 	"runtime"
 	"strings"
@@ -8,36 +9,61 @@ import (
 	"github.com/egoist/mygo"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// setUpMenu installs the application menu: the system's app, edit and
-// window menus (the edit menu gives text fields copy and paste on macOS),
-// and a menu that opens the palette, the tray panel and the tools.
+// setUpMenu installs the native application menu: oh-my-toys, Edit, View,
+// Tools (Mod+1…9), Window.
 func (a *App) setUpMenu() {
-	item := func(label string, fn func()) *mygo.MenuItem {
-		return &mygo.MenuItem{Label: label, Click: func(*mygo.MenuItem, *mygo.Window) { fn() }}
+	item := func(label, acc string, fn func()) *mygo.MenuItem {
+		return &mygo.MenuItem{Label: label, Accelerator: acc, Click: func(*mygo.MenuItem, *mygo.Window) { fn() }}
+	}
+	sideLabel := i18n.HideSidebar()
+	if a.sideHidden {
+		sideLabel = i18n.ShowSidebar()
 	}
 	mygo.App.SetMenu(mygo.NewMenu([]*mygo.MenuItem{
 		{Role: mygo.RoleAppMenu},
 		{Role: mygo.RoleEditMenu},
-		{Label: i18n.MenuTools(), Submenu: []*mygo.MenuItem{
-			item(i18n.PaletteTitle(), a.showPalette),
-			item(i18n.TrayTitle(), a.toggleTray),
-			item(i18n.AllTools(), func() { a.openMain(pageHome) }),
-			item(i18n.Settings(), func() { a.openMain(pageSettings) }),
+		{Label: i18n.MenuView(), Submenu: []*mygo.MenuItem{
+			item(sideLabel, "CmdOrCtrl+Shift+S", a.toggleSidebar),
+			mygo.Separator(),
+			{Label: i18n.Appearance(), Submenu: []*mygo.MenuItem{
+				item(i18n.ThemeAuto(), "", func() { mygo.Theme.SetSource(mygo.ThemeSystem) }),
+				item(i18n.ThemeDark(), "", func() { mygo.Theme.SetSource(mygo.ThemeDark) }),
+				item(i18n.ThemeLight(), "", func() { mygo.Theme.SetSource(mygo.ThemeLight) }),
+			}},
 		}},
+		{Label: i18n.MenuTools(), Submenu: a.toolsMenu(item)},
 		{Role: mygo.RoleWindowMenu},
 	}))
 }
 
-// GOOS names of the platforms that behave apart.
+func (a *App) toolsMenu(item func(string, string, func()) *mygo.MenuItem) []*mygo.MenuItem {
+	items := []*mygo.MenuItem{
+		item(i18n.PaletteTitle(), "CmdOrCtrl+K", a.showPalette),
+		item(i18n.TrayTitle(), "", a.toggleTray),
+		item(i18n.AllTools(), "", func() { a.openMain(pageHome) }),
+		item(i18n.SettingsEllipsis(), "CmdOrCtrl+,", func() { a.openMain(pageSettings) }),
+	}
+	all := a.reg.All()
+	if len(all) == 0 {
+		return items
+	}
+	items = append(items, mygo.Separator())
+	for i, t := range all[:min(len(all), ds.SidebarMaxJump)] {
+		id, name := t.Manifest().ID, t.Manifest().Name(msgs())
+		items = append(items, item(name, fmt.Sprintf("CmdOrCtrl+%d", i+1), func() { a.openMain(id) }))
+	}
+	return items
+}
+
+// GOOS names of the platforms that own different OS pieces.
 const (
 	goosMac   = "darwin"
 	goosLinux = "linux"
 )
 
-// registerShortcut takes the first free global shortcut of the options,
-// and remembers those taken, which the settings page names.
 func (a *App) registerShortcut() {
 	a.shortcutTaken = nil
 	for _, s := range a.opt.Shortcuts {
@@ -51,8 +77,8 @@ func (a *App) registerShortcut() {
 	}
 }
 
-// keys spells an accelerator the platform's way: ⌥Space on macOS,
-// Alt+Space elsewhere.
+// keys spells an accelerator in the user's key names: ⌘K on macOS, Ctrl+K
+// elsewhere (Kbd spec: the only text that differs between platforms).
 func keys(acc string) string {
 	if runtime.GOOS != goosMac {
 		return strings.ReplaceAll(acc, "CmdOrCtrl", "Ctrl")
@@ -60,5 +86,4 @@ func keys(acc string) string {
 	return strings.NewReplacer("CmdOrCtrl+", "⌘", "Cmd+", "⌘", "Ctrl+", "⌃", "Alt+", "⌥", "Shift+", "⇧").Replace(acc)
 }
 
-// modKey is the hint of a ⌘ / Ctrl shortcut with a key.
 func modKey(key string) string { return keys("CmdOrCtrl+" + key) }

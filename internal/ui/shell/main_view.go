@@ -14,37 +14,116 @@ import (
 func (a *App) mainView(c *ui.Context) {
 	a.theme(c)
 	p := ds.P(c)
-	vib := c.Vibrancy()
-	if vib {
-		c.Root().Background(ui.Transparent) // the material shows through the sidebar
+	if c.Vibrancy() {
+		c.Root().Background(ui.Transparent)
 	} else {
-		c.Root().Background(p.BgWindow)
+		c.Root().Background(p.BgCanvas)
 	}
-	c.OnShortcut(ui.Cmd, ui.KeyK, a.showPalette)
-	c.OnShortcut(ui.Cmd, ui.KeyComma, func() { a.page = pageSettings })
-	c.OnShortcut(ui.Cmd, ui.KeyW, a.main.Hide)
-	c.OnShortcut(ui.Cmd, ui.KeyQ, mygo.App.Quit)
-	ui.Row(c).Fill().AlignItems(ui.Stretch).Children(func() {
-		side := ui.Column(c).Width(ds.SidebarWidth).BorderWidth(0, 1, 0, 0).BorderColor(p.Separator).
-			Role(ui.RoleGroup).Label(i18n.Sidebar())
-		if !vib {
-			side.Background(p.BgSidebar)
-		}
-		side.Children(func() { a.sidebar(c) })
-		ui.Column(c).Grow(1).Background(p.BgWindow).Children(func() { a.content(c) })
+	a.mainShortcuts(c)
+	ui.Column(c).Fill().Children(func() {
+		a.titlebar(c)
+		ui.Row(c).Grow(1).FillWidth().AlignItems(ui.Stretch).Children(func() {
+			if !a.sideHidden {
+				a.sidebar(c)
+			}
+			ui.Column(c).Grow(1).FillHeight().Background(p.BgCanvas).Children(func() { a.workbench(c) })
+		})
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.firstFrame(a.opt.OnFirstFrame) })
+	if a.pal.open {
+		a.paletteOverlay(c)
+	}
+	if a.dialogOpen && a.dialog != nil {
+		a.kit.Dialog(c, &a.dialogOpen, *a.dialog)
+	}
 }
 
-func (a *App) content(c *ui.Context) {
-	a.toolbar(c)
+func (a *App) mainShortcuts(c *ui.Context) {
+	c.OnShortcut(ui.Cmd, ui.KeyK, a.showPalette)
+	c.OnShortcut(ui.Cmd, ui.KeyF, func() { a.filterIn.Focus() })
+	c.OnShortcut(ui.Cmd, ui.KeyComma, func() { a.open(pageSettings) })
+	c.OnShortcut(ui.Cmd|ui.Shift, ui.KeyS, a.toggleSidebar)
+	c.OnShortcut(ui.Cmd, ui.KeyW, a.main.Hide)
+	c.OnShortcut(ui.Cmd, ui.KeyQ, mygo.App.Quit)
+	all := a.reg.All()
+	for i := range min(len(all), ds.SidebarMaxJump) {
+		id := all[i].Manifest().ID
+		c.OnShortcut(ui.Cmd, ui.Key1+ui.Key(i), func() { a.open(id) })
+	}
+}
+
+// titlebar is the 48pt strip under the OS window controls: app icon and
+// name, breadcrumb, the page filter, the theme segmented control.
+func (a *App) titlebar(c *ui.Context) {
+	p := ds.P(c)
+	bar := c.TitleBar()
+	left, right := max(float32(ds.Space16), bar.Left), max(float32(ds.Space16), bar.Right)
+	ui.Row(c).FillWidth().Height(max(ds.TitlebarHeight, bar.Height)).Padding(0, right, 0, left).
+		Gap(ds.Space12).AlignItems(ui.Center).Background(p.BgTitlebar).
+		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).DragWindow().Children(func() {
+		a.breadcrumbs(c)
+		if a.kit.SearchField(c, &a.pageFilter, &a.filterIn, comp.SearchFieldOpts{
+			Placeholder: i18n.FilterPage(a.title()),
+			Hint:        modKey("K"),
+			Width:       ds.SearchWidth,
+		}) {
+			a.showPalette()
+		}
+		ui.Row(c).Grow(1).Basis(0).Justify(ui.End).AlignItems(ui.Center).Children(func() {
+			a.themeSegment(c)
+		})
+	})
+}
+
+func (a *App) breadcrumbs(c *ui.Context) {
+	p := ds.P(c)
+	ink := p.TextStrong
+	if !a.active() {
+		ink = p.TextMuted
+	}
+	appStyle := ds.Headline
+	appStyle.Tracking = -ds.TitleTracking
+	crumbStyle := ds.Label
+	crumbStyle.Weight = ds.Semibold
+	ui.Row(c).Grow(1).Basis(0).MinWidth(0).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		a.kit.AppIcon(c, ds.TitlebarGlyph)
+		comp.Text(c, i18n.AppName(), appStyle, ink).SingleLine()
+		comp.Text(c, "›", ds.Label, p.TextMuted).SingleLine()
+		comp.Text(c, a.title(), crumbStyle, ink).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+	})
+}
+
+func (a *App) themeSegment(c *ui.Context) {
+	src := mygo.Theme.Source()
+	sel := 0
+	switch src {
+	case mygo.ThemeDark:
+		sel = 1
+	case mygo.ThemeLight:
+		sel = 2
+	case mygo.ThemeSystem, "":
+	}
+	opts := []string{i18n.ThemeAuto(), i18n.ThemeDark(), i18n.ThemeLight()}
+	if comp.Segmented(c.Key("bar-theme"), &sel, opts, i18n.Appearance()).Changed() {
+		sources := []mygo.ThemeSource{mygo.ThemeSystem, mygo.ThemeDark, mygo.ThemeLight}
+		mygo.Theme.SetSource(sources[sel])
+	}
+}
+
+func (a *App) workbench(c *ui.Context) {
 	switch a.page {
 	case pageHome:
 		a.home(c)
 	case pageSettings:
-		a.scrollPage(c, func() { a.settingsPage(c) })
+		a.scrollWorkbench(c, func() { a.settingsPage(c) })
 	default:
 		a.toolPage(c)
 	}
+}
+
+func (a *App) scrollWorkbench(c *ui.Context, body func()) {
+	ui.Scroll(c).Grow(1).FillWidth().Children(func() {
+		ui.Column(c).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(body)
+	})
 }
 
 func (a *App) title() string {
@@ -63,28 +142,6 @@ func (a *App) title() string {
 	return ""
 }
 
-func (a *App) toolbar(c *ui.Context) {
-	p := ds.P(c)
-	bar := c.TitleBar()
-	ui.Row(c).FillWidth().Height(max(ds.ToolbarHeight, bar.Height)).Padding(0, ds.Space5+bar.Right, 0, ds.Space5).
-		Gap(ds.Space3).AlignItems(ui.Center).BorderWidth(0, 0, 1, 0).BorderColor(p.Separator).DragWindow().Children(func() {
-		comp.Text(c, a.title(), ds.Title, p.TextPrimary).Grow(1).SingleLine().Role(ui.RoleHeading).Level(1)
-		if n := len(a.reg.Running()); n > 0 {
-			comp.Pill(c, i18n.ToolsRunning(n), true)
-		}
-	})
-}
-
-// scrollPage lays a page out at the content's width, at most
-// content-max-width, scrolling.
-func (a *App) scrollPage(c *ui.Context, body func()) {
-	ui.Scroll(c).Grow(1).FillWidth().Children(func() {
-		ui.Column(c).FillWidth().AlignItems(ui.Center).Padding(ds.Space6, ds.Space8).Children(func() {
-			ui.Column(c).FillWidth().MaxWidth(ds.ContentMaxWidth).Gap(ds.Space6).Children(body)
-		})
-	})
-}
-
 // toolPage shows a tool by its kind. A panic in the page is kept as the
 // tool's failure: the next frame shows it, and nothing else changes.
 func (a *App) toolPage(c *ui.Context) {
@@ -95,7 +152,7 @@ func (a *App) toolPage(c *ui.Context) {
 	}
 	id := t.Manifest().ID
 	if f := a.opt.Runner.Failed(id); f != nil {
-		a.scrollPage(c, func() { a.failure(c, t, f) })
+		a.scrollWorkbench(c, func() { a.failure(c, t, f) })
 		return
 	}
 	ui.Column(c.Key("page:" + id)).Grow(1).FillWidth().Children(func() {
@@ -108,26 +165,22 @@ func (a *App) toolPage(c *ui.Context) {
 func (a *App) toolBody(c *ui.Context, t tool.Tool) {
 	m := t.Manifest()
 	if m.Soon {
-		a.scrollPage(c, func() { a.soonPage(c, m) })
+		a.scrollWorkbench(c, func() { a.soonPage(c, m) })
 		return
 	}
 	switch t := t.(type) {
 	case tool.Switch:
-		a.scrollPage(c, func() { a.switchPage(c, t) })
+		a.switchPage(c, t)
 	case tool.Action:
 		a.actionPage(c, t)
 	}
 }
 
-func (a *App) header(c *ui.Context, m tool.Manifest, trailing func()) {
-	comp.ToolHeader(c, m, m.Name(msgs()), m.Summary(msgs()), trailing)
-}
-
 func (a *App) soonPage(c *ui.Context, m tool.Manifest) {
 	p := ds.P(c)
-	a.header(c, m, nil)
-	comp.Card(c).FillWidth().Padding(ds.Space4).Gap(ds.Space2).Children(func() {
-		comp.Text(c, i18n.ComingSoon(), ds.Headline, p.TextPrimary)
+	comp.PageHeader(c, comp.Header{Title: m.Name(msgs()), Description: m.Summary(msgs())})
+	comp.Card(c).FillWidth().Padding(ds.Space16).Gap(ds.Space8).Children(func() {
+		comp.Text(c, i18n.ComingSoon(), ds.Headline, p.TextStrong)
 		comp.Text(c, i18n.ComingSoonDetail(), ds.Body, p.TextSecondary)
 	})
 }
@@ -135,19 +188,19 @@ func (a *App) soonPage(c *ui.Context, m tool.Manifest) {
 func (a *App) failure(c *ui.Context, t tool.Tool, f *core.Failure) {
 	p := ds.P(c)
 	m := t.Manifest()
-	a.header(c, m, nil)
-	comp.Card(c).FillWidth().Padding(ds.Space4).Gap(ds.Space3).Children(func() {
-		ui.Row(c).Gap(ds.Space2).AlignItems(ui.Center).Children(func() {
-			comp.Glyph(c, "triangle-alert", ds.Glyph, p.Danger)
-			comp.Text(c, i18n.ToolFailed(m.Name(msgs())), ds.Headline, p.TextPrimary)
+	comp.PageHeader(c, comp.Header{Title: m.Name(msgs()), Description: m.Summary(msgs())})
+	comp.Card(c).FillWidth().Padding(ds.Space16).Gap(ds.Space12).Children(func() {
+		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotDanger, Large: true})
+			comp.Text(c, i18n.ToolFailed(m.Name(msgs())), ds.Headline, p.TextStrong)
 		})
-		comp.Text(c, f.Value, ds.Mono, p.Danger).Selectable()
-		ui.Row(c).Gap(ds.Space2).Children(func() {
-			if comp.Button(c, i18n.Reload(), comp.Primary).Clicked() {
+		comp.Value(c, f.Value, p.Danger).Selectable()
+		ui.Row(c).Gap(ds.Space8).Children(func() {
+			if a.kit.Button(c.Key("reload"), i18n.Reload(), comp.ButtonOpts{Kind: comp.Primary}).Clicked() {
 				delete(a.actions, m.ID)
 				a.opt.Runner.Clear(m.ID)
 			}
-			if comp.Button(c, i18n.CopyDetails(), comp.Secondary).Clicked() {
+			if a.kit.Button(c.Key("copy"), i18n.CopyDetails(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
 				mygo.Clipboard.WriteText(f.Value + "\n\n" + f.Stack)
 			}
 		})

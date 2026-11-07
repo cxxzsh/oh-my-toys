@@ -1,11 +1,11 @@
 package shell
 
 import (
-	"strconv"
+	"fmt"
+	"strings"
 
 	"github.com/egoist/mygo/ui"
 
-	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
@@ -15,10 +15,9 @@ import (
 type homeKind int
 
 const (
-	homeChips homeKind = iota
+	homeHeader homeKind = iota
 	homeEyebrow
 	homeCards
-	homeRows
 )
 
 type homeRow struct {
@@ -27,31 +26,43 @@ type homeRow struct {
 	tools []tool.Tool
 }
 
-// homeRows lays the home page out as rows of a virtual list, so that
-// hundreds of tools build only the rows in view.
+func (a *App) filteredTools(tools []tool.Tool) []tool.Tool {
+	q := strings.ToLower(strings.TrimSpace(a.pageFilter))
+	if q == "" {
+		return tools
+	}
+	var out []tool.Tool
+	for _, t := range tools {
+		m := t.Manifest()
+		if strings.Contains(strings.ToLower(m.Name(msgs())), q) ||
+			strings.Contains(strings.ToLower(m.Summary(msgs())), q) {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 func (a *App) homeRows(width float32) []homeRow {
-	cardCols := columns(width, ds.CardMinWidth, ds.Space3)
-	rowCols := columns(width, ds.DenseMinWidth, ds.Space2)
-	rows := []homeRow{{kind: homeChips}}
+	cols := columns(width, ds.CardMinColumn, ds.Space12)
+	rows := []homeRow{{kind: homeHeader}}
 	if a.homeCat == "" {
-		rows = appendSection(rows, i18n.Pinned(), homeCards, a.pinnedTools(), cardCols)
-		rows = appendSection(rows, i18n.Recent(), homeRows, a.recentTools(), rowCols)
+		rows = appendSection(rows, i18n.Pinned(), a.filteredTools(a.pinnedTools()), cols)
 	}
 	for _, cat := range tool.Categories() {
 		if a.homeCat == "" || cat == a.homeCat {
-			rows = appendSection(rows, categoryName(cat), homeRows, a.reg.InCategory(cat), rowCols)
+			rows = appendSection(rows, categoryName(cat), a.filteredTools(a.reg.InCategory(cat)), cols)
 		}
 	}
 	return rows
 }
 
-func appendSection(rows []homeRow, label string, kind homeKind, tools []tool.Tool, cols int) []homeRow {
+func appendSection(rows []homeRow, label string, tools []tool.Tool, cols int) []homeRow {
 	if len(tools) == 0 {
 		return rows
 	}
 	rows = append(rows, homeRow{kind: homeEyebrow, label: label})
 	for i := 0; i < len(tools); i += cols {
-		rows = append(rows, homeRow{kind: kind, tools: tools[i:min(i+cols, len(tools))]})
+		rows = append(rows, homeRow{kind: homeCards, tools: tools[i:min(i+cols, len(tools))]})
 	}
 	return rows
 }
@@ -70,39 +81,45 @@ func (a *App) recentTools() []tool.Tool {
 	return out
 }
 
-func (a *App) contentWidth(c *ui.Context) float32 {
+func (a *App) workbenchWidth(c *ui.Context) float32 {
 	w, _ := c.Size()
-	return min(w-ds.SidebarWidth, ds.ContentMaxWidth+2*ds.Space8) - 2*ds.Space8
+	if !a.sideHidden {
+		w -= ds.SidebarWidth
+	}
+	return max(ds.CardMinColumn, w-2*ds.Space16)
 }
 
 func (a *App) home(c *ui.Context) {
-	rows := a.homeRows(a.contentWidth(c))
+	rows := a.homeRows(a.workbenchWidth(c))
 	ui.List(c.Key("home"), &a.homeList, len(rows), func(i int) { a.homeRow(c, rows[i]) }).
-		Grow(1).FillWidth().Padding(ds.Space6, ds.Space8).Label(i18n.AllTools())
+		Grow(1).FillWidth().Padding(ds.Space16).Label(i18n.AllTools())
 }
 
 func (a *App) homeRow(c *ui.Context, r homeRow) {
 	switch r.kind {
-	case homeChips:
-		a.chips(c)
+	case homeHeader:
+		ui.Box(c).FillWidth().Padding(0, 0, ds.Space12).Children(func() {
+			comp.PageHeader(c, comp.Header{
+				Title:       a.title(),
+				Badge:       fmt.Sprintf("%d", len(a.reg.All())),
+				Description: i18n.PaletteEmpty(),
+				Filters:     func() { a.chips(c) },
+			})
+		})
 	case homeEyebrow:
-		comp.Eyebrow(c, r.label).Padding(ds.Space6, 0, ds.Space2).Role(ui.RoleHeading).Level(2)
+		comp.Eyebrow(c, r.label).Padding(ds.Space12, 0, ds.Space8).Role(ui.RoleHeading).Level(2)
 	case homeCards:
-		a.gridRow(c, r.tools, ds.CardMinWidth, ds.Space3, a.toolCard)
-	case homeRows:
-		a.gridRow(c, r.tools, ds.DenseMinWidth, ds.Space2, a.toolRow)
+		a.cardRow(c, r.tools)
 	}
 }
 
-// gridRow lays tools out in equal columns; a short last row keeps the
-// columns' width.
-func (a *App) gridRow(c *ui.Context, tools []tool.Tool, minWidth, gap float32, cell func(*ui.Context, tool.Tool)) {
-	cols := columns(a.contentWidth(c), minWidth, gap)
-	ui.Row(c).FillWidth().Gap(gap).AlignItems(ui.Stretch).Padding(0, 0, gap).Children(func() {
+func (a *App) cardRow(c *ui.Context, tools []tool.Tool) {
+	cols := columns(a.workbenchWidth(c), ds.CardMinColumn, ds.Space12)
+	ui.Row(c).FillWidth().Gap(ds.Space12).AlignItems(ui.Stretch).Padding(0, 0, ds.Space12).Children(func() {
 		for i := range cols {
 			ui.Column(c.Key(i)).Grow(1).Basis(0).Children(func() {
 				if i < len(tools) {
-					cell(c, tools[i])
+					a.toolCard(c, tools[i])
 				}
 			})
 		}
@@ -110,7 +127,7 @@ func (a *App) gridRow(c *ui.Context, tools []tool.Tool, minWidth, gap float32, c
 }
 
 func (a *App) chips(c *ui.Context) {
-	ui.Row(c).FillWidth().Gap(ds.ChipGap).Wrap().Children(func() {
+	ui.Row(c).Gap(ds.Space6).Wrap().Children(func() {
 		a.chip(c, "", i18n.All(), len(a.reg.All()))
 		for _, cat := range tool.Categories() {
 			if n := len(a.reg.InCategory(cat)); n > 0 {
@@ -121,106 +138,81 @@ func (a *App) chips(c *ui.Context) {
 }
 
 func (a *App) chip(c *ui.Context, cat tool.Category, label string, n int) {
-	p := ds.P(c)
-	sel := a.homeCat == cat
-	b := ui.ButtonBase(c.Key("chip:" + string(cat))).Label(label).Selected(sel)
-	if b.Clicked() {
+	text := fmt.Sprintf("%s (%d)", label, n)
+	if comp.Chip(c.Key("chip:"+string(cat)), text, a.homeCat == cat).Clicked() {
 		a.homeCat = cat
 		a.homeList.ScrollTo(0, ui.Start)
 	}
-	bg, fg, count := p.FillControl, p.TextPrimary, p.TextTertiary
-	if sel {
-		bg, fg, count = p.TextPrimary, p.BgWindow, p.BgWindow.Alpha(ds.ChipCountAlpha)
-	}
-	b.Height(ds.ChipHeight).Padding(0, ds.ChipPadX).Gap(ds.ChipGap).Radius(ds.RadiusPill).Background(bg).
-		AlignItems(ui.Center).Children(func() {
-		comp.Text(c, label, ds.Callout, fg).SingleLine()
-		comp.Text(c, strconv.Itoa(n), ds.Callout, count).SingleLine()
-	})
 }
 
-// toolCard is a pinned tool: a switch tool shows its status and switch,
-// any other tool "Open ›".
+// toolCard is a tool on the Home grid: icon, name, one-line summary, and
+// a Switch for switch tools or an "Open ›" link for action tools.
 func (a *App) toolCard(c *ui.Context, t tool.Tool) {
 	p := ds.P(c)
 	m := t.Manifest()
-	card := comp.Card(c.Key("card:" + m.ID)).FillWidth().MinHeight(ds.CardMinHeight).Padding(ds.Space4).Gap(ds.Space3)
-	if card.Hovered() {
-		ds.ApplyShadow(card, ds.S(c).ShadowPopover)
-	}
+	card := ui.ButtonBase(c.Key("card:" + m.ID)).Label(m.Name(msgs())).Description(m.Summary(msgs())).
+		Cursor(ui.CursorDefault)
 	if card.Clicked() {
 		a.open(m.ID)
 	}
-	card.Label(m.Name(msgs())).Children(func() {
-		ui.Row(c).FillWidth().Gap(ds.Space3).AlignItems(ui.Center).Children(func() {
-			comp.ToolIcon(c, m.Category, m.Icon, comp.Medium, false)
-			comp.Text(c, m.Name(msgs()), ds.Headline, p.TextPrimary).Grow(1).SingleLine().Ellipsis("…")
+	card.ContextMenu(func(menu *ui.Menu) { a.sidebarToolMenu(menu, t) })
+	edge, shadow := p.Line, ds.S(c).ShadowXs
+	if card.Hovered() {
+		edge, shadow = p.LineHover, ds.S(c).ShadowSm
+	}
+	ds.ApplyShadow(card.FillWidth().Column().MinHeight(ds.CardMinHeight).Padding(ds.Space16).Gap(ds.Space10).
+		Radius(ds.RadiusMd).Background(p.BgCard).Border(ds.LineWidth, edge).Justify(ui.SpaceBetween).
+		AlignItems(ui.Start), shadow)
+	card.Children(func() {
+		ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.Center).Children(func() {
+			a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconMedium})
+			comp.Text(c, m.Name(msgs()), ds.Headline, p.TextStrong).Grow(1).SingleLine().Ellipsis("…")
 			a.pinButton(c, t)
 		})
-		comp.Text(c, m.Summary(msgs()), ds.Callout, p.TextSecondary).Grow(1).MaxLines(2)
-		ui.Row(c).FillWidth().MinHeight(ds.PillHeight).Gap(ds.Space2).AlignItems(ui.Center).Children(func() {
-			a.cardFoot(c, t)
-		})
+		comp.Text(c, m.Summary(msgs()), ds.Caption, p.TextInactive).FillWidth().TextAlign(ui.Start).Grow(1).MaxLines(2)
+		ui.Row(c).FillWidth().AlignItems(ui.Center).Children(func() { a.cardFoot(c, t) })
 	})
 }
 
 func (a *App) cardFoot(c *ui.Context, t tool.Tool) {
 	p := ds.P(c)
-	if s, ok := t.(tool.Switch); ok && !t.Manifest().Soon {
+	m := t.Manifest()
+	if s, ok := t.(tool.Switch); ok && !m.Soon {
 		st := s.Status()
-		comp.Pill(c, st.Text, st.On)
+		ink := p.TextMuted
+		if st.On {
+			ink = p.LiveText
+		}
+		comp.Value(c, st.Text, ink)
 		ui.Spacer(c)
 		on := st.On
-		if comp.Switch(c, &on, t.Manifest().Name(msgs())).Changed() {
+		if comp.Switch(c, &on, m.Name(msgs())).Changed() {
 			a.setSwitch(s, on)
 		}
 		return
 	}
+	comp.CategoryBadge(c, m.Category, categoryName(m.Category))
 	ui.Spacer(c)
-	label := i18n.Open()
-	if t.Manifest().Soon {
+	label := i18n.Open() + " ›"
+	if m.Soon {
 		label = i18n.ComingSoon()
 	}
-	ui.Row(c).Gap(ds.OpenGap).AlignItems(ui.Center).Children(func() {
-		comp.Text(c, label, ds.Callout, p.TextSecondary)
-		comp.Glyph(c, "chevron-right", ds.SmallGlyph, p.TextSecondary)
-	})
+	comp.Text(c, label, ds.Label, p.Accent).Cursor(ui.CursorPointer)
 }
 
 func (a *App) pinButton(c *ui.Context, t tool.Tool) {
 	p := ds.P(c)
-	label, color := i18n.Pin(), p.TextTertiary
+	glyph, label, color := "keep", i18n.Pin(), p.TextMuted
 	if a.isPinned(t) {
-		label, color = i18n.Unpin(), p.Accent
+		glyph, label, color = "keep-filled", i18n.Unpin(), p.Accent
+		if !a.active() {
+			color = p.TextMuted
+		}
 	}
-	pin := ui.ButtonBase(c).Label(label).Tooltip(label)
+	pin := ui.ButtonBase(c).Label(label).Tooltip(label).Cursor(ui.CursorDefault)
 	if pin.Clicked() {
 		a.settings.TogglePin(t.Manifest().ID)
 		a.save()
 	}
-	pin.Children(func() { comp.Glyph(c, "pin", ds.SmallGlyph, color) })
-}
-
-// toolRow is a compact tool in the home page's grid.
-func (a *App) toolRow(c *ui.Context, t tool.Tool) {
-	p := ds.P(c)
-	m := t.Manifest()
-	row := ui.ButtonBase(c.Key("row:" + m.ID)).Label(m.Name(msgs())).Description(m.Summary(msgs()))
-	bg := p.BgCard
-	if row.Hovered() {
-		bg = p.BgElevated
-	}
-	if row.Clicked() {
-		a.open(m.ID)
-	}
-	ds.ApplyShadow(row, ds.S(c).ShadowCard)
-	row.FillWidth().Padding(ds.ToolRowPadY, ds.Space3).Gap(ds.Space3).Radius(ds.RadiusLg).Background(bg).
-		Border(1, p.BorderCard).AlignItems(ui.Center).Children(func() {
-		comp.ToolIcon(c, m.Category, m.Icon, comp.Medium, core.IsRunning(t))
-		ui.Column(c).Grow(1).Shrink(1).MinWidth(0).Children(func() {
-			comp.Text(c, m.Name(msgs()), ds.Headline, p.TextPrimary).SingleLine().Ellipsis("…")
-			comp.Text(c, m.Summary(msgs()), ds.Callout, p.TextSecondary).SingleLine().Ellipsis("…")
-		})
-		a.pinButton(c, t)
-	})
+	pin.Children(func() { a.kit.Glyph(c, glyph, ds.SearchGlyph, color) })
 }

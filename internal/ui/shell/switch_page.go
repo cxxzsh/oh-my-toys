@@ -12,42 +12,50 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// switchPage is the page of a switch tool: its state and switch in the
-// header, its status, and its quick actions as buttons.
 func (a *App) switchPage(c *ui.Context, t tool.Switch) {
-	p := ds.P(c)
 	m := t.Manifest()
 	st := t.Status()
 	if st.On {
-		c.After(tick) // countdowns
+		c.After(tick)
 	}
-	a.header(c, m, func() {
-		comp.Pill(c, st.Text, st.On)
+	toggle := func() {
 		on := st.On
 		if comp.Switch(c, &on, m.Name(msgs())).Changed() {
 			a.setSwitch(t, on)
 		}
+	}
+	ui.Column(c).Grow(1).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(func() {
+		comp.PageHeader(c, comp.Header{
+			Title: m.Name(msgs()), Badge: st.Text, Description: m.Summary(msgs()), Meta: toggle,
+		})
+		a.kit.SettingsList(c, []comp.SettingsRow{{
+			Glyph: m.Icon, Title: m.Name(msgs()), Desc: st.Detail, Control: toggle,
+		}})
+		a.switchActions(c, t)
+		ui.Spacer(c)
+		a.kit.StatusBar(c, comp.StatusBarOpts{
+			Title:  i18n.LiveTelemetry(),
+			Counts: []comp.StatusCount{{Text: st.Text, Live: st.On}},
+			Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
+		})
 	})
-	ui.Row(c).FillWidth().Gap(ds.Space3).Children(func() {
-		comp.MetricTile(c, i18n.StatusLabel(), st.Text, "")
-		if st.Detail != "" {
-			comp.MetricTile(c, i18n.ModeLabel(), st.Detail, "")
-		}
-	})
+}
+
+func (a *App) switchActions(c *ui.Context, t tool.Switch) {
+	m := t.Manifest()
 	if len(m.Actions) == 0 {
 		return
 	}
-	comp.Card(c).FillWidth().Padding(ds.Space4).Gap(ds.Space3).Children(func() {
-		comp.Eyebrow(c, i18n.QuickActions())
-		ui.Row(c).FillWidth().Gap(ds.Space2).Wrap().Children(func() {
+	a.kit.Panel(c, comp.PanelOpts{Title: i18n.QuickActions(), Glyph: m.Icon}, func() {
+		ui.Row(c).FillWidth().Gap(ds.Space8).Wrap().Children(func() {
 			for i := range m.Actions {
 				act := &m.Actions[i]
-				if comp.Button(c.Key(act.ID), act.Title(msgs()), comp.Secondary).Clicked() {
+				if a.kit.Button(c.Key(act.ID), act.Title(msgs()), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
 					a.runAction(t, act)
 				}
 			}
 		})
-		comp.Text(c, i18n.SwitchHint(), ds.Callout, p.TextSecondary)
+		comp.Text(c, i18n.SwitchHint(), ds.Caption, ds.P(c).TextInactive)
 	})
 }
 

@@ -1,7 +1,7 @@
 // Package shell is the desktop app around the tools: the main window
-// (sidebar, home page, tool pages, settings), the tray panel and the
-// command palette. Everything it shows comes from the registry; it never
-// names a tool.
+// (titlebar, sidebar, home page, tool pages, settings), the tray panel and
+// the command palette. Everything it shows comes from the registry; it
+// never names a tool.
 package shell
 
 import (
@@ -16,13 +16,15 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
 // Page names besides tool IDs.
 const (
-	pageHome     = "home"
-	pageSettings = "settings"
+	pageHome      = "home"
+	pageSettings  = "settings"
+	glyphSettings = pageSettings
 )
 
 // tick is how often running switch tools redraw their countdowns.
@@ -50,24 +52,27 @@ type Options struct {
 type App struct {
 	opt      Options
 	reg      *core.Registry
+	kit      *comp.Kit
+	procs    *comp.ProcessIcons
 	settings core.Settings
 
-	main    *mygo.Window
-	tray    *mygo.Tray
-	panel   *mygo.Window
-	palette *mygo.Window
+	main  *mygo.Window
+	tray  *mygo.Tray
+	panel *mygo.Window
 
-	page      string
-	homeCat   tool.Category
-	sideQuery string
-	sideInput ui.Handle
-	sideList  ui.ListState
-	homeList  ui.ListState
-	actions   map[string]*actionState
+	page       string
+	homeCat    tool.Category
+	pageFilter string
+	filterIn   ui.Handle
+	sideHidden bool
+	sideList   ui.ListState
+	homeList   ui.ListState
+	actions    map[string]*actionState
+	dialog     *comp.DialogOpts
+	dialogOpen bool
 
 	pal           paletteState
-	trayQuery     string
-	trayInput     ui.Handle
+	trayChosen    int
 	trayHidden    time.Time
 	trayIcon      trayIconState
 	shortcut      string
@@ -80,14 +85,21 @@ type App struct {
 
 // New makes the app; Start creates its windows once MyGo is ready.
 func New(opt Options) *App {
-	return &App{
+	kit, err := comp.NewKit()
+	if err != nil {
+		log.Fatal(err)
+	}
+	a := &App{
 		opt:      opt,
 		reg:      opt.Registry,
+		kit:      kit,
 		page:     pageHome,
 		actions:  map[string]*actionState{},
 		metrics:  newMetrics(opt.StartedAt),
 		settings: opt.Defaults,
 	}
+	a.procs = comp.NewProcessIcons(func() { a.Post(nil) })
+	return a
 }
 
 // msgs are the catalog messages in the language shown.
@@ -118,7 +130,7 @@ func (a *App) Post(fn func()) {
 }
 
 func (a *App) redraw() {
-	for _, w := range []*mygo.Window{a.main, a.panel, a.palette} {
+	for _, w := range []*mygo.Window{a.main, a.panel} {
 		if w != nil {
 			w.Invalidate()
 		}
@@ -168,6 +180,8 @@ func (a *App) createMain() {
 		StateKey:      "main",
 		Content:       ui.View(a.mainView),
 	})
+	a.main.OnFocus(func() { a.main.Invalidate() })
+	a.main.OnBlur(func() { a.main.Invalidate() })
 	a.main.OnClose(func(e *mygo.CloseEvent) {
 		if !a.quitting {
 			e.PreventDefault()
@@ -186,6 +200,11 @@ func material(name string) mygo.Vibrancy {
 		return mygo.VibrancyMica
 	}
 	return mygo.VibrancyNone
+}
+
+// active reports whether the main window is the front window.
+func (a *App) active() bool {
+	return a.main == nil || a.main.IsFocused()
 }
 
 // tickWhileRunning redraws once a second while a switch tool runs, so
@@ -227,14 +246,25 @@ func (a *App) openMain(page string) {
 
 // open shows a page in the main window.
 func (a *App) open(page string) {
-	a.page = page
+	a.page, a.pageFilter, a.pal.open = page, "", false
 	t := a.reg.Get(page)
 	if t == nil {
 		return
 	}
-	a.settings.SetCollapsed(string(t.Manifest().Category), false)
 	a.settings.Used(page)
 	a.save()
+}
+
+func (a *App) toggleSidebar() {
+	a.sideHidden = !a.sideHidden
+	a.setUpMenu()
+	a.redraw()
+}
+
+// askDialog opens the window-modal confirmation dialog.
+func (a *App) askDialog(d comp.DialogOpts) {
+	d.Processes = a.procs
+	a.dialog, a.dialogOpen = &d, true
 }
 
 // activate is a click on a tool in the tray or the palette: a switch tool
@@ -245,18 +275,7 @@ func (a *App) activate(t tool.Tool) {
 		a.openMain(t.Manifest().ID)
 		return
 	}
-	id := t.Manifest().ID
-	a.opt.Runner.Do(id, "action", func() {
-		var err error
-		if s.Status().On {
-			err = s.Stop()
-		} else {
-			err = s.Start(context.Background())
-		}
-		if err != nil {
-			log.Printf("%s: %v", id, err)
-		}
-	})
+	a.setSwitch(s, !s.Status().On)
 }
 
 // runAction runs a tool's quick action; a failure opens the tool's page,
