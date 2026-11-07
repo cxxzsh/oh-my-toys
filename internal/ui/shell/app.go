@@ -257,6 +257,7 @@ func (a *App) open(page string) {
 	if t == nil {
 		return
 	}
+	a.settings.SetCollapsed(string(t.Manifest().Category), false)
 	a.settings.Used(page)
 	a.save()
 }
