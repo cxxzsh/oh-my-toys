@@ -32,8 +32,8 @@
   "main": "./cmd/oh-my-toys",
   "icon": "design/app-icon.png",
   "resources": [
-    "design/next/fonts/Geist-OFL.txt",
-    "design/next/fonts/JetBrainsMono-OFL.txt",
-    "design/next/fonts/NOTICE.txt"
+    "design/fonts/Geist-OFL.txt",
+    "design/fonts/JetBrainsMono-OFL.txt",
+    "design/fonts/NOTICE.txt"
   ]
 }
