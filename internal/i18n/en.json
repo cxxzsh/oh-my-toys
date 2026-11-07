@@ -1144,5 +1144,17 @@
         "type": "String"
       }
     }
+  },
+  "resetSidebar": "Reset sidebar",
+  "@resetSidebar": {
+    "description": "Settings row title that restores the default tool order and pins."
+  },
+  "resetSidebarDesc": "Restore the default order, pinned tools and open sections.",
+  "@resetSidebarDesc": {
+    "description": "Settings row description for Reset sidebar."
+  },
+  "resetSidebarAction": "Restore Defaults",
+  "@resetSidebarAction": {
+    "description": "Button that resets the sidebar order and pins."
   }
 }

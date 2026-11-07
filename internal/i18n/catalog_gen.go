@@ -3047,3 +3047,45 @@ func TrayActiveTooltip(app string, tool string) string {
 func (msgs Messages) TrayActiveTooltip(app string, tool string) string {
 	return Catalog.Format(msgs.locale, "trayActiveTooltip", map[string]any{"app": app, "tool": tool})
 }
+
+// ResetSidebar says "Reset sidebar"
+// in the language the app shows.
+//
+// Settings row title that restores the default tool order and pins.
+func ResetSidebar() string { return In(i18n.Locale()).ResetSidebar() }
+
+// ResetSidebar says "Reset sidebar"
+// in the language of msgs.
+//
+// Settings row title that restores the default tool order and pins.
+func (msgs Messages) ResetSidebar() string {
+	return Catalog.Format(msgs.locale, "resetSidebar", nil)
+}
+
+// ResetSidebarDesc says "Restore the default order, pinned tools and open sections."
+// in the language the app shows.
+//
+// Settings row description for Reset sidebar.
+func ResetSidebarDesc() string { return In(i18n.Locale()).ResetSidebarDesc() }
+
+// ResetSidebarDesc says "Restore the default order, pinned tools and open sections."
+// in the language of msgs.
+//
+// Settings row description for Reset sidebar.
+func (msgs Messages) ResetSidebarDesc() string {
+	return Catalog.Format(msgs.locale, "resetSidebarDesc", nil)
+}
+
+// ResetSidebarAction says "Restore Defaults"
+// in the language the app shows.
+//
+// Button that resets the sidebar order and pins.
+func ResetSidebarAction() string { return In(i18n.Locale()).ResetSidebarAction() }
+
+// ResetSidebarAction says "Restore Defaults"
+// in the language of msgs.
+//
+// Button that resets the sidebar order and pins.
+func (msgs Messages) ResetSidebarAction() string {
+	return Catalog.Format(msgs.locale, "resetSidebarAction", nil)
+}

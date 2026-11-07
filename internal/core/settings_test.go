@@ -1,0 +1,69 @@
+package core
+
+import (
+	"slices"
+	"testing"
+)
+
+func TestMoveWithinKeepsOtherGroups(t *testing.T) {
+	var s Settings
+	files := []string{"rename", "dupes"}
+	s.MoveWithin(files, []int{1}, 0) // dupes before rename
+	got := s.Ordered([]string{"awake", "rename", "dupes", "ports"})
+	want := []string{"dupes", "rename", "awake", "ports"}
+	if !slices.Equal(got, want) {
+		t.Errorf("order %v, want %v", got, want)
+	}
+	// Moving inside another group leaves the first group's order alone.
+	s.MoveWithin([]string{"awake"}, []int{0}, 1)
+	if got := s.Ordered(files); !slices.Equal(got, []string{"dupes", "rename"}) {
+		t.Errorf("files order after moving another group: %v", got)
+	}
+}
+
+func TestMoveWithinTable(t *testing.T) {
+	group := []string{"a", "b", "c", "d"}
+	for _, c := range []struct {
+		rows []int
+		to   int
+		want []string
+	}{
+		{[]int{0}, 3, []string{"b", "c", "a", "d"}},
+		{[]int{3}, 0, []string{"d", "a", "b", "c"}},
+		{[]int{0}, 4, []string{"b", "c", "d", "a"}},
+		{[]int{1, 2}, 0, []string{"b", "c", "a", "d"}},
+		{[]int{1}, 2, []string{"a", "b", "c", "d"}},
+	} {
+		var s Settings
+		s.MoveWithin(group, c.rows, c.to)
+		if got := s.Ordered(group); !slices.Equal(got, c.want) {
+			t.Errorf("move %v to %d: %v, want %v", c.rows, c.to, got, c.want)
+		}
+	}
+}
+
+func TestResetKeepsLanguage(t *testing.T) {
+	s := Settings{Pinned: []string{"x"}, Order: []string{"b", "a"}, Collapsed: []string{"file"}, Language: "zh-Hans"}
+	s.Reset(Settings{Pinned: []string{"a", "b"}})
+	if !slices.Equal(s.Pinned, []string{"a", "b"}) || s.Order != nil || s.Collapsed != nil || s.Language != "zh-Hans" {
+		t.Errorf("after reset: %+v", s)
+	}
+}
+
+func TestMoveSectionKeepsTheRest(t *testing.T) {
+	all := []string{"pinned", "system", "file", "dev"}
+	var s Settings
+	s.MoveSection(all, 2, 1) // file before system
+	got := s.OrderedSections(all)
+	if want := []string{"pinned", "file", "system", "dev"}; !slices.Equal(got, want) {
+		t.Errorf("sections %v, want %v", got, want)
+	}
+	s.MoveSection(got, 0, 4) // pinned to the end
+	if got := s.OrderedSections(all); !slices.Equal(got, []string{"file", "system", "dev", "pinned"}) {
+		t.Errorf("after moving pinned last: %v", got)
+	}
+	s.Reset(Settings{})
+	if s.Sections != nil {
+		t.Error("reset kept the section order")
+	}
+}

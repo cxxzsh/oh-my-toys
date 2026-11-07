@@ -213,5 +213,8 @@
   "awake1hShort": "1 小时",
   "awake2hShort": "2 小时",
   "awakeForeverShort": "常开",
-  "trayActiveTooltip": "{app} · {tool}已开启"
+  "trayActiveTooltip": "{app} · {tool}已开启",
+  "resetSidebar": "重置侧边栏",
+  "resetSidebarDesc": "恢复默认的工具顺序、钉住项和展开状态。",
+  "resetSidebarAction": "恢复默认"
 }

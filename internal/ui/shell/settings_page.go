@@ -39,11 +39,28 @@ func (a *App) settingsPage(c *ui.Context) {
 			Desc:    a.shortcutTakenDesc(),
 			Control: func() { a.shortcutBadge(c) },
 		},
+		{
+			Glyph: "tune",
+			Title: i18n.ResetSidebar(),
+			Desc:  i18n.ResetSidebarDesc(),
+			Control: func() {
+				if a.kit.Button(c.Key("reset-side"), i18n.ResetSidebarAction(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
+					a.resetSidebar()
+				}
+			},
+		},
 	})
 	a.aboutSection(c)
 	if a.opt.Dev {
 		a.section(c, i18n.Measurements(), func() { a.measurements(c) })
 	}
+}
+
+// resetSidebar puts the sidebar back to the first-launch order, pins and
+// open sections.
+func (a *App) resetSidebar() {
+	a.settings.Reset(a.opt.Defaults)
+	a.save()
 }
 
 func (a *App) languageSelect(c *ui.Context) {

@@ -102,7 +102,7 @@ func New(opt Options) *App {
 		settings: opt.Defaults,
 	}
 	a.procs = comp.NewProcessIcons(func() { a.Post(nil) })
-
+	a.sideList.Reorder = a.reorderSidebar
 	return a
 }
 

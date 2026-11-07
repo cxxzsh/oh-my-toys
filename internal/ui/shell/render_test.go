@@ -11,6 +11,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
+	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/devtools"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
@@ -215,5 +216,113 @@ func TestSidebarPinAndAutoCollapse(t *testing.T) {
 	}
 	if a.sideHidden {
 		t.Fatal("clicking Pin did not dock the sidebar")
+	}
+}
+
+// dragRow presses the sidebar row labeled from, moves the pointer in steps
+// to the row labeled to, and releases it there. Labels also name the cards
+// of the home page, so only rows inside the sidebar's width count.
+func dragRow(t *testing.T, tt *ui.Tester, from, to string) {
+	t.Helper()
+	a, okA := tt.Find(from)
+	b, okB := tt.Find(to)
+	if !okA || !okB || a.X > ds.SidebarWidth || b.X > ds.SidebarWidth {
+		t.Fatalf("rows %q (%+v) and %q (%+v) are not in the sidebar", from, a, to, b)
+	}
+	x, y0, y1 := a.X+a.W/2, a.Y+a.H/2, b.Y+b.H/4 // the upper half of the target: before it
+	tt.Press(x, y0)
+	for i := 1; i <= 10; i++ {
+		tt.Move(x, y0+(y1-y0)*float32(i)/10)
+		tt.Frame()
+	}
+	tt.Release(x, y1)
+	tt.Frame()
+}
+
+// TestSidebarDragReordersWithinGroup drags a tool above its neighbour in
+// the same category, which changes the order, and onto a tool of another
+// category, which changes nothing.
+func TestSidebarDragReordersWithinGroup(t *testing.T) {
+	a := newTestApp(t, false)
+	cat := tool.Categories()[0]
+	same := a.orderedInCategory(cat)
+	if len(same) < 3 {
+		t.Fatalf("category %s has %d tools", cat, len(same))
+	}
+	first, second := same[0].Manifest(), same[1].Manifest()
+	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
+	tt.Frame()
+	dragRow(t, tt, second.Name(msgs()), first.Name(msgs()))
+	got := a.orderedInCategory(cat)
+	if got[0].Manifest().ID != second.ID || got[1].Manifest().ID != first.ID {
+		t.Errorf("after dragging %s above %s: %s, %s", second.ID, first.ID, got[0].Manifest().ID, got[1].Manifest().ID)
+	}
+	if len(a.settings.Order) == 0 {
+		t.Error("the new order was not recorded")
+	}
+	a.resetSidebar()
+	if a.settings.Order != nil {
+		t.Error("reset kept the custom order")
+	}
+}
+
+// TestSidebarDragAcrossGroupsChangesNothing drops a tool of the first
+// category into the second one's rows, and a header row: the order stays.
+func TestSidebarDragAcrossGroupsChangesNothing(t *testing.T) {
+	a := newTestApp(t, false)
+	nav := a.navRows()
+	firstTool, otherTool, header := -1, -1, -1
+	for i, r := range nav {
+		switch {
+		case r.kind == navHead && header < 0:
+			header = i
+		case r.kind == navTool && r.group == string(tool.Categories()[0]) && firstTool < 0:
+			firstTool = i
+		case r.kind == navTool && r.group == string(tool.Categories()[1]) && otherTool < 0:
+			otherTool = i
+		}
+	}
+	a.reorderSidebar([]int{firstTool}, otherTool+1)  // into another group
+	a.reorderSidebar([]int{firstTool, otherTool}, 0) // rows of two groups
+	a.reorderSidebar([]int{header}, firstTool)       // a header
+	if len(a.settings.Order) != 0 {
+		t.Errorf("a drop outside the group changed the order: %v", a.settings.Order)
+	}
+}
+
+// sectionIDs lists the section headers of the sidebar in order.
+func sectionIDs(a *App) []string {
+	var ids []string
+	for _, r := range a.navRows() {
+		if r.kind == navHead {
+			ids = append(ids, r.section)
+		}
+	}
+	return ids
+}
+
+// TestSidebarDragMovesWholeSection drags a category header above the one
+// before it: the section, with its tools, changes places. Reset puts it
+// back.
+func TestSidebarDragMovesWholeSection(t *testing.T) {
+	a := newTestApp(t, false)
+	for _, cat := range tool.Categories() {
+		a.settings.SetCollapsed(string(cat), true) // headers next to each other
+	}
+	before := sectionIDs(a)
+	if len(before) < 3 {
+		t.Fatalf("sections %v", before)
+	}
+	second, first := categoryName(tool.Category(before[1])), categoryName(tool.Category(before[0]))
+	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
+	tt.Frame()
+	dragRow(t, tt, second, first)
+	after := sectionIDs(a)
+	if after[0] != before[1] || after[1] != before[0] || after[2] != before[2] {
+		t.Errorf("sections %v after dragging %v above %v", after, before[1], before[0])
+	}
+	a.resetSidebar()
+	if got := sectionIDs(a); !slices.Equal(got, before) {
+		t.Errorf("after reset: %v, want %v", got, before)
 	}
 }
