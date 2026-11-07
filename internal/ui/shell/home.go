@@ -202,9 +202,9 @@ func (a *App) cardFoot(c *ui.Context, t tool.Tool) {
 
 func (a *App) pinButton(c *ui.Context, t tool.Tool) {
 	p := ds.P(c)
-	glyph, label, color := "keep", i18n.Pin(), p.TextMuted
+	glyph, label, color := glyphPin, i18n.Pin(), p.TextMuted
 	if a.isPinned(t) {
-		glyph, label, color = "keep-filled", i18n.Unpin(), p.Accent
+		glyph, label, color = glyphPinned, i18n.Unpin(), p.Accent
 		if !a.active() {
 			color = p.TextMuted
 		}

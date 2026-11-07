@@ -180,28 +180,40 @@ func TestSidebarAndPaletteShortcuts(t *testing.T) {
 	}
 }
 
-// TestSidebarCollapseAndPin checks collapsing a category section in the
-// sidebar, pinning a tool into the Pinned section, and collapsing the
-// sidebar column with its header button.
-func TestSidebarCollapseAndPin(t *testing.T) {
+// TestSidebarPinAndAutoCollapse checks unpinning the sidebar, hovering the
+// left edge to pop it out, moving out to auto-collapse it, and pinning it
+// back open.
+func TestSidebarPinAndAutoCollapse(t *testing.T) {
 	a := newTestApp(t, false)
-	first := a.reg.All()[0].Manifest().ID
-	a.settings.TogglePin(first)
 	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
 	tt.Frame()
-	if !a.isPinned(a.reg.Get(first)) {
-		t.Fatalf("%s is not pinned", first)
-	}
-	if err := tt.Click("Pinned"); err != nil {
-		t.Fatal(err)
-	}
-	if !a.settings.IsCollapsed(sectionPinned) {
-		t.Error("clicking Pinned header did not collapse it")
-	}
 	if err := tt.Click("Hide Sidebar"); err != nil {
 		t.Fatal(err)
 	}
-	if !a.sideHidden {
-		t.Error("Hide Sidebar button did not collapse the sidebar")
+	if !a.sideHidden || a.sidePeek {
+		t.Fatalf("after unpin: hidden=%v peek=%v", a.sideHidden, a.sidePeek)
+	}
+	tt.Move(4, 200)
+	tt.Frame()
+	if !a.sidePeek {
+		t.Fatal("hovering left edge did not pop out the sidebar")
+	}
+	tt.Move(100, 200)
+	tt.Frame()
+	if !a.sidePeek {
+		t.Fatal("moving inside floating sidebar collapsed it")
+	}
+	tt.Move(500, 200)
+	tt.Frame()
+	if a.sidePeek {
+		t.Fatal("moving out of floating sidebar did not auto-collapse it")
+	}
+	tt.Move(4, 200)
+	tt.Frame()
+	if err := tt.Click("Show Sidebar"); err != nil {
+		t.Fatal(err)
+	}
+	if a.sideHidden {
+		t.Fatal("clicking Pin did not dock the sidebar")
 	}
 }

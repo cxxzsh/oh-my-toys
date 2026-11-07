@@ -27,6 +27,9 @@ func (a *App) mainView(c *ui.Context) {
 				a.sidebar(c)
 			}
 			ui.Column(c).Grow(1).FillHeight().Background(p.BgCanvas).Children(func() { a.workbench(c) })
+			if a.sideHidden {
+				a.autoSidebar(c)
+			}
 		})
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.firstFrame(a.opt.OnFirstFrame) })
 	if a.pal.open {
@@ -56,7 +59,13 @@ func (a *App) mainShortcuts(c *ui.Context) {
 func (a *App) titlebar(c *ui.Context) {
 	p := ds.P(c)
 	bar := c.TitleBar()
-	left, right := max(float32(ds.Space16), bar.Left), max(float32(ds.Space16), bar.Right)
+	left, right := float32(ds.Space16), float32(ds.Space16)
+	if bar.Left > 0 {
+		left = max(left, bar.Left+ds.Space12)
+	}
+	if bar.Right > 0 {
+		right = max(right, bar.Right+ds.Space12)
+	}
 	ui.Row(c).FillWidth().Height(max(ds.TitlebarHeight, bar.Height)).Padding(0, right, 0, left).
 		Gap(ds.Space12).AlignItems(ui.Center).Background(p.BgTitlebar).
 		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).DragWindow().Children(func() {
@@ -97,9 +106,13 @@ func (a *App) breadcrumbs(c *ui.Context) {
 
 func (a *App) showSidebarButton(c *ui.Context) {
 	tip := i18n.ShowSidebar() + " (" + modKey("⇧S") + ")"
-	if a.kit.Button(c.Key("show-side"), "", comp.ButtonOpts{
-		Kind: comp.Plain, Glyph: "chevron_right", Small: true, Tooltip: tip,
-	}).Clicked() {
+	b := a.kit.Button(c.Key("show-side"), "", comp.ButtonOpts{
+		Kind: comp.Plain, Glyph: glyphPin, Small: true, Tooltip: tip,
+	})
+	if b.Hovered() && !a.sidePeek {
+		a.sidePeek, a.sideEntered = true, false
+	}
+	if b.Clicked() {
 		a.toggleSidebar()
 	}
 }
