@@ -1,0 +1,1 @@
+Geist and JetBrains Mono, variable weight, from google/fonts at commit e7db6ca603fd4862010383ff17ffd6cc4ffac1c0 (`ofl/geist/Geist[wght].ttf`, `ofl/jetbrainsmono/JetBrainsMono[wght].ttf`), renamed only. SIL Open Font License 1.1: `Geist-OFL.txt`, `JetBrainsMono-OFL.txt`; ship the licence files with the app.

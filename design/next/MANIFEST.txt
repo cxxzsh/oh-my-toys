@@ -1,0 +1,15 @@
+oh-my-toys design system: the rules, tokens, components and assets every screen follows.
+
+README.md                 brand book: rules for every screen
+tokens.json               all tokens; feeds dev/gentokens
+components/<Name>/        README.md = the spec; preview.html = how it looks
+fonts/                    Geist and JetBrains Mono (OFL), to embed
+assets/app-icon/          app icon (light, dark, mono)
+assets/tray-icon/         tray glyph (black, white, active)
+assets/tool-icons/        icon per tool, light and dark
+assets/process-icon/      default process icons (masks)
+assets/glyphs/            Material Symbols SVGs (Apache-2.0), interface glyphs
+assets/screens/           reference screens from the original mockups
+preview/index.html        every component, light and dark side by side
+
+The brand book and specs say "the Glyphs asset group" etc.: that is assets/glyphs/, assets/tool-icons/, and so on.
