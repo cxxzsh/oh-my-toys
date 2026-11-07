@@ -944,5 +944,205 @@
   "cliHolding": "Running until this command stops. Press Ctrl+C to stop.",
   "@cliHolding": {
     "description": "CLI note while a switch tool runs for the life of the command."
+  },
+  "themeAuto": "Auto",
+  "@themeAuto": {
+    "description": "Theme segmented control option: follow the system appearance."
+  },
+  "appearanceDesc": "Follow the system or pick one.",
+  "@appearanceDesc": {
+    "description": "Settings row description for Appearance."
+  },
+  "languageDesc": "Applies at once.",
+  "@languageDesc": {
+    "description": "Settings row description for Language."
+  },
+  "switches": "Switches",
+  "@switches": {
+    "description": "Tray panel section of switch tools."
+  },
+  "openApp": "Open oh-my-toys",
+  "@openApp": {
+    "description": "Tray panel footer item."
+  },
+  "quitApp": "Quit oh-my-toys",
+  "@quitApp": {
+    "description": "Tray panel footer item."
+  },
+  "settingsEllipsis": "Settings…",
+  "@settingsEllipsis": {
+    "description": "Menu and tray item that opens Settings."
+  },
+  "hideSidebar": "Hide Sidebar",
+  "@hideSidebar": {
+    "description": "View menu item."
+  },
+  "showSidebar": "Show Sidebar",
+  "@showSidebar": {
+    "description": "View menu item when the sidebar is hidden."
+  },
+  "menuView": "View",
+  "@menuView": {
+    "description": "Application menu bar title."
+  },
+  "showInTray": "Show in Tray",
+  "@showInTray": {
+    "description": "Sidebar context menu item."
+  },
+  "hideFromTray": "Hide from Tray",
+  "@hideFromTray": {
+    "description": "Sidebar context menu item."
+  },
+  "noMatches": "No matches for “{query}”",
+  "@noMatches": {
+    "description": "Command palette empty state.",
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "searchSettings": "Search settings",
+  "@searchSettings": {
+    "description": "Command palette empty state row that opens Settings."
+  },
+  "resultsCount": "{count, plural, one {# result} other {# results}}",
+  "@resultsCount": {
+    "description": "Command palette footer count.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "andMore": "{count, plural, one {and # more} other {and # more}}",
+  "@andMore": {
+    "description": "Dialog item list overflow.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "colPort": "Port",
+  "@colPort": {
+    "description": "Ports table column header."
+  },
+  "colProcess": "Process",
+  "@colProcess": {
+    "description": "Ports table column header."
+  },
+  "colPID": "PID",
+  "@colPID": {
+    "description": "Ports table column header."
+  },
+  "colAddress": "Address",
+  "@colAddress": {
+    "description": "Ports table column header."
+  },
+  "colAction": "Action",
+  "@colAction": {
+    "description": "Table column header for row actions."
+  },
+  "colOriginal": "Original",
+  "@colOriginal": {
+    "description": "Rename preview column header."
+  },
+  "colNewName": "New name",
+  "@colNewName": {
+    "description": "Rename preview column header."
+  },
+  "colStatus": "Status",
+  "@colStatus": {
+    "description": "Result list column header."
+  },
+  "kill": "Kill",
+  "@kill": {
+    "description": "Ports table row action button."
+  },
+  "killProcess": "Kill Process…",
+  "@killProcess": {
+    "description": "Ports row context menu item."
+  },
+  "killProcessTitle": "Kill {name} (PID {pid, number, ::group-off})?",
+  "@killProcessTitle": {
+    "description": "Dialog title for ending one process.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "pid": {
+        "type": "int"
+      }
+    }
+  },
+  "killConsequence": "Unsaved work in the process is lost.",
+  "@killConsequence": {
+    "description": "Dialog body for ending processes."
+  },
+  "protected": "Protected",
+  "@protected": {
+    "description": "Ports table row label for a system or protected process."
+  },
+  "ready": "Ready",
+  "@ready": {
+    "description": "Result list row badge when the change has no conflict."
+  },
+  "conflict": "Conflict",
+  "@conflict": {
+    "description": "Result list row badge when the new name clashes."
+  },
+  "copyPort": "Copy Port",
+  "@copyPort": {
+    "description": "Ports row context menu item."
+  },
+  "copyPID": "Copy PID",
+  "@copyPID": {
+    "description": "Context menu item."
+  },
+  "copyAddress": "Copy Address",
+  "@copyAddress": {
+    "description": "Ports row context menu item."
+  },
+  "copyValue": "Copy",
+  "@copyValue": {
+    "description": "Row context menu item."
+  },
+  "filterPage": "Filter {page}…",
+  "@filterPage": {
+    "description": "Titlebar search field placeholder.",
+    "placeholders": {
+      "page": {
+        "type": "String"
+      }
+    }
+  },
+  "liveTelemetry": "Live Telemetry",
+  "@liveTelemetry": {
+    "description": "StatusBar title."
+  },
+  "awake1hShort": "1 Hour",
+  "@awake1hShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "awake2hShort": "2 Hours",
+  "@awake2hShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "awakeForeverShort": "Forever",
+  "@awakeForeverShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "trayActiveTooltip": "{app} · {tool} on",
+  "@trayActiveTooltip": {
+    "description": "Tray icon tooltip while a switch tool is on.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "tool": {
+        "type": "String"
+      }
+    }
   }
 }

@@ -2469,3 +2469,581 @@ func CliHolding() string { return In(i18n.Locale()).CliHolding() }
 func (msgs Messages) CliHolding() string {
 	return Catalog.Format(msgs.locale, "cliHolding", nil)
 }
+
+// ThemeAuto says "Auto"
+// in the language the app shows.
+//
+// Theme segmented control option: follow the system appearance.
+func ThemeAuto() string { return In(i18n.Locale()).ThemeAuto() }
+
+// ThemeAuto says "Auto"
+// in the language of msgs.
+//
+// Theme segmented control option: follow the system appearance.
+func (msgs Messages) ThemeAuto() string {
+	return Catalog.Format(msgs.locale, "themeAuto", nil)
+}
+
+// AppearanceDesc says "Follow the system or pick one."
+// in the language the app shows.
+//
+// Settings row description for Appearance.
+func AppearanceDesc() string { return In(i18n.Locale()).AppearanceDesc() }
+
+// AppearanceDesc says "Follow the system or pick one."
+// in the language of msgs.
+//
+// Settings row description for Appearance.
+func (msgs Messages) AppearanceDesc() string {
+	return Catalog.Format(msgs.locale, "appearanceDesc", nil)
+}
+
+// LanguageDesc says "Applies at once."
+// in the language the app shows.
+//
+// Settings row description for Language.
+func LanguageDesc() string { return In(i18n.Locale()).LanguageDesc() }
+
+// LanguageDesc says "Applies at once."
+// in the language of msgs.
+//
+// Settings row description for Language.
+func (msgs Messages) LanguageDesc() string {
+	return Catalog.Format(msgs.locale, "languageDesc", nil)
+}
+
+// Switches says "Switches"
+// in the language the app shows.
+//
+// Tray panel section of switch tools.
+func Switches() string { return In(i18n.Locale()).Switches() }
+
+// Switches says "Switches"
+// in the language of msgs.
+//
+// Tray panel section of switch tools.
+func (msgs Messages) Switches() string {
+	return Catalog.Format(msgs.locale, "switches", nil)
+}
+
+// OpenApp says "Open oh-my-toys"
+// in the language the app shows.
+//
+// Tray panel footer item.
+func OpenApp() string { return In(i18n.Locale()).OpenApp() }
+
+// OpenApp says "Open oh-my-toys"
+// in the language of msgs.
+//
+// Tray panel footer item.
+func (msgs Messages) OpenApp() string {
+	return Catalog.Format(msgs.locale, "openApp", nil)
+}
+
+// QuitApp says "Quit oh-my-toys"
+// in the language the app shows.
+//
+// Tray panel footer item.
+func QuitApp() string { return In(i18n.Locale()).QuitApp() }
+
+// QuitApp says "Quit oh-my-toys"
+// in the language of msgs.
+//
+// Tray panel footer item.
+func (msgs Messages) QuitApp() string {
+	return Catalog.Format(msgs.locale, "quitApp", nil)
+}
+
+// SettingsEllipsis says "Settings…"
+// in the language the app shows.
+//
+// Menu and tray item that opens Settings.
+func SettingsEllipsis() string { return In(i18n.Locale()).SettingsEllipsis() }
+
+// SettingsEllipsis says "Settings…"
+// in the language of msgs.
+//
+// Menu and tray item that opens Settings.
+func (msgs Messages) SettingsEllipsis() string {
+	return Catalog.Format(msgs.locale, "settingsEllipsis", nil)
+}
+
+// HideSidebar says "Hide Sidebar"
+// in the language the app shows.
+//
+// View menu item.
+func HideSidebar() string { return In(i18n.Locale()).HideSidebar() }
+
+// HideSidebar says "Hide Sidebar"
+// in the language of msgs.
+//
+// View menu item.
+func (msgs Messages) HideSidebar() string {
+	return Catalog.Format(msgs.locale, "hideSidebar", nil)
+}
+
+// ShowSidebar says "Show Sidebar"
+// in the language the app shows.
+//
+// View menu item when the sidebar is hidden.
+func ShowSidebar() string { return In(i18n.Locale()).ShowSidebar() }
+
+// ShowSidebar says "Show Sidebar"
+// in the language of msgs.
+//
+// View menu item when the sidebar is hidden.
+func (msgs Messages) ShowSidebar() string {
+	return Catalog.Format(msgs.locale, "showSidebar", nil)
+}
+
+// MenuView says "View"
+// in the language the app shows.
+//
+// Application menu bar title.
+func MenuView() string { return In(i18n.Locale()).MenuView() }
+
+// MenuView says "View"
+// in the language of msgs.
+//
+// Application menu bar title.
+func (msgs Messages) MenuView() string {
+	return Catalog.Format(msgs.locale, "menuView", nil)
+}
+
+// ShowInTray says "Show in Tray"
+// in the language the app shows.
+//
+// Sidebar context menu item.
+func ShowInTray() string { return In(i18n.Locale()).ShowInTray() }
+
+// ShowInTray says "Show in Tray"
+// in the language of msgs.
+//
+// Sidebar context menu item.
+func (msgs Messages) ShowInTray() string {
+	return Catalog.Format(msgs.locale, "showInTray", nil)
+}
+
+// HideFromTray says "Hide from Tray"
+// in the language the app shows.
+//
+// Sidebar context menu item.
+func HideFromTray() string { return In(i18n.Locale()).HideFromTray() }
+
+// HideFromTray says "Hide from Tray"
+// in the language of msgs.
+//
+// Sidebar context menu item.
+func (msgs Messages) HideFromTray() string {
+	return Catalog.Format(msgs.locale, "hideFromTray", nil)
+}
+
+// NoMatches says "No matches for “{query}”"
+// in the language the app shows.
+//
+// Command palette empty state.
+func NoMatches(query string) string { return In(i18n.Locale()).NoMatches(query) }
+
+// NoMatches says "No matches for “{query}”"
+// in the language of msgs.
+//
+// Command palette empty state.
+func (msgs Messages) NoMatches(query string) string {
+	return Catalog.Format(msgs.locale, "noMatches", map[string]any{"query": query})
+}
+
+// SearchSettings says "Search settings"
+// in the language the app shows.
+//
+// Command palette empty state row that opens Settings.
+func SearchSettings() string { return In(i18n.Locale()).SearchSettings() }
+
+// SearchSettings says "Search settings"
+// in the language of msgs.
+//
+// Command palette empty state row that opens Settings.
+func (msgs Messages) SearchSettings() string {
+	return Catalog.Format(msgs.locale, "searchSettings", nil)
+}
+
+// ResultsCount says "{count, plural, one {# result} other {# results}}"
+// in the language the app shows.
+//
+// Command palette footer count.
+func ResultsCount(count int) string { return In(i18n.Locale()).ResultsCount(count) }
+
+// ResultsCount says "{count, plural, one {# result} other {# results}}"
+// in the language of msgs.
+//
+// Command palette footer count.
+func (msgs Messages) ResultsCount(count int) string {
+	return Catalog.Format(msgs.locale, "resultsCount", map[string]any{"count": count})
+}
+
+// AndMore says "{count, plural, one {and # more} other {and # more}}"
+// in the language the app shows.
+//
+// Dialog item list overflow.
+func AndMore(count int) string { return In(i18n.Locale()).AndMore(count) }
+
+// AndMore says "{count, plural, one {and # more} other {and # more}}"
+// in the language of msgs.
+//
+// Dialog item list overflow.
+func (msgs Messages) AndMore(count int) string {
+	return Catalog.Format(msgs.locale, "andMore", map[string]any{"count": count})
+}
+
+// ColPort says "Port"
+// in the language the app shows.
+//
+// Ports table column header.
+func ColPort() string { return In(i18n.Locale()).ColPort() }
+
+// ColPort says "Port"
+// in the language of msgs.
+//
+// Ports table column header.
+func (msgs Messages) ColPort() string {
+	return Catalog.Format(msgs.locale, "colPort", nil)
+}
+
+// ColProcess says "Process"
+// in the language the app shows.
+//
+// Ports table column header.
+func ColProcess() string { return In(i18n.Locale()).ColProcess() }
+
+// ColProcess says "Process"
+// in the language of msgs.
+//
+// Ports table column header.
+func (msgs Messages) ColProcess() string {
+	return Catalog.Format(msgs.locale, "colProcess", nil)
+}
+
+// ColPID says "PID"
+// in the language the app shows.
+//
+// Ports table column header.
+func ColPID() string { return In(i18n.Locale()).ColPID() }
+
+// ColPID says "PID"
+// in the language of msgs.
+//
+// Ports table column header.
+func (msgs Messages) ColPID() string {
+	return Catalog.Format(msgs.locale, "colPID", nil)
+}
+
+// ColAddress says "Address"
+// in the language the app shows.
+//
+// Ports table column header.
+func ColAddress() string { return In(i18n.Locale()).ColAddress() }
+
+// ColAddress says "Address"
+// in the language of msgs.
+//
+// Ports table column header.
+func (msgs Messages) ColAddress() string {
+	return Catalog.Format(msgs.locale, "colAddress", nil)
+}
+
+// ColAction says "Action"
+// in the language the app shows.
+//
+// Table column header for row actions.
+func ColAction() string { return In(i18n.Locale()).ColAction() }
+
+// ColAction says "Action"
+// in the language of msgs.
+//
+// Table column header for row actions.
+func (msgs Messages) ColAction() string {
+	return Catalog.Format(msgs.locale, "colAction", nil)
+}
+
+// ColOriginal says "Original"
+// in the language the app shows.
+//
+// Rename preview column header.
+func ColOriginal() string { return In(i18n.Locale()).ColOriginal() }
+
+// ColOriginal says "Original"
+// in the language of msgs.
+//
+// Rename preview column header.
+func (msgs Messages) ColOriginal() string {
+	return Catalog.Format(msgs.locale, "colOriginal", nil)
+}
+
+// ColNewName says "New name"
+// in the language the app shows.
+//
+// Rename preview column header.
+func ColNewName() string { return In(i18n.Locale()).ColNewName() }
+
+// ColNewName says "New name"
+// in the language of msgs.
+//
+// Rename preview column header.
+func (msgs Messages) ColNewName() string {
+	return Catalog.Format(msgs.locale, "colNewName", nil)
+}
+
+// ColStatus says "Status"
+// in the language the app shows.
+//
+// Result list column header.
+func ColStatus() string { return In(i18n.Locale()).ColStatus() }
+
+// ColStatus says "Status"
+// in the language of msgs.
+//
+// Result list column header.
+func (msgs Messages) ColStatus() string {
+	return Catalog.Format(msgs.locale, "colStatus", nil)
+}
+
+// Kill says "Kill"
+// in the language the app shows.
+//
+// Ports table row action button.
+func Kill() string { return In(i18n.Locale()).Kill() }
+
+// Kill says "Kill"
+// in the language of msgs.
+//
+// Ports table row action button.
+func (msgs Messages) Kill() string {
+	return Catalog.Format(msgs.locale, "kill", nil)
+}
+
+// KillProcess says "Kill Process…"
+// in the language the app shows.
+//
+// Ports row context menu item.
+func KillProcess() string { return In(i18n.Locale()).KillProcess() }
+
+// KillProcess says "Kill Process…"
+// in the language of msgs.
+//
+// Ports row context menu item.
+func (msgs Messages) KillProcess() string {
+	return Catalog.Format(msgs.locale, "killProcess", nil)
+}
+
+// KillProcessTitle says "Kill {name} (PID {pid, number, ::group-off})?"
+// in the language the app shows.
+//
+// Dialog title for ending one process.
+func KillProcessTitle(name string, pid int) string {
+	return In(i18n.Locale()).KillProcessTitle(name, pid)
+}
+
+// KillProcessTitle says "Kill {name} (PID {pid, number, ::group-off})?"
+// in the language of msgs.
+//
+// Dialog title for ending one process.
+func (msgs Messages) KillProcessTitle(name string, pid int) string {
+	return Catalog.Format(msgs.locale, "killProcessTitle", map[string]any{"name": name, "pid": pid})
+}
+
+// KillConsequence says "Unsaved work in the process is lost."
+// in the language the app shows.
+//
+// Dialog body for ending processes.
+func KillConsequence() string { return In(i18n.Locale()).KillConsequence() }
+
+// KillConsequence says "Unsaved work in the process is lost."
+// in the language of msgs.
+//
+// Dialog body for ending processes.
+func (msgs Messages) KillConsequence() string {
+	return Catalog.Format(msgs.locale, "killConsequence", nil)
+}
+
+// Protected says "Protected"
+// in the language the app shows.
+//
+// Ports table row label for a system or protected process.
+func Protected() string { return In(i18n.Locale()).Protected() }
+
+// Protected says "Protected"
+// in the language of msgs.
+//
+// Ports table row label for a system or protected process.
+func (msgs Messages) Protected() string {
+	return Catalog.Format(msgs.locale, "protected", nil)
+}
+
+// Ready says "Ready"
+// in the language the app shows.
+//
+// Result list row badge when the change has no conflict.
+func Ready() string { return In(i18n.Locale()).Ready() }
+
+// Ready says "Ready"
+// in the language of msgs.
+//
+// Result list row badge when the change has no conflict.
+func (msgs Messages) Ready() string {
+	return Catalog.Format(msgs.locale, "ready", nil)
+}
+
+// Conflict says "Conflict"
+// in the language the app shows.
+//
+// Result list row badge when the new name clashes.
+func Conflict() string { return In(i18n.Locale()).Conflict() }
+
+// Conflict says "Conflict"
+// in the language of msgs.
+//
+// Result list row badge when the new name clashes.
+func (msgs Messages) Conflict() string {
+	return Catalog.Format(msgs.locale, "conflict", nil)
+}
+
+// CopyPort says "Copy Port"
+// in the language the app shows.
+//
+// Ports row context menu item.
+func CopyPort() string { return In(i18n.Locale()).CopyPort() }
+
+// CopyPort says "Copy Port"
+// in the language of msgs.
+//
+// Ports row context menu item.
+func (msgs Messages) CopyPort() string {
+	return Catalog.Format(msgs.locale, "copyPort", nil)
+}
+
+// CopyPID says "Copy PID"
+// in the language the app shows.
+//
+// Context menu item.
+func CopyPID() string { return In(i18n.Locale()).CopyPID() }
+
+// CopyPID says "Copy PID"
+// in the language of msgs.
+//
+// Context menu item.
+func (msgs Messages) CopyPID() string {
+	return Catalog.Format(msgs.locale, "copyPID", nil)
+}
+
+// CopyAddress says "Copy Address"
+// in the language the app shows.
+//
+// Ports row context menu item.
+func CopyAddress() string { return In(i18n.Locale()).CopyAddress() }
+
+// CopyAddress says "Copy Address"
+// in the language of msgs.
+//
+// Ports row context menu item.
+func (msgs Messages) CopyAddress() string {
+	return Catalog.Format(msgs.locale, "copyAddress", nil)
+}
+
+// CopyValue says "Copy"
+// in the language the app shows.
+//
+// Row context menu item.
+func CopyValue() string { return In(i18n.Locale()).CopyValue() }
+
+// CopyValue says "Copy"
+// in the language of msgs.
+//
+// Row context menu item.
+func (msgs Messages) CopyValue() string {
+	return Catalog.Format(msgs.locale, "copyValue", nil)
+}
+
+// FilterPage says "Filter {page}…"
+// in the language the app shows.
+//
+// Titlebar search field placeholder.
+func FilterPage(page string) string { return In(i18n.Locale()).FilterPage(page) }
+
+// FilterPage says "Filter {page}…"
+// in the language of msgs.
+//
+// Titlebar search field placeholder.
+func (msgs Messages) FilterPage(page string) string {
+	return Catalog.Format(msgs.locale, "filterPage", map[string]any{"page": page})
+}
+
+// LiveTelemetry says "Live Telemetry"
+// in the language the app shows.
+//
+// StatusBar title.
+func LiveTelemetry() string { return In(i18n.Locale()).LiveTelemetry() }
+
+// LiveTelemetry says "Live Telemetry"
+// in the language of msgs.
+//
+// StatusBar title.
+func (msgs Messages) LiveTelemetry() string {
+	return Catalog.Format(msgs.locale, "liveTelemetry", nil)
+}
+
+// Awake1hShort says "1 Hour"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func Awake1hShort() string { return In(i18n.Locale()).Awake1hShort() }
+
+// Awake1hShort says "1 Hour"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) Awake1hShort() string {
+	return Catalog.Format(msgs.locale, "awake1hShort", nil)
+}
+
+// Awake2hShort says "2 Hours"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func Awake2hShort() string { return In(i18n.Locale()).Awake2hShort() }
+
+// Awake2hShort says "2 Hours"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) Awake2hShort() string {
+	return Catalog.Format(msgs.locale, "awake2hShort", nil)
+}
+
+// AwakeForeverShort says "Forever"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func AwakeForeverShort() string { return In(i18n.Locale()).AwakeForeverShort() }
+
+// AwakeForeverShort says "Forever"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) AwakeForeverShort() string {
+	return Catalog.Format(msgs.locale, "awakeForeverShort", nil)
+}
+
+// TrayActiveTooltip says "{app} · {tool} on"
+// in the language the app shows.
+//
+// Tray icon tooltip while a switch tool is on.
+func TrayActiveTooltip(app string, tool string) string {
+	return In(i18n.Locale()).TrayActiveTooltip(app, tool)
+}
+
+// TrayActiveTooltip says "{app} · {tool} on"
+// in the language of msgs.
+//
+// Tray icon tooltip while a switch tool is on.
+func (msgs Messages) TrayActiveTooltip(app string, tool string) string {
+	return Catalog.Format(msgs.locale, "trayActiveTooltip", map[string]any{"app": app, "tool": tool})
+}

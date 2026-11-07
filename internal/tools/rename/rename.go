@@ -44,7 +44,8 @@ func (*Tool) Manifest() tool.Manifest {
 		Summary:   i18n.Messages.RenameSummary,
 		Category:  tool.CategoryFile,
 		Kind:      tool.KindAction,
-		Icon:      "text-cursor-input",
+		Icon:      "drive_file_rename",
+		Art:       "batch-rename",
 		Keywords:  []string{"rename", "batch rename", "replace", "改名"},
 		Platforms: []string{"macos", "windows", "linux"},
 	}
@@ -84,7 +85,12 @@ func (*Tool) Plan(ctx context.Context, in tool.Input) (tool.Plan, error) {
 	if err := ctx.Err(); err != nil {
 		return tool.Plan{}, err
 	}
-	p := tool.Plan{Summary: i18n.RenamePlanned(len(changes)), Rows: rows, Data: changes}
+	p := tool.Plan{
+		Summary: i18n.RenamePlanned(len(changes)),
+		Columns: []string{i18n.ColOriginal(), i18n.ColNewName(), i18n.ColStatus()},
+		Rows:    rows,
+		Data:    changes,
+	}
 	if len(changes) > 0 {
 		p.ApplyLabel = i18n.RenameApply(len(changes))
 	}
@@ -110,12 +116,15 @@ func plan(dir string, entries []os.DirEntry, find, replace string) ([]Change, []
 			continue
 		}
 		if to == "" || taken[to] {
-			rows = append(rows, tool.Row{Title: name, Detail: i18n.RenameConflict(to), Tone: tool.ToneDanger})
+			rows = append(rows, tool.Row{
+				Title: name, Detail: i18n.RenameConflict(to),
+				Cells: []string{name, to, i18n.Conflict()}, Tone: tool.ToneWarning,
+			})
 			continue
 		}
 		taken[to] = true
 		changes = append(changes, Change{From: filepath.Join(dir, name), To: filepath.Join(dir, to)})
-		rows = append(rows, tool.Row{Title: name, Detail: "→ " + to})
+		rows = append(rows, tool.Row{Title: name, Detail: "→ " + to, Cells: []string{name, to, i18n.Ready()}})
 	}
 	return changes, rows
 }
