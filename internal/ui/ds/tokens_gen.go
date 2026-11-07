@@ -235,19 +235,19 @@ type TypeStyle struct {
 }
 
 var (
-	Title        = TypeStyle{Size: 17, LineHeight: 22, Weight: 700, Mono: false, Tracking: -0.025}
-	Headline     = TypeStyle{Size: 13, LineHeight: 16, Weight: 600, Mono: false, Tracking: 0}
-	Section      = TypeStyle{Size: 12, LineHeight: 16, Weight: 700, Mono: false, Tracking: 0}
-	Body         = TypeStyle{Size: 13, LineHeight: 18, Weight: 400, Mono: false, Tracking: 0}
-	Label        = TypeStyle{Size: 12, LineHeight: 16, Weight: 500, Mono: false, Tracking: 0}
-	Caption      = TypeStyle{Size: 11, LineHeight: 16, Weight: 400, Mono: false, Tracking: 0}
-	Small        = TypeStyle{Size: 10, LineHeight: 14, Weight: 400, Mono: false, Tracking: 0}
-	PaletteInput = TypeStyle{Size: 15, LineHeight: 20, Weight: 400, Mono: false, Tracking: 0}
-	Eyebrow      = TypeStyle{Size: 10, LineHeight: 14, Weight: 600, Mono: true, Tracking: 0.05}
-	Meta         = TypeStyle{Size: 10, LineHeight: 14, Weight: 400, Mono: true, Tracking: 0}
-	Badge        = TypeStyle{Size: 10, LineHeight: 14, Weight: 600, Mono: true, Tracking: 0}
-	Kbd          = TypeStyle{Size: 10, LineHeight: 14, Weight: 400, Mono: true, Tracking: 0}
-	Numeric      = TypeStyle{Size: 11, LineHeight: 14, Weight: 600, Mono: true, Tracking: 0}
+	Title        = TypeStyle{Size: 20, LineHeight: 26, Weight: 700, Mono: false, Tracking: -0.025}
+	Headline     = TypeStyle{Size: 15, LineHeight: 20, Weight: 600, Mono: false, Tracking: 0}
+	Section      = TypeStyle{Size: 14, LineHeight: 18, Weight: 700, Mono: false, Tracking: 0}
+	Body         = TypeStyle{Size: 14, LineHeight: 20, Weight: 400, Mono: false, Tracking: 0}
+	Label        = TypeStyle{Size: 14, LineHeight: 18, Weight: 500, Mono: false, Tracking: 0}
+	Caption      = TypeStyle{Size: 13, LineHeight: 18, Weight: 400, Mono: false, Tracking: 0}
+	Small        = TypeStyle{Size: 12, LineHeight: 16, Weight: 400, Mono: false, Tracking: 0}
+	PaletteInput = TypeStyle{Size: 16, LineHeight: 22, Weight: 400, Mono: false, Tracking: 0}
+	Eyebrow      = TypeStyle{Size: 11, LineHeight: 16, Weight: 600, Mono: true, Tracking: 0.05}
+	Meta         = TypeStyle{Size: 12, LineHeight: 16, Weight: 400, Mono: true, Tracking: 0}
+	Badge        = TypeStyle{Size: 11, LineHeight: 16, Weight: 600, Mono: true, Tracking: 0}
+	Kbd          = TypeStyle{Size: 11, LineHeight: 16, Weight: 400, Mono: true, Tracking: 0}
+	Numeric      = TypeStyle{Size: 13, LineHeight: 18, Weight: 600, Mono: true, Tracking: 0}
 )
 
 // Font stacks: the bundled family first, then the system fonts that
@@ -289,28 +289,28 @@ const (
 	WindowMinWidth  = 880
 	WindowMinHeight = 600
 	TitlebarHeight  = 48
-	SidebarWidth    = 220
-	StatusbarHeight = 28
+	SidebarWidth    = 236
+	StatusbarHeight = 32
 	SearchWidth     = 256
-	ControlSm       = 20
-	ControlMd       = 24
-	ControlLg       = 28
-	NavRow          = 28
-	TableRow        = 26
-	SettingsRow     = 44
+	ControlSm       = 24
+	ControlMd       = 28
+	ControlLg       = 32
+	NavRow          = 32
+	TableRow        = 30
+	SettingsRow     = 48
 	TrayWidth       = 320
-	TrayRow         = 32
+	TrayRow         = 36
 	PaletteWidth    = 600
-	PaletteRow      = 36
+	PaletteRow      = 40
 	DialogWidth     = 400
-	Glyph           = 16
-	GlyphSm         = 13
-	IconSm          = 20
-	IconMd          = 28
-	IconLg          = 48
-	ProcessIcon     = 16
-	ProcessIconLg   = 20
-	Dot             = 6
+	Glyph           = 18
+	GlyphSm         = 15
+	IconSm          = 24
+	IconMd          = 32
+	IconLg          = 52
+	ProcessIcon     = 18
+	ProcessIconLg   = 22
+	Dot             = 7
 )
 
 // Opacity.

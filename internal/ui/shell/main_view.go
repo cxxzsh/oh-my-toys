@@ -94,9 +94,7 @@ func (a *App) breadcrumbs(c *ui.Context) {
 	crumbStyle := ds.Label
 	crumbStyle.Weight = ds.Semibold
 	ui.Row(c).Grow(1).Basis(0).MinWidth(0).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-		if a.sideHidden {
-			a.showSidebarButton(c)
-		}
+		a.sidebarPinButton(c)
 		a.kit.AppIcon(c, ds.TitlebarGlyph)
 		comp.Text(c, i18n.AppName(), appStyle, ink).SingleLine()
 		comp.Text(c, "›", ds.Label, p.TextMuted).SingleLine()
@@ -104,17 +102,31 @@ func (a *App) breadcrumbs(c *ui.Context) {
 	})
 }
 
-func (a *App) showSidebarButton(c *ui.Context) {
-	tip := i18n.ShowSidebar() + " (" + modKey("⇧S") + ")"
-	b := a.kit.Button(c.Key("show-side"), "", comp.ButtonOpts{
-		Kind: comp.Plain, Glyph: glyphPin, Small: true, Tooltip: tip,
-	})
-	if b.Hovered() && !a.sidePeek {
-		a.sidePeek, a.sideEntered = true, false
+func (a *App) sidebarPinButton(c *ui.Context) {
+	p := ds.P(c)
+	pinned := !a.sideHidden
+	glyph, label, color := glyphPin, i18n.ShowSidebar(), p.TextMuted
+	if pinned {
+		glyph, label, color = glyphPinned, i18n.HideSidebar(), p.Accent
+		if !a.active() {
+			color = p.TextMuted
+		}
 	}
+	tip := label + " (" + modKey("⇧S") + ")"
+	b := ui.ButtonBase(c.Key("pin-side")).Label(label).Tooltip(tip).Cursor(ui.CursorDefault)
 	if b.Clicked() {
 		a.toggleSidebar()
 	}
+	fill := ui.Transparent
+	if b.Hovered() {
+		fill = p.FillControl
+		if !pinned {
+			color = p.TextStrong
+		}
+	}
+	b.Size(ds.ControlSm, ds.ControlSm).Radius(ds.RadiusFull).Background(fill).Center().Children(func() {
+		a.kit.Glyph(c, glyph, ds.GlyphSm, color)
+	})
 }
 
 func (a *App) themeSegment(c *ui.Context) {
