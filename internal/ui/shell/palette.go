@@ -3,7 +3,6 @@ package shell
 import (
 	"time"
 
-	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
@@ -14,6 +13,7 @@ import (
 )
 
 type paletteState struct {
+	open     bool
 	query    string
 	last     string
 	searched bool
@@ -22,53 +22,33 @@ type paletteState struct {
 	input    ui.Handle
 }
 
-// setUpPalette makes the command palette once, hidden: a panel over every
-// app, which takes the keyboard without activating oh-my-toys, and hides
-// rather than closes, so it shows again at once.
-func (a *App) setUpPalette() {
-	a.palette = mygo.NewWindow(mygo.WindowOptions{
-		Title:         i18n.PaletteTitle(),
-		Panel:         true,
-		Hidden:        true,
-		Frameless:     true,
-		Transparent:   true,
-		CornerRadius:  ds.RadiusXl,
-		Width:         ds.PaletteWidth,
-		Height:        ds.PaletteFirstHeight,
-		DisableResize: true,
-		Content:       ui.View(a.paletteView),
-	})
-	a.palette.OnClose(func(e *mygo.CloseEvent) {
-		if !a.quitting {
-			e.PreventDefault()
-			a.palette.Hide()
-		}
-	})
-	a.palette.OnBlur(a.palette.Hide)
-}
+func (a *App) setUpPalette() {}
 
 func (a *App) togglePalette() {
-	if a.palette.IsVisible() {
-		a.palette.Hide()
+	if a.pal.open {
+		a.pal.open = false
+		a.redraw()
 		return
 	}
 	a.showPalette()
 }
 
-// showPalette shows the palette on the display with the pointer, a quarter
-// of the way down, with an empty query.
+// showPalette opens the command palette inside the main window.
 func (a *App) showPalette() {
-	d := mygo.Screen.DisplayNearestPoint(mygo.Screen.CursorScreenPoint())
-	w, _ := a.palette.Size()
-	a.palette.SetPosition(d.WorkArea.X+(d.WorkArea.Width-w)/2, d.WorkArea.Y+d.WorkArea.Height/ds.PaletteTopFraction)
-	a.pal = paletteState{input: a.pal.input}
+	if a.main != nil && !a.main.IsVisible() {
+		a.openMain("")
+	}
+	a.pal = paletteState{open: true, input: a.pal.input}
 	a.pal.input.Focus()
-	a.palette.Show()
+	a.redraw()
 }
 
-// recentResults is what an empty query shows.
 func (a *App) recentResults() []core.Result {
 	tools := a.recentTools()
+	if len(tools) == 0 {
+		tools = a.reg.All()
+		tools = tools[:min(len(tools), ds.PaletteMaxRows)]
+	}
 	out := make([]core.Result, 0, len(tools))
 	for _, t := range tools {
 		out = append(out, core.Result{Tool: t})
@@ -92,79 +72,117 @@ func (a *App) search() {
 
 func (a *App) paletteKeys(c *ui.Context) {
 	rs := a.pal.results
-	if a.pal.query != "" && c.Shortcut(0, ui.KeyEscape) {
-		a.pal.query = ""
+	if c.Shortcut(0, ui.KeyEscape) {
+		if a.pal.query != "" {
+			a.pal.query = ""
+		} else {
+			a.pal.open = false
+		}
+		return
 	}
-	if c.Shortcut(0, ui.KeyDown) {
+	if c.Shortcut(0, ui.KeyDown) && len(rs) > 0 {
 		a.pal.chosen = min(a.pal.chosen+1, len(rs)-1)
 	}
-	if c.Shortcut(0, ui.KeyUp) {
+	if c.Shortcut(0, ui.KeyUp) && len(rs) > 0 {
 		a.pal.chosen = max(a.pal.chosen-1, 0)
 	}
 	if a.pal.chosen >= len(rs) {
 		return
 	}
-	if c.Shortcut(ui.Cmd, ui.KeyEnter) {
-		a.palette.Hide()
-		a.openMain(rs[a.pal.chosen].Tool.Manifest().ID)
-	} else if c.Shortcut(0, ui.KeyEnter) {
-		a.palette.Hide()
-		a.runResult(rs[a.pal.chosen])
+	r := rs[a.pal.chosen]
+	if s, ok := r.Tool.(tool.Switch); ok && r.Action == nil && c.Shortcut(0, ui.KeySpace) {
+		a.setSwitch(s, !s.Status().On)
+		return
 	}
+	if c.Shortcut(ui.Cmd, ui.KeyEnter) {
+		a.pal.open = false
+		a.activate(r.Tool)
+	} else if c.Shortcut(0, ui.KeyEnter) {
+		a.pal.open = false
+		a.runResult(r)
+	}
+}
+
+func (a *App) paletteOverlay(c *ui.Context) {
+	_, h := c.Size()
+	ui.Box(c).Absolute().Top(h * ds.PaletteTopShare).Left(0).Right(0).AlignItems(ui.Center).Children(func() {
+		a.paletteCard(c)
+	})
 }
 
 func (a *App) paletteView(c *ui.Context) {
 	a.theme(c)
+	a.paletteCard(c)
+}
+
+func (a *App) paletteCard(c *ui.Context) {
 	p := ds.P(c)
-	c.Root().Background(p.BgElevated)
 	a.search()
 	a.paletteKeys(c)
-	box := ui.Column(c).FillWidth().Children(func() {
+	card := ui.Column(c).Width(ds.PaletteWidth).Radius(ds.RadiusLg).Background(p.BgPopover).
+		Border(ds.LineWidth, p.LineControl).Clip()
+	ds.ApplyShadow(card, ds.S(c).ShadowPopover)
+	if card.PressedOutside() {
+		a.pal.open = false
+	}
+	card.Children(func() {
 		a.paletteInput(c)
 		a.paletteList(c)
 		a.paletteFoot(c)
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.keyPainted() })
-	fitHeight(c, a.palette, box)
 }
 
 func (a *App) paletteInput(c *ui.Context) {
 	p := ds.P(c)
-	ui.Row(c).FillWidth().Height(ds.PaletteInputH).Padding(0, ds.Space4).Gap(ds.PaletteGap).AlignItems(ui.Center).
-		BorderWidth(0, 0, 1, 0).BorderColor(p.Separator).Children(func() {
-		comp.Glyph(c, "search", ds.PaletteGlyph, p.TextSecondary)
-		ui.TextInputBase(c, &a.pal.query).Bind(&a.pal.input).Grow(1).FontSize(ds.PaletteInputPx).
-			Placeholder(i18n.PaletteHint()).PlaceholderColor(p.TextTertiary).TextColor(p.TextPrimary).Label(i18n.PaletteHint())
-		comp.Kbd(c, "esc")
+	ui.Row(c).FillWidth().Height(ds.PaletteInputRow).Padding(0, ds.Space12, 0, ds.Space16).Gap(ds.Space10).
+		AlignItems(ui.Center).BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).Children(func() {
+		a.kit.Glyph(c, "search", ds.PaletteGlyph, p.TextMuted)
+		in := ui.TextInputBase(c, &a.pal.query).Bind(&a.pal.input).Grow(1).Placeholder(i18n.PaletteHint()).
+			PlaceholderColor(p.TextMuted).TextColor(p.TextStrong).Label(i18n.PaletteHint())
+		ds.Style(in, ds.PaletteInput)
+		comp.Kbd(c, "Esc")
 	})
 }
 
 func (a *App) paletteList(c *ui.Context) {
-	p := ds.P(c)
 	rs := a.pal.results
-	ui.Column(c).FillWidth().Padding(ds.PaletteListPad).Children(func() {
+	ui.Column(c).FillWidth().Padding(ds.Space6).Children(func() {
 		if len(rs) == 0 {
-			msg := i18n.NoResults()
-			if a.pal.query == "" {
-				msg = i18n.PaletteEmpty()
-			}
-			comp.Text(c, msg, ds.Callout, p.TextSecondary).Padding(ds.PaletteGap)
+			a.paletteEmpty(c)
+			return
 		}
 		section := ""
 		for i, r := range rs {
 			if s := a.sectionOf(r); s != section {
 				section = s
-				comp.Eyebrow(c, s).Padding(ds.Space2, ds.PaletteGap, ds.Space1)
+				comp.Eyebrow(c, s).Padding(ds.Space6, ds.Space10, ds.Space4)
 			}
 			a.paletteRow(c, i, r)
 		}
 	})
 }
 
+func (a *App) paletteEmpty(c *ui.Context) {
+	p := ds.P(c)
+	msg := i18n.PaletteEmpty()
+	if a.pal.query != "" {
+		msg = i18n.NoMatches(a.pal.query)
+	}
+	comp.Text(c, msg, ds.Caption, p.TextMuted).Padding(ds.Space8, ds.Space10)
+	b := ui.ButtonBase(c.Key("pal-settings")).Label(i18n.SearchSettings()).Cursor(ui.CursorDefault)
+	if b.Clicked() {
+		a.open(pageSettings)
+	}
+	b.FillWidth().Height(ds.PaletteRow).Padding(0, ds.Space10).Gap(ds.Space10).Radius(ds.RadiusSm).
+		Background(p.AccentSoft).AlignItems(ui.Center).Children(func() {
+		a.kit.Glyph(c, "settings", ds.Glyph, p.TextSecondary)
+		comp.Text(c, i18n.SearchSettings(), ds.Body, p.TextStrong).Grow(1)
+		comp.Value(c, "↵ "+i18n.Open(), p.AccentText)
+	})
+}
+
 func (a *App) sectionOf(r core.Result) string {
-	switch {
-	case a.pal.query == "":
-		return i18n.Recent()
-	case r.Action != nil:
+	if r.Action != nil {
 		return i18n.Actions()
 	}
 	return i18n.Tools()
@@ -172,21 +190,11 @@ func (a *App) sectionOf(r core.Result) string {
 
 func (a *App) paletteFoot(c *ui.Context) {
 	p := ds.P(c)
-	ui.Row(c).FillWidth().Height(ds.PaletteFootH).Padding(0, ds.Space4).Gap(ds.Space4).AlignItems(ui.Center).
-		BorderWidth(1, 0, 0, 0).BorderColor(p.Separator).Children(func() {
-		hint := func(k, label string) {
-			ui.Row(c).Gap(ds.Space1).AlignItems(ui.Center).Children(func() {
-				comp.Kbd(c, k)
-				comp.Text(c, label, ds.Callout, p.TextSecondary)
-			})
-		}
-		hint("↑↓", i18n.HintChoose())
-		hint("↩", i18n.HintRun())
-		hint(modKey("↩"), i18n.HintOpenInMain())
+	ui.Row(c).FillWidth().Height(ds.PaletteFootRow).Padding(0, ds.Space16).AlignItems(ui.Center).
+		BorderWidth(ds.LineWidth, 0, 0, 0).BorderColor(p.Line).Children(func() {
+		comp.Hint(c, "↑↓ "+i18n.HintChoose()+"  ·  ↵ "+i18n.Open()+"  ·  "+modKey("↵")+" "+i18n.HintRun())
 		ui.Spacer(c)
-		if a.shortcut != "" {
-			comp.Text(c, i18n.HintSummon(keys(a.shortcut)), ds.Callout, p.TextTertiary)
-		}
+		comp.Hint(c, i18n.ResultsCount(len(a.pal.results)))
 	})
 }
 
@@ -195,57 +203,74 @@ func (a *App) paletteRow(c *ui.Context, i int, r core.Result) {
 	m := r.Tool.Manifest()
 	title := r.Title(msgs())
 	chosen := i == a.pal.chosen
-	row := ui.ButtonBase(c.Key(i)).Label(title).Selected(chosen)
+	row := ui.ButtonBase(c.Key(i)).Label(title).Selected(chosen).Cursor(ui.CursorDefault)
 	if row.Clicked() {
-		a.palette.Hide()
+		a.pal.open = false
 		a.runResult(r)
 	}
-	bg := ui.Transparent
+	fill := ui.Transparent
 	if chosen {
-		bg = p.FillSelected
+		fill = p.AccentSoft
+	} else if row.Hovered() {
+		fill = p.FillControl
 	}
-	row.FillWidth().Height(ds.PaletteRowH).Padding(0, ds.PaletteGap).Gap(ds.PaletteGap).Radius(ds.RadiusMd).
-		Background(bg).AlignItems(ui.Center).Children(func() {
-		comp.ToolIcon(c, m.Category, m.Icon, comp.Medium, core.IsRunning(r.Tool))
-		highlighted(c, title, r.Match, ds.Body, p.TextPrimary).SingleLine()
-		if r.Action == nil {
-			comp.Text(c, categoryName(m.Category), ds.Callout, p.TextSecondary)
+	row.FillWidth().Height(ds.PaletteRow).Padding(0, ds.Space10).Gap(ds.Space10).Radius(ds.RadiusSm).
+		Background(fill).AlignItems(ui.Center).Children(func() {
+		if r.Action != nil {
+			a.kit.Glyph(c, m.Icon, ds.Glyph, p.TextSecondary)
+		} else {
+			a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconSmall, Running: core.IsRunning(r.Tool), Tint: true})
 		}
+		highlighted(c, title, r.Match, ds.Body, p.TextPrimary).SingleLine()
+		comp.Text(c, a.paletteSub(r), ds.Caption, p.TextMuted).SingleLine().Ellipsis("…")
 		ui.Spacer(c)
-		a.rowHint(c, r, chosen)
+		a.rowTrailing(c, r, chosen)
 	})
 }
 
-func (a *App) rowHint(c *ui.Context, r core.Result, chosen bool) {
+func (a *App) paletteSub(r core.Result) string {
+	m := r.Tool.Manifest()
+	if r.Action != nil {
+		return m.Name(msgs())
+	}
+	if s, ok := r.Tool.(tool.Switch); ok && !m.Soon {
+		return s.Status().Text
+	}
+	return categoryName(m.Category)
+}
+
+func (a *App) rowTrailing(c *ui.Context, r core.Result, chosen bool) {
 	p := ds.P(c)
+	if s, ok := r.Tool.(tool.Switch); ok && r.Action == nil && !r.Tool.Manifest().Soon {
+		on := s.Status().On
+		if comp.SwitchCompact(c, &on, r.Tool.Manifest().Name(msgs())).Changed() {
+			a.setSwitch(s, on)
+		}
+		return
+	}
 	if r.Action != nil && r.Action.Shortcut != "" {
-		comp.Kbd(c, keys(r.Action.Shortcut))
+		comp.Hint(c, keys(r.Action.Shortcut))
 		return
 	}
 	if !chosen {
 		return
 	}
-	label := i18n.Open()
+	label := "↵ " + i18n.Open()
 	if r.Action != nil {
-		label = i18n.Run()
-	} else if _, ok := r.Tool.(tool.Switch); ok {
-		label = i18n.TurnOnOff()
+		label = "↵ " + i18n.Run()
 	}
-	ui.Row(c).Gap(ds.Space1).AlignItems(ui.Center).Children(func() {
-		comp.Text(c, label, ds.Callout, p.TextSecondary)
-		comp.Kbd(c, "↩")
-	})
+	comp.Value(c, label, p.AccentText)
 }
 
-// highlighted shows a title with the runes the query matched in bold.
 func highlighted(c *ui.Context, s string, m [2]int, st ds.TypeStyle, color ui.Color) ui.Element {
 	runes := []rune(s)
 	if m[0] >= m[1] || m[1] > len(runes) {
 		return comp.Text(c, s, st, color)
 	}
+	p := ds.P(c)
 	return ds.Style(ui.RichText(c,
 		ui.Span{Text: string(runes[:m[0]])},
-		ui.Span{Text: string(runes[m[0]:m[1]]), Weight: ds.Bold},
+		ui.Span{Text: string(runes[m[0]:m[1]]), Weight: ds.Semibold, Color: p.TextStrong},
 		ui.Span{Text: string(runes[m[1]:])},
 	), st).TextColor(color)
 }
