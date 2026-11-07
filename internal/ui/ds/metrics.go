@@ -22,6 +22,7 @@ const (
 	CategoryHeight   = 22 // CategoryBadge
 	CategoryTracking = 0.06
 	ProgressHeight   = 6
+	BusyLine         = 3  // indeterminate strip on the window's top edge
 	StripHeight      = 10 // PaletteStrip
 	SearchGlyph      = 16 // SearchField glyph
 	SelectGlyph      = 16 // Select's unfold glyph

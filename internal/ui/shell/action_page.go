@@ -23,18 +23,18 @@ import (
 const planTimeout = 10 * time.Minute
 
 type actionState struct {
-	input   tool.Input
-	plan    tool.Plan
-	err     error
-	busy    bool
-	busyAt  time.Time // when the current busy run began
-	result  string
-	cancel  context.CancelFunc
-	version int
-	table   comp.TableState
-	rows    ui.ListState
-	inputs  map[string]*string
-	started bool
+	input     tool.Input
+	plan      tool.Plan
+	err       error
+	busy      bool
+	busyUntil time.Time
+	result    string
+	cancel    context.CancelFunc
+	version   int
+	table     comp.TableState
+	rows      ui.ListState
+	inputs    map[string]*string
+	started   bool
 }
 
 func (a *App) action(id string) *actionState {
@@ -63,7 +63,6 @@ func (a *App) actionPage(c *ui.Context, t tool.Action) {
 			Description: m.Summary(msgs()),
 		})
 		a.fields(c, t, s)
-		a.busyBar(c, s)
 		a.planView(c, t, s)
 		a.actionStatus(c, m, s)
 	})
@@ -165,7 +164,8 @@ func (a *App) replan(ctx context.Context, t tool.Action, s *actionState) {
 			if s.version != version {
 				return
 			}
-			s.plan, s.err, s.busy = plan, err, false
+			s.plan, s.err = plan, err
+			s.finishBusy()
 		})
 	})
 }
@@ -220,28 +220,42 @@ func (a *App) runApply(t tool.Action, s *actionState, plan tool.Plan) {
 	})
 }
 
-// busyDelay is how long work must run before the page admits it is busy:
-// a plan that finishes sooner, as a quick refresh does, shows no bar.
-const busyDelay = 400 * time.Millisecond
-
 func (s *actionState) startBusy() {
-	if !s.busy {
-		s.busyAt = time.Now()
-	}
 	s.busy = true
+	s.busyUntil = time.Time{}
 }
 
-// busyBar shows the indeterminate bar once the work has run past
-// busyDelay, and asks for a later frame while it is still waiting.
-func (a *App) busyBar(c *ui.Context, s *actionState) {
-	if !s.busy {
-		return
+// finishBusy keeps a completed blip visible briefly, including plans that
+// finish before the UI has time to paint a frame.
+func (s *actionState) finishBusy() {
+	s.busy = false
+	s.busyUntil = time.Now().Add(busyFlash)
+}
+
+const busyFlash = 250 * time.Millisecond
+
+// showBusyLine stays visible while work runs and briefly after it finishes.
+func (a *App) showBusyLine(c *ui.Context) bool {
+	now := time.Now()
+	show := false
+	var wait time.Duration
+	for _, s := range a.actions {
+		if s.busy {
+			show = true
+			continue
+		}
+		left := s.busyUntil.Sub(now)
+		if left > 0 {
+			show = true
+			if wait == 0 || left < wait {
+				wait = left
+			}
+		}
 	}
-	if wait := busyDelay - time.Since(s.busyAt); wait > 0 {
+	if wait > 0 {
 		c.After(wait)
-		return
 	}
-	comp.ProgressBusy(c)
+	return show
 }
 
 func (a *App) planView(c *ui.Context, t tool.Action, s *actionState) {

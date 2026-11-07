@@ -113,22 +113,32 @@ func ProgressBar(c *ui.Context, fraction float32) ui.Element {
 		})
 }
 
-// busyShare is how much of the track the sliding segment of an
-// indeterminate bar covers, in percent.
+// busyShare is how much of the top strip the sliding segment covers, in percent.
 const busyShare = 30
 
-// busyPeriod is how long the segment takes to cross the track.
-const busyPeriod = 1200 * time.Millisecond
+// BusySweep is how long the segment takes to cross the window.
+const BusySweep = 900 * time.Millisecond
 
-// ProgressBusy is the ProgressBar of work without a known end: a segment
-// of the same gradient slides across the track.
+// ProgressBusy is the indeterminate strip on the window's top edge. Light
+// uses the accent, which is dark enough to read on the pale titlebar; dark
+// keeps the cyan streak, which glows on it.
+// ProgressBusy is the indeterminate strip on the window's top edge. Light
+// uses the accent with a soft start so the tail is visible on the pale
+// titlebar; dark keeps the cyan streak that glows on it.
 func ProgressBusy(c *ui.Context) ui.Element {
 	p := ds.P(c)
-	track := ui.Box(c).FillWidth().Height(ds.ProgressHeight).Radius(ds.RadiusFull).Background(p.SandboxBg).Clip()
-	// From fully before the track to fully past it.
-	at := track.Loop("busy", busyPeriod, ui.Linear)*(ds.PercentFull+busyShare) - busyShare
-	return track.Children(func() {
-		ui.Box(c).Absolute().Top(0).Bottom(0).LeftPercent(at).WidthPercent(busyShare).Radius(ds.RadiusFull).
-			Gradient(p.SandboxBlue, p.SandboxPurple, 90)
+	var ink, from ui.Color
+	if c.Theme().Dark {
+		ink = p.SandboxCyan
+		from = ink.Alpha(0)
+	} else {
+		ink = p.Accent
+		from = ink.Alpha(0.15)
+	}
+	line := ui.Box(c).Absolute().Top(0).Left(0).Right(0).Height(ds.BusyLine).Clip()
+	at := line.Loop("busy", BusySweep, ui.Linear) * (ds.PercentFull - busyShare)
+	return line.Children(func() {
+		ui.Box(c).Absolute().Top(0).Bottom(0).LeftPercent(at).WidthPercent(busyShare).
+			Gradient(from, ink, 90)
 	})
 }

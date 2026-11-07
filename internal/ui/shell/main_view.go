@@ -38,6 +38,9 @@ func (a *App) mainView(c *ui.Context) {
 	if a.dialogOpen && a.dialog != nil {
 		a.kit.Dialog(c, &a.dialogOpen, *a.dialog)
 	}
+	if a.showBusyLine(c) {
+		comp.ProgressBusy(c)
+	}
 }
 
 func (a *App) mainShortcuts(c *ui.Context) {
