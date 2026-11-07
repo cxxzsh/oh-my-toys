@@ -251,6 +251,11 @@ func (a *App) open(page string) {
 	if t == nil {
 		return
 	}
+	sec := string(t.Manifest().Category)
+	if a.isPinned(t) {
+		sec = sectionPinned
+	}
+	a.settings.SetCollapsed(sec, false)
 	a.settings.Used(page)
 	a.save()
 }

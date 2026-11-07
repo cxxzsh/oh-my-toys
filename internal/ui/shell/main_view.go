@@ -85,11 +85,23 @@ func (a *App) breadcrumbs(c *ui.Context) {
 	crumbStyle := ds.Label
 	crumbStyle.Weight = ds.Semibold
 	ui.Row(c).Grow(1).Basis(0).MinWidth(0).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		if a.sideHidden {
+			a.showSidebarButton(c)
+		}
 		a.kit.AppIcon(c, ds.TitlebarGlyph)
 		comp.Text(c, i18n.AppName(), appStyle, ink).SingleLine()
 		comp.Text(c, "›", ds.Label, p.TextMuted).SingleLine()
 		comp.Text(c, a.title(), crumbStyle, ink).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
 	})
+}
+
+func (a *App) showSidebarButton(c *ui.Context) {
+	tip := i18n.ShowSidebar() + " (" + modKey("⇧S") + ")"
+	if a.kit.Button(c.Key("show-side"), "", comp.ButtonOpts{
+		Kind: comp.Plain, Glyph: "chevron_right", Small: true, Tooltip: tip,
+	}).Clicked() {
+		a.toggleSidebar()
+	}
 }
 
 func (a *App) themeSegment(c *ui.Context) {
