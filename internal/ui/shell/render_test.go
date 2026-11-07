@@ -179,3 +179,29 @@ func TestSidebarAndPaletteShortcuts(t *testing.T) {
 		t.Error("Escape did not close the palette")
 	}
 }
+
+// TestSidebarCollapseAndPin checks collapsing a category section in the
+// sidebar, pinning a tool into the Pinned section, and collapsing the
+// sidebar column with its header button.
+func TestSidebarCollapseAndPin(t *testing.T) {
+	a := newTestApp(t, false)
+	first := a.reg.All()[0].Manifest().ID
+	a.settings.TogglePin(first)
+	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
+	tt.Frame()
+	if !a.isPinned(a.reg.Get(first)) {
+		t.Fatalf("%s is not pinned", first)
+	}
+	if err := tt.Click("Pinned"); err != nil {
+		t.Fatal(err)
+	}
+	if !a.settings.IsCollapsed(sectionPinned) {
+		t.Error("clicking Pinned header did not collapse it")
+	}
+	if err := tt.Click("Hide Sidebar"); err != nil {
+		t.Fatal(err)
+	}
+	if !a.sideHidden {
+		t.Error("Hide Sidebar button did not collapse the sidebar")
+	}
+}
