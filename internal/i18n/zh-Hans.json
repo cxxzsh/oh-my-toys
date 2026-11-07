@@ -223,5 +223,10 @@
   "switchStarted": "开始于",
   "switchEnds": "结束于",
   "switchUntilOff": "直到手动关闭",
-  "switchPickPreset": "选一个预设即可开启。"
+  "switchPickPreset": "选一个预设即可开启。",
+  "holdEither": "时长和截止时刻只能选一个。",
+  "holdLength": "请输入形如 90m 或 1h30m 的时长，范围 1 秒到 99 小时 59 分。",
+  "holdClock": "请输入形如 18:30 的时刻，24 小时制。",
+  "schemaHoldFor": "保持多久，如 90m 或 1h30m",
+  "schemaHoldUntil": "几点关闭，如 18:30"
 }

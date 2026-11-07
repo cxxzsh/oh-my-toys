@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"time"
 
 	mcpsdk "github.com/modelcontextprotocol/go-sdk/mcp"
 
@@ -99,16 +100,16 @@ func (s Server) call(ctx context.Context, t tool.Tool, spec tool.Spec, in tool.I
 		}
 		return planValue(p), nil
 	case tool.ActionStart, tool.ActionStop, tool.ActionStatus:
-		return s.switchCall(ctx, t, spec.Name)
+		return s.switchCall(ctx, t, spec.Name, in)
 	default:
 		return nil, fmt.Errorf("action %s is not exposed", spec.Name)
 	}
 }
 
-func (s Server) switchCall(ctx context.Context, t tool.Tool, action string) (any, error) {
+func (s Server) switchCall(ctx context.Context, t tool.Tool, action string, in tool.Input) (any, error) {
 	id := t.Manifest().ID
 	if network, address, err := core.SwitchDial(); err == nil {
-		st, err := core.CallSwitch(ctx, network, address, id, action)
+		st, err := core.CallSwitch(ctx, network, address, id, action, in)
 		if err == nil {
 			return statusValue(st), nil
 		}
@@ -120,16 +121,17 @@ func (s Server) switchCall(ctx context.Context, t tool.Tool, action string) (any
 	if !ok {
 		return nil, fmt.Errorf("%s is not a switch", id)
 	}
-	if err := runLocal(ctx, sw, action); err != nil {
+	if err := runLocal(ctx, sw, action, in); err != nil {
 		return nil, err
 	}
 	return statusValue(sw.Status()), nil
 }
 
-func runLocal(ctx context.Context, sw tool.Switch, action string) error {
+func runLocal(ctx context.Context, sw tool.Switch, action string, in tool.Input) error {
 	switch action {
 	case tool.ActionStart:
-		return sw.Start(ctx)
+		_, err := core.StartSwitch(ctx, sw, in, time.Now())
+		return err
 	case tool.ActionStop:
 		return sw.Stop()
 	default:

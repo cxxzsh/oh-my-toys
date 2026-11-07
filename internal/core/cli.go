@@ -9,6 +9,7 @@ import (
 	"io"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
@@ -91,7 +92,7 @@ func (c CLI) dispatch(ctx context.Context, t tool.Tool, spec tool.Spec, in tool.
 		if !ok {
 			return c.usage(c.Msgs.CliUnknownAction(t.Manifest().ID, spec.Name))
 		}
-		return c.switchRun(ctx, sw, spec.Name)
+		return c.switchRun(ctx, sw, spec.Name, in)
 	default:
 		return c.usage(c.Msgs.CliUnknownAction(t.Manifest().ID, spec.Name))
 	}
@@ -160,9 +161,9 @@ func (c CLI) confirmFail() int {
 	return ExitConfirm
 }
 
-func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string) int {
+func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string, in tool.Input) int {
 	if c.Remote {
-		if st, err := c.askApp(ctx, sw.Manifest().ID, action); err == nil {
+		if st, err := c.askApp(ctx, sw.Manifest().ID, action, in); err == nil {
 			c.printStatus(st)
 			return ExitOK
 		} else if !errors.Is(err, ErrNoApp) {
@@ -171,7 +172,7 @@ func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string) int {
 	}
 	switch action {
 	case tool.ActionStart:
-		return c.hold(ctx, sw)
+		return c.hold(ctx, sw, in)
 	case tool.ActionStop:
 		if err := sw.Stop(); err != nil {
 			return c.fail(err)
@@ -181,23 +182,30 @@ func (c CLI) switchRun(ctx context.Context, sw tool.Switch, action string) int {
 	return ExitOK
 }
 
-func (c CLI) askApp(ctx context.Context, id, action string) (tool.Status, error) {
+func (c CLI) askApp(ctx context.Context, id, action string, in tool.Input) (tool.Status, error) {
 	network, address, err := dialSwitch()
 	if err != nil {
 		return tool.Status{}, fmt.Errorf("%w: %w", ErrNoApp, err)
 	}
-	return CallSwitch(ctx, network, address, id, action)
+	return CallSwitch(ctx, network, address, id, action, in)
 }
 
-// hold runs a switch tool until ctx ends, then stops it. Without the
-// desktop app, the command itself is what keeps the tool running.
-func (c CLI) hold(ctx context.Context, sw tool.Switch) int {
-	if err := sw.Start(ctx); err != nil {
+// hold runs a switch tool until ctx ends, or the length a start asked for
+// is over, then stops it. Without the desktop app, the command itself is
+// what keeps the tool running.
+func (c CLI) hold(ctx context.Context, sw tool.Switch, in tool.Input) int {
+	d, err := StartSwitch(ctx, sw, in, time.Now())
+	if err != nil {
 		return c.fail(err)
 	}
 	c.printStatus(sw.Status())
 	if !c.JSON {
 		writef(c.Err, "%s\n", c.Msgs.CliHolding())
+	}
+	if d > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, d)
+		defer cancel()
 	}
 	<-ctx.Done()
 	if err := sw.Stop(); err != nil {

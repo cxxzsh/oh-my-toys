@@ -92,3 +92,29 @@ func TestOnlyOffStops(t *testing.T) {
 		}
 	}
 }
+
+// TestStartForRunsThatLong is a length a person typed: it has no quick
+// action, so Status calls it custom, and turning the tool off and on again
+// brings back the same length.
+func TestStartForRunsThatLong(t *testing.T) {
+	tl, held, _ := newTestTool(t)
+	if err := tl.StartFor(t.Context(), 45*time.Minute); err != nil {
+		t.Fatal(err)
+	}
+	st := tl.Status()
+	if st.Active != idCustom || st.Until.Sub(st.Since) != 45*time.Minute {
+		t.Fatalf("after StartFor: %+v", st)
+	}
+	if err := tl.Stop(); err != nil {
+		t.Fatal(err)
+	}
+	if err := tl.Start(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if st := tl.Status(); st.Active != idCustom || st.Until.Sub(st.Since) != 45*time.Minute {
+		t.Errorf("resumed as %+v, want the same 45 minutes", st)
+	}
+	if *held != 1 {
+		t.Errorf("%d requests held, want 1", *held)
+	}
+}

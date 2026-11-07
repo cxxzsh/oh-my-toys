@@ -104,6 +104,14 @@ type Switch interface {
 	Status() Status
 }
 
+// Timed is a switch tool that can also run for a length the caller picks,
+// rather than only with the settings used last. The caller works the
+// length out with ParseHold.
+type Timed interface {
+	Switch
+	StartFor(ctx context.Context, d time.Duration) error
+}
+
 // Action is a tool that runs once: Plan works out what would happen and
 // changes nothing; Apply does exactly what a plan lists. The input of Plan
 // is described by the input schema of its "plan" spec.

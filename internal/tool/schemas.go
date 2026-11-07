@@ -77,8 +77,21 @@ func StatusOutput() Schema {
 // SwitchSpecs are the start, stop and status actions of a switch tool,
 // which change system state through start and stop.
 func SwitchSpecs(start, stop, status Message) []Spec {
+	return switchSpecs(start, stop, status, NoInput())
+}
+
+// TimedSwitchSpecs are SwitchSpecs for a Timed tool: start also takes how
+// long to run, as a length ("for") or a time of day ("until"), either one.
+func TimedSwitchSpecs(start, stop, status Message) []Spec {
+	return switchSpecs(start, stop, status, Schema{Type: TypeObject, Properties: []Property{
+		{Name: PropFor, Schema: text(i18n.Messages.SchemaHoldFor)},
+		{Name: PropUntil, Schema: text(i18n.Messages.SchemaHoldUntil)},
+	}})
+}
+
+func switchSpecs(start, stop, status Message, startInput Schema) []Spec {
 	return []Spec{
-		{Name: ActionStart, Summary: start, Input: NoInput(), Output: StatusOutput(), Risk: RiskSystem, Idempotent: true},
+		{Name: ActionStart, Summary: start, Input: startInput, Output: StatusOutput(), Risk: RiskSystem, Idempotent: true},
 		{Name: ActionStop, Summary: stop, Input: NoInput(), Output: StatusOutput(), Risk: RiskSystem, Idempotent: true},
 		{Name: ActionStatus, Summary: status, Input: NoInput(), Output: StatusOutput(), Risk: RiskRead, Idempotent: true},
 	}

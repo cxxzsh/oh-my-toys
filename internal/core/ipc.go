@@ -21,8 +21,9 @@ var dialSwitch = SwitchDial
 const dialTimeout = 200 * time.Millisecond
 
 type ipcRequest struct {
-	Tool   string `json:"tool"`
-	Action string `json:"action"`
+	Tool   string     `json:"tool"`
+	Action string     `json:"action"`
+	Input  tool.Input `json:"input,omitempty"`
 }
 
 type ipcResponse struct {
@@ -68,17 +69,18 @@ func switchResult(ctx context.Context, reg *Registry, req ipcRequest) ipcRespons
 	if !ok {
 		return ipcResponse{Error: fmt.Sprintf("no switch tool %q", req.Tool)}
 	}
-	if err := runSwitch(ctx, sw, req.Action); err != nil {
-		return ipcResponse{Error: err.Error()}
+	if err := runSwitch(ctx, sw, req.Action, req.Input); err != nil {
+		return ipcResponse{Error: problemText(err)}
 	}
 	st := sw.Status()
 	return ipcResponse{On: st.On, Text: st.Text, Detail: st.Detail}
 }
 
-func runSwitch(ctx context.Context, sw tool.Switch, action string) error {
+func runSwitch(ctx context.Context, sw tool.Switch, action string, in tool.Input) error {
 	switch action {
 	case tool.ActionStart:
-		return sw.Start(ctx)
+		_, err := StartSwitch(ctx, sw, in, time.Now())
+		return err
 	case tool.ActionStop:
 		return sw.Stop()
 	case tool.ActionStatus:
@@ -88,19 +90,19 @@ func runSwitch(ctx context.Context, sw tool.Switch, action string) error {
 	}
 }
 
-// CallSwitch asks the desktop app at network/address to run a switch action.
-// A dial failure is ErrNoApp.
-func CallSwitch(ctx context.Context, network, address, toolID, action string) (tool.Status, error) {
+// CallSwitch asks the desktop app at network/address to run a switch action;
+// in is the input of a start. A dial failure is ErrNoApp.
+func CallSwitch(ctx context.Context, network, address, toolID, action string, in tool.Input) (tool.Status, error) {
 	conn, err := (&net.Dialer{Timeout: dialTimeout}).DialContext(ctx, network, address)
 	if err != nil {
 		return tool.Status{}, fmt.Errorf("%w: %w", ErrNoApp, err)
 	}
 	defer func() { _ = conn.Close() }()
-	return callSwitch(conn, toolID, action)
+	return callSwitch(conn, toolID, action, in)
 }
 
-func callSwitch(conn net.Conn, toolID, action string) (tool.Status, error) {
-	if err := json.NewEncoder(conn).Encode(ipcRequest{Tool: toolID, Action: action}); err != nil {
+func callSwitch(conn net.Conn, toolID, action string, in tool.Input) (tool.Status, error) {
+	if err := json.NewEncoder(conn).Encode(ipcRequest{Tool: toolID, Action: action, Input: in}); err != nil {
 		return tool.Status{}, err
 	}
 	var resp ipcResponse

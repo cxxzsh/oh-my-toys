@@ -22,6 +22,7 @@ const (
 	idUntilOff   = "on"
 	idSystemOnly = "system"
 	idOff        = "off"
+	idCustom     = "custom" // a length or time of day the person typed, which has no quick action
 )
 
 // reason is what the system lists as keeping the computer awake.
@@ -72,9 +73,9 @@ func (t *Tool) Manifest() tool.Manifest {
 }
 
 // Specs declares the tool's actions: start and stop change whether the
-// system may sleep; status only reads it.
+// system may sleep, and start may say for how long; status only reads it.
 func (t *Tool) Specs() []tool.Spec {
-	return tool.SwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
+	return tool.TimedSwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
 }
 
 func (t *Tool) runFor(id string, d time.Duration, display bool) func(context.Context) error {
@@ -90,6 +91,16 @@ func (t *Tool) Start(context.Context) error {
 	id, d, display := t.id, t.last, t.display
 	t.mu.Unlock()
 	t.start(id, d, display)
+	return nil
+}
+
+// StartFor keeps the computer awake for d, with the display setting used
+// last.
+func (t *Tool) StartFor(_ context.Context, d time.Duration) error {
+	t.mu.Lock()
+	display := t.display
+	t.mu.Unlock()
+	t.start(idCustom, d, display)
 	return nil
 }
 

@@ -3187,3 +3187,73 @@ func SwitchPickPreset() string { return In(i18n.Locale()).SwitchPickPreset() }
 func (msgs Messages) SwitchPickPreset() string {
 	return Catalog.Format(msgs.locale, "switchPickPreset", nil)
 }
+
+// HoldEither says "Use a length or a time of day, not both."
+// in the language the app shows.
+//
+// Error: a start was given both a length and a time of day.
+func HoldEither() string { return In(i18n.Locale()).HoldEither() }
+
+// HoldEither says "Use a length or a time of day, not both."
+// in the language of msgs.
+//
+// Error: a start was given both a length and a time of day.
+func (msgs Messages) HoldEither() string {
+	return Catalog.Format(msgs.locale, "holdEither", nil)
+}
+
+// HoldLength says "Enter a length such as 90m or 1h30m, from 1s to 99h59m."
+// in the language the app shows.
+//
+// Error: a length that is not valid.
+func HoldLength() string { return In(i18n.Locale()).HoldLength() }
+
+// HoldLength says "Enter a length such as 90m or 1h30m, from 1s to 99h59m."
+// in the language of msgs.
+//
+// Error: a length that is not valid.
+func (msgs Messages) HoldLength() string {
+	return Catalog.Format(msgs.locale, "holdLength", nil)
+}
+
+// HoldClock says "Enter a time of day such as 18:30, in 24 hours."
+// in the language the app shows.
+//
+// Error: a time of day that is not valid.
+func HoldClock() string { return In(i18n.Locale()).HoldClock() }
+
+// HoldClock says "Enter a time of day such as 18:30, in 24 hours."
+// in the language of msgs.
+//
+// Error: a time of day that is not valid.
+func (msgs Messages) HoldClock() string {
+	return Catalog.Format(msgs.locale, "holdClock", nil)
+}
+
+// SchemaHoldFor says "How long to stay on, such as 90m or 1h30m"
+// in the language the app shows.
+//
+// Input field of a timed start.
+func SchemaHoldFor() string { return In(i18n.Locale()).SchemaHoldFor() }
+
+// SchemaHoldFor says "How long to stay on, such as 90m or 1h30m"
+// in the language of msgs.
+//
+// Input field of a timed start.
+func (msgs Messages) SchemaHoldFor() string {
+	return Catalog.Format(msgs.locale, "schemaHoldFor", nil)
+}
+
+// SchemaHoldUntil says "Time of day to turn off, such as 18:30"
+// in the language the app shows.
+//
+// Input field of a timed start.
+func SchemaHoldUntil() string { return In(i18n.Locale()).SchemaHoldUntil() }
+
+// SchemaHoldUntil says "Time of day to turn off, such as 18:30"
+// in the language of msgs.
+//
+// Input field of a timed start.
+func (msgs Messages) SchemaHoldUntil() string {
+	return Catalog.Format(msgs.locale, "schemaHoldUntil", nil)
+}

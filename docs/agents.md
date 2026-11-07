@@ -68,6 +68,8 @@ People can allow a tool to run without confirmation for a given client in Settin
 
 `start`, `stop` and `status` of switch tools (such as Keep awake) go to the running desktop app over local IPC, so state stays in one place. The tray panel marks a tool started by an agent with the client's name until it stops. Without the desktop app, `omt` runs the switch tool itself for as long as the command runs.
 
+A switch tool that can run for a set time (Keep awake) takes two optional inputs on `start`, one at most: `for`, a length such as `90m` or `1h30m` (1 second to 99 hours 59 minutes), and `until`, a time of day such as `18:30` in 24 hours, which is tomorrow's when today's has passed. On the command line they are `--for` and `--until`. A start with neither uses the settings used last. Without the desktop app, `omt` holds the tool for that length and then exits by itself.
+
 ## 6. Activity log
 
 Every call from an agent is recorded locally: time, client name, tool, action, inputs, result. The log is visible in the desktop app under Settings and never leaves the computer.

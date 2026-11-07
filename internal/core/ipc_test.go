@@ -5,8 +5,11 @@ import (
 	"errors"
 	"net"
 	"path/filepath"
+	"slices"
 	"testing"
+	"time"
 
+	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
 
@@ -25,22 +28,22 @@ func TestSwitchIPC(t *testing.T) {
 	defer cancel()
 	go func() { _ = ServeSwitch(ctx, reg, ln) }()
 
-	st, err := CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStart)
+	st, err := CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStart, nil)
 	if err != nil || !st.On || sw.started != 1 {
 		t.Fatalf("start %+v %v started=%d", st, err, sw.started)
 	}
-	st, err = CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStatus)
+	st, err = CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStatus, nil)
 	if err != nil || !st.On {
 		t.Fatalf("status %+v %v", st, err)
 	}
-	st, err = CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStop)
+	st, err = CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStop, nil)
 	if err != nil || st.On || sw.on || sw.stopped != 1 {
 		t.Fatalf("stop %+v %v switch=%+v", st, err, sw)
 	}
 }
 
 func TestSwitchIPCMissing(t *testing.T) {
-	_, err := CallSwitch(context.Background(), "unix", filepath.Join(t.TempDir(), "missing.sock"), "fake", tool.ActionStatus)
+	_, err := CallSwitch(context.Background(), "unix", filepath.Join(t.TempDir(), "missing.sock"), "fake", tool.ActionStatus, nil)
 	if !errors.Is(err, ErrNoApp) {
 		t.Fatal(err)
 	}
@@ -74,5 +77,73 @@ func TestCLIStartUsesTheApp(t *testing.T) {
 	}
 	if local.started != 0 || remote.started != 1 || !remote.on {
 		t.Fatalf("local %+v remote %+v", local, remote)
+	}
+}
+
+// timedSwitch is a fakeSwitch that can also run for a length of time.
+type timedSwitch struct {
+	fakeSwitch
+	lengths []time.Duration
+}
+
+func (f *timedSwitch) Specs() []tool.Spec {
+	return tool.TimedSwitchSpecs(i18n.Messages.About, i18n.Messages.About, i18n.Messages.About)
+}
+
+func (f *timedSwitch) StartFor(_ context.Context, d time.Duration) error {
+	f.lengths = append(f.lengths, d)
+	f.on = true
+	return nil
+}
+
+func serveSwitch(t *testing.T, sw tool.Switch) string {
+	t.Helper()
+	sock := filepath.Join(t.TempDir(), "app.sock")
+	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "unix", sock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reg, err := NewRegistry(sw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+	go func() { _ = ServeSwitch(ctx, reg, ln) }()
+	return sock
+}
+
+// TestSwitchIPCStartForALength sends a length to the app, which runs the
+// switch for it; a bad length comes back as the text of the problem, not
+// as a failure of the connection.
+func TestSwitchIPCStartForALength(t *testing.T) {
+	sw := &timedSwitch{}
+	sock := serveSwitch(t, sw)
+	ctx := context.Background()
+
+	if _, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropFor: "90m"}); err != nil {
+		t.Fatal(err)
+	}
+	if want := []time.Duration{90 * time.Minute}; !slices.Equal(sw.lengths, want) {
+		t.Fatalf("ran for %v, want %v", sw.lengths, want)
+	}
+	if _, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, nil); err != nil || sw.started != 1 {
+		t.Fatalf("start with no length: %v, started %d: it uses the settings used last", err, sw.started)
+	}
+	_, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropUntil: "tea time"})
+	if err == nil || err.Error() != i18n.HoldClock() {
+		t.Fatalf("a bad time of day: %v, want %q", err, i18n.HoldClock())
+	}
+	if len(sw.lengths) != 1 {
+		t.Errorf("a bad input still started the switch: %v", sw.lengths)
+	}
+}
+
+func TestIPCPlainSwitchNoLength(t *testing.T) {
+	sw := &fakeSwitch{}
+	sock := serveSwitch(t, sw)
+	_, err := CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropFor: "1h"})
+	if err == nil || sw.started != 0 {
+		t.Fatalf("err %v, started %d: a switch that cannot run for a length must not start without one", err, sw.started)
 	}
 }

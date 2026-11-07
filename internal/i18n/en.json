@@ -1184,5 +1184,25 @@
   "switchPickPreset": "Pick a preset to turn it on.",
   "@switchPickPreset": {
     "description": "Hint on a switch tool's page while it is off."
+  },
+  "holdEither": "Use a length or a time of day, not both.",
+  "@holdEither": {
+    "description": "Error: a start was given both a length and a time of day."
+  },
+  "holdLength": "Enter a length such as 90m or 1h30m, from 1s to 99h59m.",
+  "@holdLength": {
+    "description": "Error: a length that is not valid."
+  },
+  "holdClock": "Enter a time of day such as 18:30, in 24 hours.",
+  "@holdClock": {
+    "description": "Error: a time of day that is not valid."
+  },
+  "schemaHoldFor": "How long to stay on, such as 90m or 1h30m",
+  "@schemaHoldFor": {
+    "description": "Input field of a timed start."
+  },
+  "schemaHoldUntil": "Time of day to turn off, such as 18:30",
+  "@schemaHoldUntil": {
+    "description": "Input field of a timed start."
   }
 }

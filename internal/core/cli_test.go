@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -272,4 +273,43 @@ func (f *fakeSwitch) Stop() error {
 
 func (f *fakeSwitch) Status() tool.Status {
 	return tool.Status{On: f.on, Text: "on"}
+}
+
+// TestSwitchStartsForALengthAndEndsByItself is `omt <tool> start --for`
+// without the app: the command holds the switch for that long, then stops
+// it and returns, though nothing cancelled it.
+func TestSwitchStartsForALengthAndEndsByItself(t *testing.T) {
+	sw := &timedSwitch{}
+	cli, _, errb := newCLI(t, sw)
+	begun := time.Now()
+	code := cli.Run(context.Background(), []string{"fake", "start", "--for", "30ms", "--json"})
+	if code != ExitOK {
+		t.Fatal(code, errb)
+	}
+	if want := []time.Duration{30 * time.Millisecond}; !slices.Equal(sw.lengths, want) {
+		t.Errorf("ran for %v, want %v", sw.lengths, want)
+	}
+	if sw.stopped != 1 || sw.on {
+		t.Errorf("not stopped when its length was over: %+v", sw)
+	}
+	if time.Since(begun) < 30*time.Millisecond {
+		t.Errorf("returned after %v, before its length was over", time.Since(begun))
+	}
+}
+
+func TestSwitchStartRejectsABadTimeOfDay(t *testing.T) {
+	sw := &timedSwitch{}
+	cli, _, errb := newCLI(t, sw)
+	code := cli.Run(context.Background(), []string{"fake", "start", "--until", "25:00"})
+	if code != ExitError || sw.on || !strings.Contains(errb.String(), i18n.HoldClock()) {
+		t.Fatalf("code %d, on %v, stderr %q", code, sw.on, errb)
+	}
+}
+
+// TestPlainSwitchHasNoLengthFlags: only a timed tool's start takes --for.
+func TestPlainSwitchHasNoLengthFlags(t *testing.T) {
+	cli, _, _ := newCLI(t, &fakeSwitch{})
+	if code := cli.Run(context.Background(), []string{"fake", "start", "--for", "1h"}); code != ExitUsage {
+		t.Fatalf("code %d, want %d", code, ExitUsage)
+	}
 }

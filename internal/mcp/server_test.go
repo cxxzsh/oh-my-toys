@@ -62,8 +62,19 @@ func TestMCPAwakeWithoutApp(t *testing.T) {
 	}
 }
 
+// noApp points the places a command looks for the running desktop app at an
+// empty directory, so a test never reaches an app the person has open.
+func noApp(t *testing.T) {
+	t.Helper()
+	dir := t.TempDir()
+	for _, env := range []string{"HOME", "XDG_CACHE_HOME", "LocalAppData"} {
+		t.Setenv(env, dir)
+	}
+}
+
 func startSession(ctx context.Context, t *testing.T) *mcpsdk.ClientSession {
 	t.Helper()
+	noApp(t)
 	reg, err := core.NewRegistry(awake.New(func() {}), rename.New(), color.New())
 	if err != nil {
 		t.Fatal(err)
@@ -81,4 +92,31 @@ func startSession(ctx context.Context, t *testing.T) *mcpsdk.ClientSession {
 		t.Fatal(err)
 	}
 	return session
+}
+
+// TestMCPAwakeStartTakesALength: a timed tool's start lists "for" and
+// "until" as inputs, and a bad one is refused before anything starts.
+func TestMCPAwakeStartTakesALength(t *testing.T) {
+	ctx := context.Background()
+	session := startSession(ctx, t)
+	t.Cleanup(func() { _ = session.Close() })
+
+	listed, err := session.ListTools(ctx, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, tl := range listed.Tools {
+		if tl.Name != "awake_start" {
+			continue
+		}
+		schema, _ := tl.InputSchema.(map[string]any)
+		props, _ := schema["properties"].(map[string]any)
+		if props["for"] == nil || props["until"] == nil {
+			t.Fatalf("awake_start inputs %v, want for and until", schema)
+		}
+	}
+	res, err := session.CallTool(ctx, &mcpsdk.CallToolParams{Name: "awake_start", Arguments: map[string]any{"until": "25:00"}})
+	if err != nil || !res.IsError {
+		t.Fatalf("a bad time of day: %v, %+v", err, res)
+	}
 }
