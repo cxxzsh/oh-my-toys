@@ -3089,3 +3089,101 @@ func ResetSidebarAction() string { return In(i18n.Locale()).ResetSidebarAction()
 func (msgs Messages) ResetSidebarAction() string {
 	return Catalog.Format(msgs.locale, "resetSidebarAction", nil)
 }
+
+// SwitchPresets says "Presets"
+// in the language the app shows.
+//
+// Panel title of a switch tool's modes.
+func SwitchPresets() string { return In(i18n.Locale()).SwitchPresets() }
+
+// SwitchPresets says "Presets"
+// in the language of msgs.
+//
+// Panel title of a switch tool's modes.
+func (msgs Messages) SwitchPresets() string {
+	return Catalog.Format(msgs.locale, "switchPresets", nil)
+}
+
+// SwitchTimeLeft says "Time left"
+// in the language the app shows.
+//
+// Label above the countdown of a switch tool.
+func SwitchTimeLeft() string { return In(i18n.Locale()).SwitchTimeLeft() }
+
+// SwitchTimeLeft says "Time left"
+// in the language of msgs.
+//
+// Label above the countdown of a switch tool.
+func (msgs Messages) SwitchTimeLeft() string {
+	return Catalog.Format(msgs.locale, "switchTimeLeft", nil)
+}
+
+// SwitchRunning says "Running for"
+// in the language the app shows.
+//
+// Detail row: how long a switch tool has run.
+func SwitchRunning() string { return In(i18n.Locale()).SwitchRunning() }
+
+// SwitchRunning says "Running for"
+// in the language of msgs.
+//
+// Detail row: how long a switch tool has run.
+func (msgs Messages) SwitchRunning() string {
+	return Catalog.Format(msgs.locale, "switchRunning", nil)
+}
+
+// SwitchStarted says "Started"
+// in the language the app shows.
+//
+// Detail row: the clock time a switch tool started.
+func SwitchStarted() string { return In(i18n.Locale()).SwitchStarted() }
+
+// SwitchStarted says "Started"
+// in the language of msgs.
+//
+// Detail row: the clock time a switch tool started.
+func (msgs Messages) SwitchStarted() string {
+	return Catalog.Format(msgs.locale, "switchStarted", nil)
+}
+
+// SwitchEnds says "Ends"
+// in the language the app shows.
+//
+// Detail row: the clock time a switch tool stops by itself.
+func SwitchEnds() string { return In(i18n.Locale()).SwitchEnds() }
+
+// SwitchEnds says "Ends"
+// in the language of msgs.
+//
+// Detail row: the clock time a switch tool stops by itself.
+func (msgs Messages) SwitchEnds() string {
+	return Catalog.Format(msgs.locale, "switchEnds", nil)
+}
+
+// SwitchUntilOff says "Until turned off"
+// in the language the app shows.
+//
+// Detail row value: no end time.
+func SwitchUntilOff() string { return In(i18n.Locale()).SwitchUntilOff() }
+
+// SwitchUntilOff says "Until turned off"
+// in the language of msgs.
+//
+// Detail row value: no end time.
+func (msgs Messages) SwitchUntilOff() string {
+	return Catalog.Format(msgs.locale, "switchUntilOff", nil)
+}
+
+// SwitchPickPreset says "Pick a preset to turn it on."
+// in the language the app shows.
+//
+// Hint on a switch tool's page while it is off.
+func SwitchPickPreset() string { return In(i18n.Locale()).SwitchPickPreset() }
+
+// SwitchPickPreset says "Pick a preset to turn it on."
+// in the language of msgs.
+//
+// Hint on a switch tool's page while it is off.
+func (msgs Messages) SwitchPickPreset() string {
+	return Catalog.Format(msgs.locale, "switchPickPreset", nil)
+}

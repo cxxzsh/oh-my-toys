@@ -5,6 +5,8 @@ package tool
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 )
@@ -52,6 +54,7 @@ type QuickAction struct {
 	ID       string
 	Title    Message
 	Shortcut string // an accelerator to show, such as "Alt+1"
+	Stops    bool   // turns the tool off, rather than starting a mode
 	Run      func(ctx context.Context) error
 }
 
@@ -81,8 +84,16 @@ type Tool interface {
 // Status is what a switch tool reports.
 type Status struct {
 	On     bool
-	Text   string // "Running · 2:29:10 left"
-	Detail string // "Display stays on"
+	Text   string    // "Running · 2:29:10 left"
+	Detail string    // "Display stays on"
+	Active string    // the ID of the quick action in effect; empty when off
+	Since  time.Time // when it started; zero when off
+	Until  time.Time // when it ends by itself; zero when off or until turned off
+}
+
+// Clock writes a duration as 2:29:10.
+func Clock(d time.Duration) string {
+	return fmt.Sprintf("%d:%02d:%02d", int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60)
 }
 
 // Switch is a tool that keeps running in the background once started.

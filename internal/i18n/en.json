@@ -1156,5 +1156,33 @@
   "resetSidebarAction": "Restore Defaults",
   "@resetSidebarAction": {
     "description": "Button that resets the sidebar order and pins."
+  },
+  "switchPresets": "Presets",
+  "@switchPresets": {
+    "description": "Panel title of a switch tool's modes."
+  },
+  "switchTimeLeft": "Time left",
+  "@switchTimeLeft": {
+    "description": "Label above the countdown of a switch tool."
+  },
+  "switchRunning": "Running for",
+  "@switchRunning": {
+    "description": "Detail row: how long a switch tool has run."
+  },
+  "switchStarted": "Started",
+  "@switchStarted": {
+    "description": "Detail row: the clock time a switch tool started."
+  },
+  "switchEnds": "Ends",
+  "@switchEnds": {
+    "description": "Detail row: the clock time a switch tool stops by itself."
+  },
+  "switchUntilOff": "Until turned off",
+  "@switchUntilOff": {
+    "description": "Detail row value: no end time."
+  },
+  "switchPickPreset": "Pick a preset to turn it on.",
+  "@switchPickPreset": {
+    "description": "Hint on a switch tool's page while it is off."
   }
 }

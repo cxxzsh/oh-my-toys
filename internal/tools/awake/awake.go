@@ -4,7 +4,6 @@ package awake
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 
@@ -16,15 +15,29 @@ import (
 // ID is the tool's ID and command name.
 const ID = "awake"
 
+// The IDs of the quick actions.
+const (
+	idHour       = "1h"
+	idTwoHours   = "2h"
+	idUntilOff   = "on"
+	idSystemOnly = "system"
+	idOff        = "off"
+)
+
 // reason is what the system lists as keeping the computer awake.
 const reason = "oh-my-toys: Keep Awake"
+
+// keepAwake asks the system to stay awake; tests replace it.
+var keepAwake = power.KeepAwake
 
 // Tool is Keep Awake. Its zero value is not usable; use New.
 type Tool struct {
 	mu      sync.Mutex
 	release func()
+	since   time.Time // when it started
 	until   time.Time // zero while it runs until turned off
 	timer   *time.Timer
+	id      string        // the quick action in effect, or used last
 	last    time.Duration // the length chosen last; 0 for until turned off
 	display bool          // keep the display on too
 	changed func()
@@ -33,7 +46,7 @@ type Tool struct {
 // New makes the tool; changed is called, from any goroutine, when it
 // starts or stops.
 func New(changed func()) *Tool {
-	return &Tool{display: true, changed: changed}
+	return &Tool{id: idUntilOff, display: true, changed: changed}
 }
 
 // Manifest describes the tool.
@@ -49,11 +62,11 @@ func (t *Tool) Manifest() tool.Manifest {
 		Keywords:  []string{"caffeinate", "keep awake", "amphetamine", "sleep", "不睡眠", "咖啡因"},
 		Platforms: []string{"macos", "windows", "linux"},
 		Actions: []tool.QuickAction{
-			{ID: "1h", Title: i18n.Messages.AwakeFor1h, Shortcut: "Alt+1", Run: t.runFor(time.Hour, true)},
-			{ID: "2h", Title: i18n.Messages.AwakeFor2h, Run: t.runFor(2*time.Hour, true)},
-			{ID: "on", Title: i18n.Messages.AwakeUntilOff, Run: t.runFor(0, true)},
-			{ID: "system", Title: i18n.Messages.AwakeSystemOnly, Run: t.runFor(0, false)},
-			{ID: "off", Title: i18n.Messages.AwakeTurnOff, Run: func(context.Context) error { return t.Stop() }},
+			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour, true)},
+			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Run: t.runFor(idTwoHours, 2*time.Hour, true)},
+			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Run: t.runFor(idUntilOff, 0, true)},
+			{ID: idSystemOnly, Title: i18n.Messages.AwakeSystemOnly, Run: t.runFor(idSystemOnly, 0, false)},
+			{ID: idOff, Title: i18n.Messages.AwakeTurnOff, Stops: true, Run: func(context.Context) error { return t.Stop() }},
 		},
 	}
 }
@@ -64,9 +77,9 @@ func (t *Tool) Specs() []tool.Spec {
 	return tool.SwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
 }
 
-func (t *Tool) runFor(d time.Duration, display bool) func(context.Context) error {
+func (t *Tool) runFor(id string, d time.Duration, display bool) func(context.Context) error {
 	return func(context.Context) error {
-		t.start(d, display)
+		t.start(id, d, display)
 		return nil
 	}
 }
@@ -74,19 +87,20 @@ func (t *Tool) runFor(d time.Duration, display bool) func(context.Context) error
 // Start keeps the computer awake with the settings used last.
 func (t *Tool) Start(context.Context) error {
 	t.mu.Lock()
-	d, display := t.last, t.display
+	id, d, display := t.id, t.last, t.display
 	t.mu.Unlock()
-	t.start(d, display)
+	t.start(id, d, display)
 	return nil
 }
 
-func (t *Tool) start(d time.Duration, display bool) {
+func (t *Tool) start(id string, d time.Duration, display bool) {
 	t.mu.Lock()
 	t.stopLocked()
-	t.release = power.KeepAwake(reason, display)
-	t.last, t.display, t.until = d, display, time.Time{}
+	t.release = keepAwake(reason, display)
+	t.id, t.last, t.display = id, d, display
+	t.since, t.until = time.Now(), time.Time{}
 	if d > 0 {
-		t.until = time.Now().Add(d)
+		t.until = t.since.Add(d)
 		t.timer = time.AfterFunc(d, func() { _ = t.Stop() })
 	}
 	t.mu.Unlock()
@@ -125,14 +139,12 @@ func (t *Tool) Status() tool.Status {
 	if !t.display {
 		detail = i18n.AwakeDisplayMaySleep()
 	}
+	st := tool.Status{On: true, Detail: detail, Active: t.id, Since: t.since, Until: t.until}
 	if t.until.IsZero() {
-		return tool.Status{On: true, Text: i18n.AwakeRunningUntilOff(), Detail: detail}
+		st.Text = i18n.AwakeRunningUntilOff()
+		return st
 	}
 	left := max(time.Until(t.until), 0).Round(time.Second)
-	return tool.Status{On: true, Text: i18n.AwakeRunningLeft(clock(left)), Detail: detail}
-}
-
-// clock writes a duration as 2:29:10.
-func clock(d time.Duration) string {
-	return fmt.Sprintf("%d:%02d:%02d", int(d.Hours()), int(d.Minutes())%60, int(d.Seconds())%60)
+	st.Text = i18n.AwakeRunningLeft(tool.Clock(left))
+	return st
 }
