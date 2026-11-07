@@ -25,6 +25,8 @@ const (
 	pageHome      = "home"
 	pageSettings  = "settings"
 	glyphSettings = pageSettings
+	glyphPin      = "keep"
+	glyphPinned   = "keep-filled"
 )
 
 // tick is how often running switch tools redraw their countdowns.
@@ -60,16 +62,18 @@ type App struct {
 	tray  *mygo.Tray
 	panel *mygo.Window
 
-	page       string
-	homeCat    tool.Category
-	pageFilter string
-	filterIn   ui.Handle
-	sideHidden bool
-	sideList   ui.ListState
-	homeList   ui.ListState
-	actions    map[string]*actionState
-	dialog     *comp.DialogOpts
-	dialogOpen bool
+	page        string
+	homeCat     tool.Category
+	pageFilter  string
+	filterIn    ui.Handle
+	sideHidden  bool
+	sidePeek    bool
+	sideEntered bool
+	sideList    ui.ListState
+	homeList    ui.ListState
+	actions     map[string]*actionState
+	dialog      *comp.DialogOpts
+	dialogOpen  bool
 
 	pal           paletteState
 	trayChosen    int
@@ -169,16 +173,18 @@ func (a *App) Start() {
 
 func (a *App) createMain() {
 	a.main = mygo.NewWindow(mygo.WindowOptions{
-		Title:         i18n.AppName(),
-		Width:         ds.WindowWidth,
-		Height:        ds.WindowHeight,
-		MinWidth:      ds.WindowMinWidth,
-		MinHeight:     ds.WindowMinHeight,
-		TitleBarStyle: mygo.TitleBarHidden,
-		Vibrancy:      material(a.opt.Material),
-		Hidden:        !a.opt.ShowMain,
-		StateKey:      "main",
-		Content:       ui.View(a.mainView),
+		Title:                i18n.AppName(),
+		Width:                ds.WindowWidth,
+		Height:               ds.WindowHeight,
+		MinWidth:             ds.WindowMinWidth,
+		MinHeight:            ds.WindowMinHeight,
+		TitleBarStyle:        mygo.TitleBarHidden,
+		TitleBarHeight:       ds.TitlebarHeight,
+		TrafficLightPosition: &mygo.Point{X: ds.Space16, Y: ds.TrafficLightY},
+		Vibrancy:             material(a.opt.Material),
+		Hidden:               !a.opt.ShowMain,
+		StateKey:             "main",
+		Content:              ui.View(a.mainView),
 	})
 	a.main.OnFocus(func() { a.main.Invalidate() })
 	a.main.OnBlur(func() { a.main.Invalidate() })
@@ -246,22 +252,18 @@ func (a *App) openMain(page string) {
 
 // open shows a page in the main window.
 func (a *App) open(page string) {
-	a.page, a.pageFilter, a.pal.open = page, "", false
+	a.page, a.pageFilter, a.pal.open, a.sidePeek, a.sideEntered = page, "", false, false, false
 	t := a.reg.Get(page)
 	if t == nil {
 		return
 	}
-	sec := string(t.Manifest().Category)
-	if a.isPinned(t) {
-		sec = sectionPinned
-	}
-	a.settings.SetCollapsed(sec, false)
 	a.settings.Used(page)
 	a.save()
 }
 
 func (a *App) toggleSidebar() {
 	a.sideHidden = !a.sideHidden
+	a.sidePeek, a.sideEntered = false, false
 	a.setUpMenu()
 	a.redraw()
 }

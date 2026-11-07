@@ -15,76 +15,27 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// sectionPinned names the pinned section in the collapsed list.
-const sectionPinned = "pinned"
-
-type navKind int
-
-const (
-	navAll navKind = iota
-	navHead
-	navTool
-)
-
 type navRow struct {
-	kind    navKind
 	page    string
 	glyph   string
 	label   string
-	section string
-	count   int
 	running bool
 	tool    tool.Tool
 }
 
-// navRows flattens the sidebar into rows of a virtual list: All Tools,
-// the pinned tools, then each category's header and, when open, its tools.
-// Pinned tools are not repeated in their category.
 func (a *App) navRows() []navRow {
-	rows := []navRow{{kind: navAll, page: pageHome, glyph: "apps", label: i18n.AllTools()}}
-	if pinned := a.pinnedTools(); len(pinned) > 0 {
-		rows = append(rows, navRow{
-			kind: navHead, label: i18n.Pinned(), section: sectionPinned, count: len(pinned),
-		})
-		if !a.settings.IsCollapsed(sectionPinned) {
-			for _, t := range pinned {
-				rows = append(rows, toNavTool(t))
-			}
-		}
-	}
-	for _, cat := range tool.Categories() {
-		rows = append(rows, a.categoryNavRows(cat)...)
-	}
-	return rows
-}
-
-func (a *App) categoryNavRows(cat tool.Category) []navRow {
-	var tools []tool.Tool
-	for _, t := range a.reg.InCategory(cat) {
-		if !a.isPinned(t) {
-			tools = append(tools, t)
-		}
-	}
-	if len(tools) == 0 {
-		return nil
-	}
-	sec := string(cat)
-	rows := []navRow{{kind: navHead, label: categoryName(cat), section: sec, count: len(tools)}}
-	if a.settings.IsCollapsed(sec) {
-		return rows
-	}
+	tools := a.reg.All()
+	rows := make([]navRow, 0, 2+len(tools))
+	rows = append(rows, navRow{page: pageHome, glyph: "apps", label: i18n.AllTools()})
 	for _, t := range tools {
-		rows = append(rows, toNavTool(t))
+		m := t.Manifest()
+		rows = append(rows, navRow{
+			page: m.ID, glyph: m.Icon, label: m.Name(msgs()),
+			running: core.IsRunning(t), tool: t,
+		})
 	}
+	rows = append(rows, navRow{page: pageSettings, glyph: glyphSettings, label: i18n.Settings()})
 	return rows
-}
-
-func toNavTool(t tool.Tool) navRow {
-	m := t.Manifest()
-	return navRow{
-		kind: navTool, page: m.ID, glyph: m.Icon, label: m.Name(msgs()),
-		running: core.IsRunning(t), tool: t,
-	}
 }
 
 func (a *App) isPinned(t tool.Tool) bool {
@@ -107,15 +58,44 @@ func (a *App) pinnedTools() []tool.Tool {
 	return out
 }
 
-// sidebar is the fixed 220pt column: the header with collapse toggle, the
-// collapsible Pinned and category tool sections, Settings, and the daemon
-// card pinned to the bottom.
+// sidebar is the docked 220pt column when the sidebar is pinned open.
 func (a *App) sidebar(c *ui.Context) {
 	p := ds.P(c)
 	fill := p.BgSidebar
 	if c.Vibrancy() {
 		fill = p.BgSidebarMaterial
 	}
+	ui.Column(c).Width(ds.SidebarWidth).FillHeight().Padding(ds.Space12).Gap(ds.Space12).Background(fill).
+		BorderWidth(0, ds.LineWidth, 0, 0).BorderColor(p.Line).Role(ui.RoleGroup).Label(i18n.Sidebar()).
+		Children(func() { a.sidebarBody(c) })
+}
+
+// autoSidebar is the auto-collapsing sidebar when unpinned: hovering the
+// left edge pops it out as a floating card, and moving the pointer out or
+// choosing a tool collapses it again.
+func (a *App) autoSidebar(c *ui.Context) {
+	edge := ui.Box(c.Key("side-edge")).Absolute().Top(0).Bottom(0).Left(0).Width(ds.SidePeekTrigger)
+	if edge.Hovered() && !a.sidePeek {
+		a.sidePeek, a.sideEntered = true, true
+	}
+	if !a.sidePeek {
+		return
+	}
+	p := ds.P(c)
+	panel := ui.Column(c.Key("side-float")).Absolute().Top(ds.Space6).Bottom(ds.Space6).Left(ds.Space6).
+		Width(ds.SidebarWidth).Padding(ds.Space12).Gap(ds.Space12).Radius(ds.RadiusMd).
+		Background(p.BgPopover).Border(ds.LineWidth, p.LineControl).Role(ui.RoleGroup).Label(i18n.Sidebar())
+	ds.ApplyShadow(panel, ds.S(c).ShadowPopover)
+	if panel.Hovered() {
+		a.sideEntered = true
+	} else if (a.sideEntered && !edge.Hovered()) || panel.PressedOutside() {
+		a.sidePeek, a.sideEntered = false, false
+		c.Invalidate()
+	}
+	panel.Children(func() { a.sidebarBody(c) })
+}
+
+func (a *App) sidebarBody(c *ui.Context) {
 	rows := a.navRows()
 	a.sideList.Label = func(i int) string {
 		if i < len(rows) {
@@ -123,71 +103,44 @@ func (a *App) sidebar(c *ui.Context) {
 		}
 		return ""
 	}
-	ui.Column(c).Width(ds.SidebarWidth).FillHeight().Padding(ds.Space12).Gap(ds.Space8).Background(fill).
-		BorderWidth(0, ds.LineWidth, 0, 0).BorderColor(p.Line).Role(ui.RoleGroup).Label(i18n.Sidebar()).
-		Children(func() {
-			a.sidebarHeader(c)
-			ui.List(c.Key("side"), &a.sideList, len(rows), func(i int) { a.sideRow(c, rows[i]) }).
-				Grow(1).FillWidth().Gap(ds.Space2).Label(i18n.Tools())
-			a.navItem(c, navRow{page: pageSettings, glyph: glyphSettings, label: i18n.Settings()})
-			a.daemonCard(c)
-		})
+	a.sidebarHeader(c)
+	ui.List(c.Key("side"), &a.sideList, len(rows), func(i int) { a.navItem(c, rows[i]) }).
+		Grow(1).FillWidth().Gap(ds.Space4).Label(i18n.Tools())
+	a.daemonCard(c)
 }
 
 func (a *App) sidebarHeader(c *ui.Context) {
 	p := ds.P(c)
-	tip := i18n.HideSidebar() + " (" + modKey("⇧S") + ")"
+	pinned := !a.sideHidden
+	glyph, label, color := glyphPin, i18n.ShowSidebar(), p.TextMuted
+	if pinned {
+		glyph, label, color = glyphPinned, i18n.HideSidebar(), p.Accent
+		if !a.active() {
+			color = p.TextMuted
+		}
+	}
+	tip := label + " (" + modKey("⇧S") + ")"
 	ui.Row(c).FillWidth().Padding(0, ds.Space4, 0, ds.Space8).AlignItems(ui.Center).Children(func() {
 		comp.Eyebrow(c, i18n.Tools()).Grow(1)
-		b := ui.ButtonBase(c.Key("hide-side")).Label(i18n.HideSidebar()).Tooltip(tip).Cursor(ui.CursorDefault)
+		b := ui.ButtonBase(c.Key("pin-side")).Label(label).Tooltip(tip).Cursor(ui.CursorDefault)
 		if b.Clicked() {
 			a.toggleSidebar()
 		}
 		fill := ui.Transparent
 		if b.Hovered() {
 			fill = p.FillControl
+			if !pinned {
+				color = p.TextStrong
+			}
 		}
 		b.Size(ds.ControlSm, ds.ControlSm).Radius(ds.RadiusFull).Background(fill).Center().Children(func() {
-			a.kit.Glyph(c, "chevron_right", ds.GlyphSm, p.TextMuted).Rotate(ds.ChevronLeft)
+			a.kit.Glyph(c, glyph, ds.SearchGlyph, color)
 		})
 	})
 }
 
-func (a *App) sideRow(c *ui.Context, r navRow) {
-	if r.kind == navHead {
-		a.navHead(c, r)
-		return
-	}
-	a.navItem(c, r)
-}
-
-func (a *App) navHead(c *ui.Context, r navRow) {
-	p := ds.P(c)
-	open := !a.settings.IsCollapsed(r.section)
-	head := ui.ButtonBase(c.Key("head:" + r.section)).Label(r.label).Expanded(open).Cursor(ui.CursorDefault)
-	if head.Clicked() {
-		a.settings.SetCollapsed(r.section, open)
-		a.save()
-	}
-	fill := ui.Transparent
-	if head.Hovered() {
-		fill = p.FillControl
-	}
-	head.FillWidth().Height(ds.SideHeadHeight).Margin(ds.Space4, 0, 0).Padding(0, ds.Space8).
-		Gap(ds.Space4).Radius(ds.RadiusFull).Background(fill).AlignItems(ui.Center).Children(func() {
-		g := a.kit.Glyph(c, "expand_more", ds.GlyphSm, p.TextMuted)
-		if !open {
-			g.Rotate(ds.ChevronClosed)
-		}
-		comp.Eyebrow(c, r.label).Grow(1)
-		if r.count > 0 {
-			comp.Hint(c, strconv.Itoa(r.count))
-		}
-	})
-}
-
-// navItem is one sidebar row: a 16pt glyph, the name, a pin button, and a
-// live dot for a running switch tool or an accent dot when selected.
+// navItem is one sidebar row: a 16pt glyph, the name, and a live dot for
+// a running switch tool or an accent dot when selected.
 func (a *App) navItem(c *ui.Context, r navRow) {
 	p := ds.P(c)
 	sel := a.page == r.page
@@ -205,7 +158,6 @@ func (a *App) navItem(c *ui.Context, r navRow) {
 	if r.tool != nil {
 		b.ContextMenu(func(m *ui.Menu) { a.sidebarToolMenu(m, r.tool) })
 	}
-	hovered := b.Hovered()
 	fill, ink, glyphInk, style := ui.Transparent, p.TextInactive, p.TextInactive, ds.Label
 	switch {
 	case sel:
@@ -218,16 +170,13 @@ func (a *App) navItem(c *ui.Context, r navRow) {
 		ds.ApplyShadow(b, ds.S(c).ShadowXs)
 	case b.Pressed():
 		fill, ink, glyphInk = p.FillControlPressed, p.TextStrong, p.TextStrong
-	case hovered:
+	case b.Hovered():
 		fill, ink, glyphInk = p.FillControl, p.TextStrong, p.TextStrong
 	}
 	b.FillWidth().Height(ds.NavRow).Padding(0, ds.Space10).Gap(ds.Space8).Radius(ds.RadiusFull).
 		Background(fill).AlignItems(ui.Center).Children(func() {
 		a.kit.Glyph(c, r.glyph, ds.Glyph, glyphInk)
 		comp.Text(c, r.label, style, ink).Grow(1).SingleLine().Ellipsis("…")
-		if r.tool != nil && (a.isPinned(r.tool) || hovered) {
-			a.pinButton(c, r.tool)
-		}
 		a.navTrailing(c, r, sel)
 	})
 }
@@ -250,9 +199,9 @@ func (a *App) sidebarToolMenu(m *ui.Menu, t tool.Tool) {
 	if m.Item(i18n.Open()).Chosen() {
 		a.open(id)
 	}
-	pin := i18n.Pin()
+	pin := i18n.ShowInTray()
 	if a.isPinned(t) {
-		pin = i18n.Unpin()
+		pin = i18n.HideFromTray()
 	}
 	if m.Item(pin).Chosen() {
 		a.settings.TogglePin(id)
