@@ -42,7 +42,7 @@ func (a *App) mainView(c *ui.Context) {
 
 func (a *App) mainShortcuts(c *ui.Context) {
 	c.OnShortcut(ui.Cmd, ui.KeyK, a.showPalette)
-	c.OnShortcut(ui.Cmd, ui.KeyF, func() { a.filterIn.Focus() })
+	c.OnShortcut(ui.Cmd, ui.KeyF, a.showPalette)
 	c.OnShortcut(ui.Cmd, ui.KeyComma, func() { a.open(pageSettings) })
 	c.OnShortcut(ui.Cmd|ui.Shift, ui.KeyS, a.toggleSidebar)
 	c.OnShortcut(ui.Cmd, ui.KeyW, a.main.Hide)
@@ -70,16 +70,29 @@ func (a *App) titlebar(c *ui.Context) {
 		Gap(ds.Space12).AlignItems(ui.Center).Background(p.BgTitlebar).
 		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).DragWindow().Children(func() {
 		a.breadcrumbs(c)
-		if a.kit.SearchField(c, &a.pageFilter, &a.filterIn, comp.SearchFieldOpts{
-			Placeholder: i18n.FilterPage(a.title()),
-			Hint:        modKey("K"),
-			Width:       ds.SearchWidth,
-		}) {
-			a.showPalette()
-		}
+		a.paletteTrigger(c)
 		ui.Row(c).Grow(1).Basis(0).Justify(ui.End).AlignItems(ui.Center).Children(func() {
 			a.themeSegment(c)
 		})
+	})
+}
+
+func (a *App) paletteTrigger(c *ui.Context) {
+	p := ds.P(c)
+	b := ui.ButtonBase(c.Key("pal-trigger")).Label(i18n.PaletteHint()).Cursor(ui.CursorDefault)
+	if b.Clicked() {
+		a.showPalette()
+	}
+	fill := p.FillControl
+	if b.Hovered() {
+		fill = p.FillControlHover
+	}
+	b.Width(ds.SearchWidth).MinWidth(ds.SearchMinWidth).Shrink(1).Height(ds.ControlLg).
+		Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).Radius(ds.RadiusFull).
+		Background(fill).Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center).Children(func() {
+		a.kit.Glyph(c, "search", ds.SearchGlyph, p.TextMuted)
+		comp.Text(c, i18n.PaletteHint(), ds.Label, p.TextMuted).Grow(1).SingleLine().TextAlign(ui.Start)
+		comp.Kbd(c, modKey("K"))
 	})
 }
 

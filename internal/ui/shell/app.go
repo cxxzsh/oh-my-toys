@@ -65,7 +65,6 @@ type App struct {
 	page        string
 	homeCat     tool.Category
 	pageFilter  string
-	filterIn    ui.Handle
 	sideHidden  bool
 	sidePeek    bool
 	sideEntered bool
@@ -103,6 +102,7 @@ func New(opt Options) *App {
 		settings: opt.Defaults,
 	}
 	a.procs = comp.NewProcessIcons(func() { a.Post(nil) })
+
 	return a
 }
 
