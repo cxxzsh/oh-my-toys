@@ -71,6 +71,7 @@ type App struct {
 	sideList    ui.ListState
 	homeList    ui.ListState
 	actions     map[string]*actionState
+	switchForms map[string]*switchForm
 	dialog      *comp.DialogOpts
 	dialogOpen  bool
 
@@ -93,13 +94,14 @@ func New(opt Options) *App {
 		log.Fatal(err)
 	}
 	a := &App{
-		opt:      opt,
-		reg:      opt.Registry,
-		kit:      kit,
-		page:     pageHome,
-		actions:  map[string]*actionState{},
-		metrics:  newMetrics(opt.StartedAt),
-		settings: opt.Defaults,
+		opt:         opt,
+		reg:         opt.Registry,
+		kit:         kit,
+		page:        pageHome,
+		actions:     map[string]*actionState{},
+		switchForms: map[string]*switchForm{},
+		metrics:     newMetrics(opt.StartedAt),
+		settings:    opt.Defaults,
 	}
 	a.procs = comp.NewProcessIcons(func() { a.Post(nil) })
 	a.sideList.Reorder = a.reorderSidebar

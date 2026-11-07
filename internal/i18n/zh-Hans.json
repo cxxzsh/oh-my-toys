@@ -228,5 +228,16 @@
   "holdLength": "请输入形如 90m 或 1h30m 的时长，范围 1 秒到 99 小时 59 分。",
   "holdClock": "请输入形如 18:30 的时刻，24 小时制。",
   "schemaHoldFor": "保持多久，如 90m 或 1h30m",
-  "schemaHoldUntil": "几点关闭，如 18:30"
+  "schemaHoldUntil": "几点关闭，如 18:30",
+  "switchModes": "方式",
+  "switchCustom": "自定义",
+  "switchModeLength": "时长",
+  "switchModeClock": "截止时刻",
+  "switchHours": "小时",
+  "switchMinutes": "分钟",
+  "switchClock": "关闭时间",
+  "switchStart": "开始",
+  "switchEndsAt": "将在 {time} 结束，还有 {left}",
+  "switchBadLength": "请输入小时和分钟，最多 99 小时 59 分钟。",
+  "switchCustomHint": "设定一个时长或截止时刻，然后开始。"
 }

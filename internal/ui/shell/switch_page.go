@@ -30,7 +30,7 @@ func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 			Title: m.Name(msgs()), Badge: st.Text, Description: m.Summary(msgs()), Meta: toggle,
 		})
 		a.switchHero(c, st)
-		a.switchPresets(c, t, st)
+		a.switchModes(c, t, st)
 		ui.Spacer(c)
 		a.kit.StatusBar(c, comp.StatusBarOpts{
 			Title:  i18n.LiveTelemetry(),
@@ -123,24 +123,40 @@ func (a *App) heroFacts(c *ui.Context, st tool.Status) {
 	})
 }
 
-// switchPresets lists a tool's modes as tiles, the one in effect marked,
-// with the quick action that turns it off at the end of the head.
-func (a *App) switchPresets(c *ui.Context, t tool.Switch, st tool.Status) {
-	m := t.Manifest()
-	opts := comp.PanelOpts{Title: i18n.SwitchPresets(), Glyph: "tune"}
+// switchModes is how to start the tool: the presets, and for a tool that
+// can run for a set time, a custom length too, on tabs. The quick action
+// that turns it off is at the end of the head.
+func (a *App) switchModes(c *ui.Context, t tool.Switch, st tool.Status) {
+	f := a.switchForm(t.Manifest().ID)
+	timed, isTimed := t.(tool.Timed)
+	opts := comp.PanelOpts{Title: i18n.SwitchModes(), Glyph: "tune"}
 	if st.On {
 		opts.Actions = func() { a.stopButton(c, t) }
 	}
 	a.kit.Panel(c, opts, func() {
-		ui.Row(c).FillWidth().Gap(ds.Space8).Wrap().Children(func() {
-			for i := range m.Actions {
-				if act := &m.Actions[i]; !act.Stops {
-					a.presetTile(c, t, act, st.On && st.Active == act.ID)
-				}
-			}
-		})
-		comp.Text(c, i18n.SwitchHint(), ds.Caption, ds.P(c).TextInactive)
+		if isTimed {
+			tabs := []string{i18n.SwitchPresets(), i18n.SwitchCustom()}
+			ui.Row(c).AlignItems(ui.Center).Children(func() { comp.Segmented(c.Key("modes-tab"), &f.tab, tabs, i18n.SwitchModes()) })
+		}
+		if isTimed && f.tab == tabCustom {
+			a.customTab(c, timed, f)
+			return
+		}
+		a.presetTiles(c, t, st)
 	})
+}
+
+// presetTiles lists a tool's modes as tiles, the one in effect marked.
+func (a *App) presetTiles(c *ui.Context, t tool.Switch, st tool.Status) {
+	m := t.Manifest()
+	ui.Row(c).FillWidth().Gap(ds.Space8).Wrap().Children(func() {
+		for i := range m.Actions {
+			if act := &m.Actions[i]; !act.Stops {
+				a.presetTile(c, t, act, st.On && st.Active == act.ID)
+			}
+		}
+	})
+	comp.Text(c, i18n.SwitchHint(), ds.Caption, ds.P(c).TextInactive)
 }
 
 func (a *App) stopButton(c *ui.Context, t tool.Switch) {
@@ -191,6 +207,16 @@ func (a *App) setSwitch(t tool.Switch, on bool) {
 			err = t.Stop()
 		}
 		if err != nil {
+			log.Printf("%s: %v", id, err)
+		}
+	})
+}
+
+// startFor starts a timed switch tool for d.
+func (a *App) startFor(t tool.Timed, d time.Duration) {
+	id := t.Manifest().ID
+	a.opt.Runner.Do(id, "action", func() {
+		if err := t.StartFor(context.Background(), d); err != nil {
 			log.Printf("%s: %v", id, err)
 		}
 	})

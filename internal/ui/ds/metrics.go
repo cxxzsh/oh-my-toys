@@ -28,9 +28,11 @@ const (
 	FactsMinWidth    = 220 // the facts beside the countdown wrap under it below this
 	PresetBasis      = 280 // a preset tile's width before the row wraps: two a row, as the design shows
 	PresetHeight     = 44
-	StripHeight      = 10 // PaletteStrip
-	SearchGlyph      = 16 // SearchField glyph
-	SelectGlyph      = 16 // Select's unfold glyph
+	CustomFieldWidth = 96  // hours and minutes of a custom run
+	ClockFieldWidth  = 128 // a time of day
+	StripHeight      = 10  // PaletteStrip
+	SearchGlyph      = 16  // SearchField glyph
+	SelectGlyph      = 16  // Select's unfold glyph
 	SelectMinWidth   = 128
 	SearchMinWidth   = 160
 	PaletteGlyph     = 20

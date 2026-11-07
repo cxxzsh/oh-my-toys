@@ -24,8 +24,9 @@ const (
 // modeSwitch is a switch tool with two modes and a quick action that stops
 // it. The test sets its status, and it records which actions ran.
 type modeSwitch struct {
-	st  tool.Status
-	ran []string
+	st      tool.Status
+	ran     []string
+	lengths []time.Duration // what StartFor was asked
 }
 
 func titled(s string) tool.Message { return func(i18n.Messages) string { return s } }
@@ -46,7 +47,12 @@ func (m *modeSwitch) Manifest() tool.Manifest {
 
 func (m *modeSwitch) Specs() []tool.Spec {
 	s := titled("x")
-	return tool.SwitchSpecs(s, s, s)
+	return tool.TimedSwitchSpecs(s, s, s)
+}
+
+func (m *modeSwitch) StartFor(_ context.Context, d time.Duration) error {
+	m.lengths = append(m.lengths, d)
+	return nil
 }
 
 func (m *modeSwitch) Start(context.Context) error { return nil }
@@ -123,5 +129,108 @@ func TestSwitchPagePresetsRunTheirActions(t *testing.T) {
 	}
 	if want := []string{"long", "off"}; !slices.Equal(m.ran, want) {
 		t.Errorf("ran %v, want %v", m.ran, want)
+	}
+}
+
+// typeInto clicks the input under a field's label and types into it.
+func typeInto(t *testing.T, tt *ui.Tester, label, text string) {
+	t.Helper()
+	r, ok := tt.Find(label)
+	if !ok {
+		t.Fatalf("no %q on the page: %q", label, tt.Texts())
+	}
+	tt.ClickAt(r.X+r.W/2, r.Y+r.H+ds.Space4+ds.ControlLg/2) // the input is under its label
+	tt.Type(text)
+	tt.Frame()
+}
+
+func customTab(t *testing.T, tt *ui.Tester) {
+	t.Helper()
+	if err := tt.Click(i18n.SwitchCustom()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+}
+
+// TestSwitchCustomLengthStartsForThatLong types hours and minutes, which
+// become one length, started by the button or by Enter.
+func TestSwitchCustomLengthStartsForThatLong(t *testing.T) {
+	m := &modeSwitch{}
+	tt := modeSwitchPage(t, m)
+	customTab(t, tt)
+	if !tt.HasText(i18n.SwitchCustomHint()) {
+		t.Errorf("nothing typed yet, but no hint: %q", tt.Texts())
+	}
+	typeInto(t, tt, i18n.SwitchHours(), "1")
+	typeInto(t, tt, i18n.SwitchMinutes(), "30")
+	if err := tt.Click(i18n.SwitchStart()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Key(0, ui.KeyEnter) // the minutes field still has the focus
+	tt.Frame()
+	want := []time.Duration{90 * time.Minute, 90 * time.Minute}
+	if !slices.Equal(m.lengths, want) {
+		t.Errorf("started for %v, want %v: once by the button, once by Enter", m.lengths, want)
+	}
+}
+
+// TestSwitchCustomRefusesWhatIsNotALength: a mistake shows its fix and the
+// button does nothing, but an empty form is not a mistake yet.
+func TestSwitchCustomRefusesWhatIsNotALength(t *testing.T) {
+	for _, bad := range []string{"x", "1.5", "-1", "100"} {
+		t.Run(bad, func(t *testing.T) {
+			m := &modeSwitch{}
+			tt := modeSwitchPage(t, m)
+			customTab(t, tt)
+			typeInto(t, tt, i18n.SwitchHours(), bad)
+			if !tt.HasText(i18n.SwitchBadLength()) {
+				t.Errorf("hours %q: no fix shown: %q", bad, tt.Texts())
+			}
+			_ = tt.Click(i18n.SwitchStart())
+			if len(m.lengths) != 0 {
+				t.Errorf("hours %q: started for %v", bad, m.lengths)
+			}
+		})
+	}
+	m := &modeSwitch{}
+	tt := modeSwitchPage(t, m)
+	customTab(t, tt)
+	typeInto(t, tt, i18n.SwitchMinutes(), "0")
+	_ = tt.Click(i18n.SwitchStart())
+	if len(m.lengths) != 0 || !tt.HasText(i18n.SwitchBadLength()) {
+		t.Errorf("zero minutes: started for %v, texts %q", m.lengths, tt.Texts())
+	}
+}
+
+// TestSwitchCustomTimeOfDay switches to a time of day: a bad one shows the
+// fix, a good one starts for the time left until it.
+func TestSwitchCustomTimeOfDay(t *testing.T) {
+	m := &modeSwitch{}
+	tt := modeSwitchPage(t, m)
+	customTab(t, tt)
+	if err := tt.Click(i18n.SwitchModeClock()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	typeInto(t, tt, i18n.SwitchClock(), "tea")
+	if !tt.HasText(i18n.HoldClock()) {
+		t.Fatalf("no fix for a bad time of day: %q", tt.Texts())
+	}
+	_ = tt.Click(i18n.SwitchStart())
+	if len(m.lengths) != 0 {
+		t.Fatalf("started for %v with a bad time of day", m.lengths)
+	}
+
+	m = &modeSwitch{}
+	tt = modeSwitchPage(t, m)
+	customTab(t, tt)
+	_ = tt.Click(i18n.SwitchModeClock())
+	tt.Frame()
+	typeInto(t, tt, i18n.SwitchClock(), "23:59")
+	if err := tt.Click(i18n.SwitchStart()); err != nil {
+		t.Fatal(err)
+	}
+	if len(m.lengths) != 1 || m.lengths[0] <= 0 || m.lengths[0] > 24*time.Hour {
+		t.Errorf("started for %v: want one length within the next day", m.lengths)
 	}
 }

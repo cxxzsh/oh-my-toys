@@ -1204,5 +1204,57 @@
   "schemaHoldUntil": "Time of day to turn off, such as 18:30",
   "@schemaHoldUntil": {
     "description": "Input field of a timed start."
+  },
+  "switchModes": "Modes",
+  "@switchModes": {
+    "description": "Panel title of the ways to start a switch tool."
+  },
+  "switchCustom": "Custom",
+  "@switchCustom": {
+    "description": "Tab: a length or time of day typed in."
+  },
+  "switchModeLength": "Length",
+  "@switchModeLength": {
+    "description": "Choice: stay on for hours and minutes."
+  },
+  "switchModeClock": "Time of day",
+  "@switchModeClock": {
+    "description": "Choice: stay on until a time of day."
+  },
+  "switchHours": "Hours",
+  "@switchHours": {
+    "description": "Field label."
+  },
+  "switchMinutes": "Minutes",
+  "@switchMinutes": {
+    "description": "Field label."
+  },
+  "switchClock": "Turn off at",
+  "@switchClock": {
+    "description": "Field label: a time of day such as 18:30."
+  },
+  "switchStart": "Start",
+  "@switchStart": {
+    "description": "Button that starts a switch tool with what was typed in."
+  },
+  "switchEndsAt": "Ends at {time}, in {left}",
+  "@switchEndsAt": {
+    "description": "Preview of a custom run: the clock time it ends and how long from now.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "left": {
+        "type": "String"
+      }
+    }
+  },
+  "switchBadLength": "Enter hours and minutes, up to 99 hours 59 minutes.",
+  "@switchBadLength": {
+    "description": "Error: the hours and minutes are not valid."
+  },
+  "switchCustomHint": "Set a length or a time of day, then start.",
+  "@switchCustomHint": {
+    "description": "Shown under the empty custom fields."
   }
 }

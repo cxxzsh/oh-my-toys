@@ -3257,3 +3257,159 @@ func SchemaHoldUntil() string { return In(i18n.Locale()).SchemaHoldUntil() }
 func (msgs Messages) SchemaHoldUntil() string {
 	return Catalog.Format(msgs.locale, "schemaHoldUntil", nil)
 }
+
+// SwitchModes says "Modes"
+// in the language the app shows.
+//
+// Panel title of the ways to start a switch tool.
+func SwitchModes() string { return In(i18n.Locale()).SwitchModes() }
+
+// SwitchModes says "Modes"
+// in the language of msgs.
+//
+// Panel title of the ways to start a switch tool.
+func (msgs Messages) SwitchModes() string {
+	return Catalog.Format(msgs.locale, "switchModes", nil)
+}
+
+// SwitchCustom says "Custom"
+// in the language the app shows.
+//
+// Tab: a length or time of day typed in.
+func SwitchCustom() string { return In(i18n.Locale()).SwitchCustom() }
+
+// SwitchCustom says "Custom"
+// in the language of msgs.
+//
+// Tab: a length or time of day typed in.
+func (msgs Messages) SwitchCustom() string {
+	return Catalog.Format(msgs.locale, "switchCustom", nil)
+}
+
+// SwitchModeLength says "Length"
+// in the language the app shows.
+//
+// Choice: stay on for hours and minutes.
+func SwitchModeLength() string { return In(i18n.Locale()).SwitchModeLength() }
+
+// SwitchModeLength says "Length"
+// in the language of msgs.
+//
+// Choice: stay on for hours and minutes.
+func (msgs Messages) SwitchModeLength() string {
+	return Catalog.Format(msgs.locale, "switchModeLength", nil)
+}
+
+// SwitchModeClock says "Time of day"
+// in the language the app shows.
+//
+// Choice: stay on until a time of day.
+func SwitchModeClock() string { return In(i18n.Locale()).SwitchModeClock() }
+
+// SwitchModeClock says "Time of day"
+// in the language of msgs.
+//
+// Choice: stay on until a time of day.
+func (msgs Messages) SwitchModeClock() string {
+	return Catalog.Format(msgs.locale, "switchModeClock", nil)
+}
+
+// SwitchHours says "Hours"
+// in the language the app shows.
+//
+// Field label.
+func SwitchHours() string { return In(i18n.Locale()).SwitchHours() }
+
+// SwitchHours says "Hours"
+// in the language of msgs.
+//
+// Field label.
+func (msgs Messages) SwitchHours() string {
+	return Catalog.Format(msgs.locale, "switchHours", nil)
+}
+
+// SwitchMinutes says "Minutes"
+// in the language the app shows.
+//
+// Field label.
+func SwitchMinutes() string { return In(i18n.Locale()).SwitchMinutes() }
+
+// SwitchMinutes says "Minutes"
+// in the language of msgs.
+//
+// Field label.
+func (msgs Messages) SwitchMinutes() string {
+	return Catalog.Format(msgs.locale, "switchMinutes", nil)
+}
+
+// SwitchClock says "Turn off at"
+// in the language the app shows.
+//
+// Field label: a time of day such as 18:30.
+func SwitchClock() string { return In(i18n.Locale()).SwitchClock() }
+
+// SwitchClock says "Turn off at"
+// in the language of msgs.
+//
+// Field label: a time of day such as 18:30.
+func (msgs Messages) SwitchClock() string {
+	return Catalog.Format(msgs.locale, "switchClock", nil)
+}
+
+// SwitchStart says "Start"
+// in the language the app shows.
+//
+// Button that starts a switch tool with what was typed in.
+func SwitchStart() string { return In(i18n.Locale()).SwitchStart() }
+
+// SwitchStart says "Start"
+// in the language of msgs.
+//
+// Button that starts a switch tool with what was typed in.
+func (msgs Messages) SwitchStart() string {
+	return Catalog.Format(msgs.locale, "switchStart", nil)
+}
+
+// SwitchEndsAt says "Ends at {time}, in {left}"
+// in the language the app shows.
+//
+// Preview of a custom run: the clock time it ends and how long from now.
+func SwitchEndsAt(time_ string, left string) string {
+	return In(i18n.Locale()).SwitchEndsAt(time_, left)
+}
+
+// SwitchEndsAt says "Ends at {time}, in {left}"
+// in the language of msgs.
+//
+// Preview of a custom run: the clock time it ends and how long from now.
+func (msgs Messages) SwitchEndsAt(time_ string, left string) string {
+	return Catalog.Format(msgs.locale, "switchEndsAt", map[string]any{"time": time_, "left": left})
+}
+
+// SwitchBadLength says "Enter hours and minutes, up to 99 hours 59 minutes."
+// in the language the app shows.
+//
+// Error: the hours and minutes are not valid.
+func SwitchBadLength() string { return In(i18n.Locale()).SwitchBadLength() }
+
+// SwitchBadLength says "Enter hours and minutes, up to 99 hours 59 minutes."
+// in the language of msgs.
+//
+// Error: the hours and minutes are not valid.
+func (msgs Messages) SwitchBadLength() string {
+	return Catalog.Format(msgs.locale, "switchBadLength", nil)
+}
+
+// SwitchCustomHint says "Set a length or a time of day, then start."
+// in the language the app shows.
+//
+// Shown under the empty custom fields.
+func SwitchCustomHint() string { return In(i18n.Locale()).SwitchCustomHint() }
+
+// SwitchCustomHint says "Set a length or a time of day, then start."
+// in the language of msgs.
+//
+// Shown under the empty custom fields.
+func (msgs Messages) SwitchCustomHint() string {
+	return Catalog.Format(msgs.locale, "switchCustomHint", nil)
+}
