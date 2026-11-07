@@ -2,6 +2,7 @@ package comp
 
 import (
 	"strings"
+	"time"
 
 	"github.com/egoist/mygo/ui"
 
@@ -110,4 +111,24 @@ func ProgressBar(c *ui.Context, fraction float32) ui.Element {
 			ui.Box(c).WidthPercent(max(0, min(fraction, 1))*ds.PercentFull).FillHeight().
 				Gradient(p.SandboxBlue, p.SandboxPurple, 90)
 		})
+}
+
+// busyShare is how much of the track the sliding segment of an
+// indeterminate bar covers, in percent.
+const busyShare = 30
+
+// busyPeriod is how long the segment takes to cross the track.
+const busyPeriod = 1200 * time.Millisecond
+
+// ProgressBusy is the ProgressBar of work without a known end: a segment
+// of the same gradient slides across the track.
+func ProgressBusy(c *ui.Context) ui.Element {
+	p := ds.P(c)
+	track := ui.Box(c).FillWidth().Height(ds.ProgressHeight).Radius(ds.RadiusFull).Background(p.SandboxBg).Clip()
+	// From fully before the track to fully past it.
+	at := track.Loop("busy", busyPeriod, ui.Linear)*(ds.PercentFull+busyShare) - busyShare
+	return track.Children(func() {
+		ui.Box(c).Absolute().Top(0).Bottom(0).LeftPercent(at).WidthPercent(busyShare).Radius(ds.RadiusFull).
+			Gradient(p.SandboxBlue, p.SandboxPurple, 90)
+	})
 }

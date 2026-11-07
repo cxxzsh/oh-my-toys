@@ -27,6 +27,7 @@ type actionState struct {
 	plan    tool.Plan
 	err     error
 	busy    bool
+	busyAt  time.Time // when the current busy run began
 	result  string
 	cancel  context.CancelFunc
 	version int
@@ -62,9 +63,7 @@ func (a *App) actionPage(c *ui.Context, t tool.Action) {
 			Description: m.Summary(msgs()),
 		})
 		a.fields(c, t, s)
-		if s.busy {
-			comp.ProgressBar(c, 1)
-		}
+		a.busyBar(c, s)
 		a.planView(c, t, s)
 		a.actionStatus(c, m, s)
 	})
@@ -154,7 +153,8 @@ func (a *App) replan(ctx context.Context, t tool.Action, s *actionState) {
 	}
 	s.version++
 	version, in := s.version, maps.Clone(s.input)
-	s.busy, s.result = true, ""
+	s.startBusy()
+	s.result = ""
 	id := t.Manifest().ID
 	s.cancel = a.opt.Runner.Go(ctx, id, planTimeout, func(ctx context.Context) {
 		plan, err := t.Plan(ctx, in)
@@ -210,7 +210,7 @@ func (a *App) confirmPlan(t tool.Action, s *actionState, plan tool.Plan) {
 
 func (a *App) runApply(t tool.Action, s *actionState, plan tool.Plan) {
 	id := t.Manifest().ID
-	s.busy = true
+	s.startBusy()
 	a.opt.Runner.Go(context.Background(), id, planTimeout, func(ctx context.Context) {
 		res, err := t.Apply(ctx, plan)
 		a.Post(func() {
@@ -218,6 +218,30 @@ func (a *App) runApply(t tool.Action, s *actionState, plan tool.Plan) {
 			s.result, s.err = res.Summary, err
 		})
 	})
+}
+
+// busyDelay is how long work must run before the page admits it is busy:
+// a plan that finishes sooner, as a quick refresh does, shows no bar.
+const busyDelay = 400 * time.Millisecond
+
+func (s *actionState) startBusy() {
+	if !s.busy {
+		s.busyAt = time.Now()
+	}
+	s.busy = true
+}
+
+// busyBar shows the indeterminate bar once the work has run past
+// busyDelay, and asks for a later frame while it is still waiting.
+func (a *App) busyBar(c *ui.Context, s *actionState) {
+	if !s.busy {
+		return
+	}
+	if wait := busyDelay - time.Since(s.busyAt); wait > 0 {
+		c.After(wait)
+		return
+	}
+	comp.ProgressBusy(c)
 }
 
 func (a *App) planView(c *ui.Context, t tool.Action, s *actionState) {
