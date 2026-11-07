@@ -1,15 +1,13 @@
 // Package ds is the oh-my-toys design system for MyGo native UI. Every value
-// comes from tokens_gen.go, which cmd/gentokens generates from
+// comes from tokens_gen.go, which dev/gentokens generates from
 // design/tokens.json; component metrics that the tokens file does not name
-// (row heights, inner icon sizes) are in metrics.go, copied from the design
-// system's components/bundle.css.
+// are in metrics.go. One design runs on every platform: nothing here
+// branches on the operating system.
 package ds
 
 //go:generate go run ../../../dev/gentokens ../../../design/tokens.json tokens_gen.go
 
 import (
-	"runtime"
-
 	"github.com/egoist/mygo/ui"
 )
 
@@ -38,26 +36,26 @@ func MyGoTheme(dark bool) *ui.Theme {
 		base, p = ui.DarkTheme(), &Dark
 	}
 	t := *base
-	t.Background = p.BgWindow
+	t.Background = p.BgCanvas
 	t.Surface = p.FillControl
-	t.SurfaceHover = p.FillHover
-	t.SurfacePressed = p.FillSelected
-	t.Border = p.Separator
+	t.SurfaceHover = p.FillControlHover
+	t.SurfacePressed = p.FillControlPressed
+	t.Border = p.Line
 	t.Text = p.TextPrimary
 	t.TextMuted = p.TextSecondary
-	t.Accent = p.AccentFill
-	t.AccentText = p.OnAccent
+	t.Accent = p.AccentStrong
+	t.AccentText = ui.RGB(255, 255, 255)
 	t.Danger = p.Danger
 	t.Warning = p.Warning
 	t.Success = p.Success
-	t.Focus = p.FocusRing
-	t.Selection = p.Accent.Alpha(0.25)
-	t.Radius = RadiusMd
-	t.Spacing = Space1
+	t.Focus = p.AccentStrong
+	t.Selection = p.Selection
+	t.Inverse = p.BgPopover
+	t.InverseText = p.TextPrimary
+	t.Radius = RadiusSm
+	t.Spacing = Space4
 	t.FontSize = Body.Size
-	if runtime.GOOS == "windows" {
-		t.FontSize = 14 // README: Windows body text is 14px
-	}
+	t.Font = FontSans
 	return &t
 }
 
@@ -71,7 +69,7 @@ func Style(e ui.Element, s TypeStyle) ui.Element {
 		e = e.LetterSpacing(s.Tracking * s.Size)
 	}
 	if s.Mono {
-		e = e.Font(MonoFont())
+		e = e.Font(FontMono)
 	}
 	return e
 }
@@ -84,26 +82,14 @@ func ApplyShadow(e ui.Element, layers []Shadow) ui.Element {
 	return e
 }
 
-// MonoFont is the first family of the tokens' mono stack the platform has.
-func MonoFont() string {
-	switch runtime.GOOS {
-	case "darwin":
-		return "SF Mono"
-	case "windows":
-		return "Cascadia Mono"
-	}
-	return "monospace"
-}
-
-// Weights not in the type scale.
+// Font weights that the type scale does not name on its own: the weight a
+// match is set in, and the plain weight of a value beside a title.
 const (
-	Regular = 400
-	Bold    = 700
+	Regular  = 400
+	Semibold = 600
+	Bold     = 700
 )
 
-// Styles derived from the scale: a count beside a section's title, and
-// callout text in the headline's weight, as a small button's.
-var (
-	Count         = TypeStyle{Size: Eyebrow.Size, LineHeight: Eyebrow.LineHeight, Weight: Regular}
-	CalloutStrong = TypeStyle{Size: Callout.Size, LineHeight: Callout.LineHeight, Weight: Headline.Weight}
-)
+// Tabular is the font feature that gives digits one width, for timers,
+// counters and table cells.
+const Tabular = "tnum"

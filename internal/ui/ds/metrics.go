@@ -1,74 +1,78 @@
 package ds
 
-// Component metrics from the design system's components/bundle.css. The
-// tokens file names the scale (space-*, radius-*, icon-*); these are the
-// few fixed sizes the components set on top of it.
+import "time"
+
+// Component metrics that the tokens file does not name: the sizes the
+// component specs (design/components/*/README.md) and their reference
+// drawing set on top of the scale. Everything the tokens do name (control
+// heights, rows, windows, glyphs) is in tokens_gen.go.
 const (
-	SideItemHeight     = 30 // .side-item
-	SideHeadHeight     = 22 // .side-head
-	SidePadX           = 10 // .side padding 0 10px 12px
-	SideHeadGlyph      = 12 // .side-head .g
-	IconSmGlyph        = 14 // .ti.s .g
-	IconMdGlyph        = 18 // .ti.m .g
-	IconLgGlyph        = 28 // .ti.l .g
-	SearchGlyph        = 15 // .search .g
-	KbdHeight          = 18 // .kbd
-	PillHeight         = 22 // .pill
-	DotSize            = 7  // .dot
-	RunDotSize         = 10 // .ti .run
-	ChipHeight         = 26 // .chip
-	SwitchWidth        = 38 // .sw
-	SwitchHeight       = 22
-	SwitchKnob         = 18
-	CardMinHeight      = 132 // .tc
-	DenseMinWidth      = 200 // .grid.dense
-	TrayItemHeight     = 32  // .tray-item
-	LaunchIcon         = 36  // .launch-item .ti.m
-	LaunchIconR        = 9
-	LaunchGlyph        = 20
-	PaletteWidth       = 600 // .palette
-	PaletteInputH      = 52  // .palette-in
-	PaletteInputPx     = 17  // .palette-in font-size
-	PaletteGlyph       = 20
-	PaletteRowH        = 40 // .palette-row
-	PaletteMaxRows     = 8  // CommandPalette README: at most 8 results
-	PaletteFootH       = 36
-	RunRowButtonH      = 24 // .run-row .btn
-	ToolRowPadY        = 10 // .tr padding 10px space-3
-	MaxPinned          = 8
-	TrayMaxLaunch      = 7 // seven pinned + "所有工具"
-	SideMinWidth       = 180
-	HeaderGap          = 2   // .tool-head name and summary
-	ChevronClosed      = -90 // degrees: a closed section's chevron points right
-	WindowWidth        = 1100
-	WindowHeight       = 720
-	WindowMinWidth     = 760
-	WindowMinHeight    = 480
-	FieldLabelWidth    = 120 // labels of an action tool's fields
-	FieldPadX          = 10  // .field padding
-	SideSearchGap      = 6   // .search margin-bottom in the sidebar
-	SideItemGap        = 2   // .side gap
-	SearchPadEnd       = 6   // .search .kbd right
-	SearchGap          = 6
-	ChipGap            = 6  // .chips gap, .chip gap
-	ChipPadX           = 10 // .chip padding
-	ChipCountAlpha     = 0.7
-	OpenGap            = 2  // .tc-foot .open gap
-	SmallGlyph         = 12 // .g.sm
-	TrayIconSize       = 16 // points of a menu bar / notification area icon
-	TrayIconScale      = 2
-	TrayGap            = 6   // between the icon and the panel
-	TrayFirstHeight    = 420 // before the panel measures itself
-	TrayInset          = 6   // .tray-head, .tray-item padding
-	TrayFootPad        = 2   // .tray-foot
-	TrayColumns        = 4   // .launch grid
-	TrayCellGap        = 2
-	LaunchPadTop       = 10 // .launch-item padding 10px 2px 8px
-	LaunchGap          = 6
-	LaunchLabelLines   = 2  // English names are longer than Chinese ones
-	RunRowButtonPadX   = 10 // .run-row .btn
-	PaletteFirstHeight = 200
-	PaletteTopFraction = 4  // the palette shows a quarter of the way down
-	PaletteGap         = 10 // .palette-in gap, .palette-row padding
-	PaletteListPad     = 6  // .palette-list
+	SwitchWidth      = 38 // Switch: 38×22
+	SwitchHeight     = 22
+	SwitchCompactW   = 30 // compact: 30×18, in the tray panel and palette
+	SwitchCompactH   = 18
+	SwitchInset      = 2 // between the track and the knob
+	CheckboxSize     = 14
+	CheckTickSize    = 10
+	DotLarge         = 8  // StatusDot, large
+	RunBadge         = 10 // ToolIcon running badge; RunBadgeSmall on 20pt
+	RunBadgeSmall    = 6
+	RunBadgeRing     = 2
+	BadgePadY        = 1
+	CategoryHeight   = 20 // CategoryBadge
+	CategoryTracking = 0.06
+	ProgressHeight   = 6
+	StripHeight      = 10 // PaletteStrip
+	SearchGlyph      = 14 // SearchField glyph
+	SelectGlyph      = 14 // Select's unfold glyph
+	SelectMinWidth   = 120
+	SearchMinWidth   = 160
+	PaletteGlyph     = 18
+	PaletteInputRow  = 48
+	PaletteFootRow   = 32
+	PaletteMaxRows   = 8
+	PaletteTopShare  = 0.2 // the palette's top edge, as a share of the window
+	TrayMaxShare     = 0.7 // the tray panel's height, as a share of the screen
+	TrayGap          = 6   // between the tray icon and the panel
+	TrayIconTopBar   = 18  // tray glyph in a menu bar, points
+	TrayIconTaskbar  = 16  // tray glyph in a taskbar, points
+	TrayIconScale    = 2   // pixels per point of the tray glyph's image
+	TrayHeaderIcon   = 20
+	TraySubInset     = 36 // options under a tray switch row, from the panel edge
+	DialogMaxItems   = 6
+	DaemonPad        = 10
+	CardMinColumn    = 260 // ToolCard grid column
+	CardMinHeight    = 132
+	GlyphSmall       = 12 // glyph on a 20pt ToolIcon
+	GlyphMedium      = 17 // on a 28pt
+	GlyphLarge       = 29 // on a 48pt
+	TitlebarGlyph    = 18 // app icon in the titlebar
+	ResultFootPad    = 10
+	TableCellPad     = 12
+	ProcessGap       = 6
+	TooltipGap       = 4 // distance below the control
+	TooltipPadY      = 4 // Tooltip padding, vertical (space-4)
+	ScrimAlphaOnly   = 1 // marks the scrim as drawn full-strength
+	MenuMaxRecent    = 8 // tools in the palette with an empty query
+	SidebarMaxJump   = 9 // Mod+1…9 select the first nine tools
+	HeaderMetaGap    = 2 // between a page title and its description
+	StatusDotPing    = 2 // the ping grows the dot to this scale
+	PageMaxWidth     = 0 // pages fill the workbench; there is no cap
+	LineWidth        = 1 // every hairline and border
+	FocusRingWidth   = 2 // keyboard focus ring and selection borders
+	FocusRingOffset  = 2
+	FieldHaloWidth   = 3 // TextField focus halo
+	TitleTracking    = 0.025
+	TextHintDots     = 1 // marks plain hint text in footers
+	PercentFull      = 100
+	CaretWidth       = 1
+	AppIconRadiusDiv = 4 // the app icon tile's corner, as a fraction of its size
+)
+
+// Motion, from the design system's Motion section.
+const (
+	FadeDuration = 120 * time.Millisecond // tray panel, palette, tooltip fade
+	EaseDuration = 150 * time.Millisecond // colour, border and knob changes
+	PingDuration = time.Second            // live dots
+	TooltipDelay = 600 * time.Millisecond
 )

@@ -38,7 +38,8 @@ type file struct {
 		Tokens []token `json:"tokens"`
 	} `json:"color"`
 	Type struct {
-		Groups []struct {
+		Families map[string]string `json:"families"`
+		Groups   []struct {
 			Styles []style `json:"styles"`
 		} `json:"groups"`
 	} `json:"type"`
@@ -46,6 +47,7 @@ type file struct {
 	Radius  struct{ Tokens []token } `json:"radius"`
 	Shadow  struct{ Tokens []token } `json:"shadow"`
 	Size    struct{ Tokens []token } `json:"size"`
+	Opacity struct{ Tokens []token } `json:"opacity"`
 }
 
 func main() {
@@ -90,6 +92,7 @@ func generate(f file) []byte {
 	b.scalars("Spacing", f.Spacing.Tokens)
 	b.scalars("Radii", f.Radius.Tokens)
 	b.scalars("Layout sizes", f.Size.Tokens)
+	b.scalars("Opacity", f.Opacity.Tokens)
 	b.shadows(f.Shadow.Tokens)
 	return b.Bytes()
 }
@@ -114,16 +117,31 @@ func (b *printer) colors(tokens []token) {
 }
 
 func (b *printer) types(f file) {
-	b.p("// TypeStyle is a text style of the type scale.\ntype TypeStyle struct {\n\tSize, LineHeight float32\n\tWeight int\n\tDisplay, Mono bool\n\tTracking float32 // em\n}\n\n")
+	b.p("// TypeStyle is a text style of the type scale.\ntype TypeStyle struct {\n\tSize, LineHeight float32\n\tWeight int\n\tMono bool\n\tTracking float32 // em\n}\n\n")
 	b.p("var (\n")
 	for _, g := range f.Type.Groups {
 		for _, s := range g.Styles {
-			b.p("\t%s = TypeStyle{Size: %s, LineHeight: %s, Weight: %d, Display: %v, Mono: %v, Tracking: %s}\n",
-				ident(s.Name), px(s.FontSize), px(s.LineHeight), s.FontWeight, s.Family == "display",
-				s.Family == "mono" || s.Name == "mono", em(s.LetterSpacing))
+			b.p("\t%s = TypeStyle{Size: %s, LineHeight: %s, Weight: %d, Mono: %v, Tracking: %s}\n",
+				ident(s.Name), px(s.FontSize), px(s.LineHeight), s.FontWeight, s.Family == "mono", em(s.LetterSpacing))
 		}
 	}
 	b.p(")\n\n")
+	b.p("// Font stacks: the bundled family first, then the system fonts that\n// cover Chinese, which neither bundled font has.\nconst (\n")
+	b.p("\tFontSans = %q\n\tFontMono = %q\n)\n", stack(f.Type.Families["sans"]), stack(f.Type.Families["mono"]))
+	b.p("\n")
+}
+
+// stack turns a CSS font-family list into the comma-separated family names
+// MyGo's Font takes, leaving out the generic keywords it has no family for.
+func stack(css string) string {
+	var names []string
+	for _, n := range strings.Split(css, ",") {
+		n = strings.Trim(strings.TrimSpace(n), `"`)
+		if n != "sans-serif" && n != "monospace" {
+			names = append(names, n)
+		}
+	}
+	return strings.Join(names, ", ")
 }
 
 func (b *printer) scalars(doc string, tokens []token) {
