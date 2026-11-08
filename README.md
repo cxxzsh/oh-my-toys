@@ -10,6 +10,8 @@ The app and `omt` are in this repository. Run the desktop app with `go run ./cmd
 
 On macOS, Cmd+Shift+A takes a screenshot. A magnifier follows the pointer while you drag, and hovering a window outlines it, so a click takes the whole window. After you release, the toolbar sits on the selection’s bottom right: draw arrows, mosaics and text, then Copy, Save or Cancel. Enter copies, Cmd+S saves a PNG under ~/Pictures/oh-my-toys, Esc and a right click step back, and Cmd+Z undoes an annotation. Screenshot is one of the tools: open its page to start a capture or change the folder. The same command is in the Tools menu.
 
+Traffic captures network traffic. In proxy mode it runs an HTTP(S) proxy on 127.0.0.1 and can set it as the system proxy while it runs; once you trust its own root certificate it opens HTTPS, so you can read requests and responses, filter them, rewrite, mock, block or delay them with rules, send one again and export HAR. In packet mode it reads the packets of a network interface (macOS asks for administrator access to /dev/bpf*, Windows needs Npcap). The system proxy is put back when you stop, when the app quits, and at the next launch after a crash. If your internet only works through a proxy, give Traffic that proxy as its upstream. Linux support is written but not tested yet.
+
 ## Planned tools
 
 - **Keep awake**: stop the computer from sleeping, with a preset, a length or a time of day you type in, or a daily plan of time spans that turns it on and off by itself.
@@ -26,7 +28,7 @@ The app and its documentation come in English and Simplified Chinese.
 
 ## For scripts and AI agents
 
-Every tool that works without a screen is also available from the command line (`omt`, with `--json` output) and as an MCP server (`omt mcp`) for AI agents. `omt mcp` exposes read actions and switch tools. Actions that change files or end processes are not exposed yet. Screenshot stays in the desktop app, which needs the screen and the person in front of it. See [docs/agents.md](docs/agents.md).
+Every tool that works without a screen is also available from the command line (`omt`, with `--json` output) and as an MCP server (`omt mcp`) for AI agents. `omt mcp` exposes read actions and switch tools. Actions that change files or end processes are not exposed yet. Screenshot stays in the desktop app, which needs the screen and the person in front of it, and so does Traffic, because what it captures can hold secrets and a capture changes the system proxy. See [docs/agents.md](docs/agents.md).
 
 ## Contributing
 
