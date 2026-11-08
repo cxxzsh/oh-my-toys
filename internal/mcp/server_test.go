@@ -95,7 +95,7 @@ func startSession(ctx context.Context, t *testing.T) *mcpsdk.ClientSession {
 }
 
 // TestMCPAwakeStartTakesALength: a timed tool's start lists "for" and
-// "until" as inputs, and a bad one is refused before anything starts.
+// "until" and "display" as inputs, and a bad one is refused before anything starts.
 func TestMCPAwakeStartTakesALength(t *testing.T) {
 	ctx := context.Background()
 	session := startSession(ctx, t)
@@ -111,12 +111,16 @@ func TestMCPAwakeStartTakesALength(t *testing.T) {
 		}
 		schema, _ := tl.InputSchema.(map[string]any)
 		props, _ := schema["properties"].(map[string]any)
-		if props["for"] == nil || props["until"] == nil {
-			t.Fatalf("awake_start inputs %v, want for and until", schema)
+		if props["for"] == nil || props["until"] == nil || props["display"] == nil {
+			t.Fatalf("awake_start inputs %v, want for, until and display", schema)
 		}
 	}
 	res, err := session.CallTool(ctx, &mcpsdk.CallToolParams{Name: "awake_start", Arguments: map[string]any{"until": "25:00"}})
 	if err != nil || !res.IsError {
 		t.Fatalf("a bad time of day: %v, %+v", err, res)
+	}
+	res, err = session.CallTool(ctx, &mcpsdk.CallToolParams{Name: "awake_start", Arguments: map[string]any{"display": "dim"}})
+	if err != nil || !res.IsError {
+		t.Fatalf("a bad display choice: %v, %+v", err, res)
 	}
 }

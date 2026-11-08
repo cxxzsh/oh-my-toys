@@ -40,3 +40,24 @@ func (a *App) applyDisplays() {
 		}
 	}
 }
+
+// syncDisplays keeps the choices a tool made without the page: a start from
+// the command line or an agent may say whether the display stays on, and the
+// next launch should find it so.
+func (a *App) syncDisplays() {
+	changed := false
+	for _, t := range a.reg.All() {
+		s, ok := t.(tool.Screened)
+		if !ok {
+			continue
+		}
+		id, on := t.Manifest().ID, s.Display()
+		if kept, has := a.settings.Displays[id]; (has && kept != on) || (!has && !on) {
+			a.settings.SetDisplay(id, on)
+			changed = true
+		}
+	}
+	if changed {
+		a.save()
+	}
+}

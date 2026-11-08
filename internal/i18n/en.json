@@ -1272,6 +1272,14 @@
   "@schemaHoldUntil": {
     "description": "Input field of a timed start."
   },
+  "schemaHoldDisplay": "Keep the display on too: on or off; leave out to use the last choice",
+  "@schemaHoldDisplay": {
+    "description": "Input field of a start."
+  },
+  "holdDisplay": "Enter on or off for the display.",
+  "@holdDisplay": {
+    "description": "Error: the display choice of a start is not valid."
+  },
   "switchModes": "Modes",
   "@switchModes": {
     "description": "Panel title of the ways to start a switch tool."

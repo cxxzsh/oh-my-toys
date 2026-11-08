@@ -154,7 +154,7 @@ func (a *App) Start() {
 	}
 	a.applySchedules()
 	a.applyDisplays()
-	a.opt.Events.OnChanged(func() { a.Post(nil) })
+	a.opt.Events.OnChanged(func() { a.Post(a.syncDisplays) })
 	a.createMain()
 	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { a.quitting = true })
 	mygo.App.OnWindowAllClosed(func() {}) // the tray keeps the app running

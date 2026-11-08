@@ -3416,6 +3416,34 @@ func (msgs Messages) SchemaHoldUntil() string {
 	return Catalog.Format(msgs.locale, "schemaHoldUntil", nil)
 }
 
+// SchemaHoldDisplay says "Keep the display on too: on or off; leave out to use the last choice"
+// in the language the app shows.
+//
+// Input field of a start.
+func SchemaHoldDisplay() string { return In(i18n.Locale()).SchemaHoldDisplay() }
+
+// SchemaHoldDisplay says "Keep the display on too: on or off; leave out to use the last choice"
+// in the language of msgs.
+//
+// Input field of a start.
+func (msgs Messages) SchemaHoldDisplay() string {
+	return Catalog.Format(msgs.locale, "schemaHoldDisplay", nil)
+}
+
+// HoldDisplay says "Enter on or off for the display."
+// in the language the app shows.
+//
+// Error: the display choice of a start is not valid.
+func HoldDisplay() string { return In(i18n.Locale()).HoldDisplay() }
+
+// HoldDisplay says "Enter on or off for the display."
+// in the language of msgs.
+//
+// Error: the display choice of a start is not valid.
+func (msgs Messages) HoldDisplay() string {
+	return Catalog.Format(msgs.locale, "holdDisplay", nil)
+}
+
 // SwitchModes says "Modes"
 // in the language the app shows.
 //

@@ -98,7 +98,7 @@ func (t *Tool) Manifest() tool.Manifest {
 // Specs declares the tool's actions: start and stop change whether the
 // system may sleep, and start may say for how long; status only reads it.
 func (t *Tool) Specs() []tool.Spec {
-	return tool.TimedSwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
+	return tool.ScreenedSwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
 }
 
 func (t *Tool) runFor(id string, d time.Duration) func(context.Context) error {

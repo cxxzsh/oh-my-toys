@@ -14,14 +14,16 @@ const MaxHold = 99*time.Hour + 59*time.Minute
 
 // The properties of the input of a timed start.
 const (
-	PropFor   = "for"
-	PropUntil = "until"
+	PropFor     = "for"
+	PropUntil   = "until"
+	PropDisplay = "display"
 )
 
 // clockLayout is a time of day in 24 hours: 18:30.
 const clockLayout = "15:04"
 
-// ErrHold marks a timed start whose length or time of day is not valid.
+// ErrHold marks a timed start whose length, time of day or display is not
+// valid.
 var ErrHold = errors.New("invalid hold")
 
 // ParseHold works out how long a start asks to run from its input: a
@@ -64,4 +66,21 @@ func holdUntil(text string, now time.Time) (time.Duration, error) {
 
 func holdProblem(text, value string) error {
 	return &Problem{Text: text, Err: fmt.Errorf("%w: %q", ErrHold, value)}
+}
+
+// ParseDisplay reads whether a start asks to keep the display on: on or off
+// (also true, false, yes, no, 1, 0). given is false when the input does not
+// say, which leaves the choice made last. A bad input is a *Problem that
+// wraps ErrHold.
+func ParseDisplay(in Input) (on, given bool, err error) {
+	text := strings.ToLower(strings.TrimSpace(in[PropDisplay]))
+	switch text {
+	case "":
+		return false, false, nil
+	case "on", "true", "yes", "1":
+		return true, true, nil
+	case "off", "false", "no", "0":
+		return false, true, nil
+	}
+	return false, false, holdProblem(i18n.HoldDisplay(), text)
 }

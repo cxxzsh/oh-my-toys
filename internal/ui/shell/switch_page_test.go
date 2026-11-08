@@ -439,3 +439,26 @@ func TestSwitchDisplayIsChosenApartFromTheModes(t *testing.T) {
 		t.Error("the kept choice was not given back to the tool at start")
 	}
 }
+
+// TestDisplayChosenFromOutsideIsKept: a start from the command line may
+// turn the display off without the page, and the app keeps that choice for
+// the next launch, as it keeps one made on the page; a tool that has made no
+// choice leaves nothing behind.
+func TestDisplayChosenFromOutsideIsKept(t *testing.T) {
+	m := &modeSwitch{display: true}
+	a, _ := modeSwitchPage(t, m)
+	a.syncDisplays()
+	if _, kept := a.settings.Displays[modeToolID]; kept {
+		t.Error("a tool on its default has a kept choice")
+	}
+	m.SetDisplay(false)
+	a.syncDisplays()
+	if on, kept := a.settings.Displays[modeToolID]; !kept || on {
+		t.Errorf("kept %v (kept %v), want a kept choice to let it sleep", on, kept)
+	}
+	m.SetDisplay(true)
+	a.syncDisplays()
+	if on := a.settings.Displays[modeToolID]; !on {
+		t.Error("the choice to keep the display on again was not kept over the old one")
+	}
+}

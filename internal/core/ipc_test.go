@@ -184,3 +184,75 @@ func TestStatusNote(t *testing.T) {
 		}
 	}
 }
+
+// screenedSwitch is a timedSwitch that can also keep the display on.
+type screenedSwitch struct {
+	timedSwitch
+	display bool
+	started []bool // the display choice at each start
+}
+
+func (f *screenedSwitch) Specs() []tool.Spec {
+	return tool.ScreenedSwitchSpecs(i18n.Messages.About, i18n.Messages.About, i18n.Messages.About)
+}
+
+func (f *screenedSwitch) Display() bool      { return f.display }
+func (f *screenedSwitch) SetDisplay(on bool) { f.display = on }
+
+func (f *screenedSwitch) Start(context.Context) error {
+	f.started = append(f.started, f.display)
+	f.on = true
+	return nil
+}
+
+func (f *screenedSwitch) StartFor(_ context.Context, d time.Duration) error {
+	f.started = append(f.started, f.display)
+	f.lengths = append(f.lengths, d)
+	f.on = true
+	return nil
+}
+
+// TestStartChoosesTheDisplay: a start that says on or off makes it the
+// tool's choice before the tool starts, with a length or without one, over
+// IPC as on the command line; a word that is neither refuses the start, and a
+// tool with no display to choose refuses it too.
+func TestStartChoosesTheDisplay(t *testing.T) {
+	sw := &screenedSwitch{display: true}
+	sock := serveSwitch(t, sw)
+	ctx := context.Background()
+
+	if _, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropDisplay: "off", tool.PropFor: "1h"}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropDisplay: "on"}); err != nil {
+		t.Fatal(err)
+	}
+	if want := []bool{false, true}; !slices.Equal(sw.started, want) {
+		t.Fatalf("display at each start %v, want %v", sw.started, want)
+	}
+	_, err := CallSwitch(ctx, "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropDisplay: "dim"})
+	if err == nil || err.Error() != i18n.HoldDisplay() || len(sw.started) != 2 {
+		t.Errorf("a bad choice: %v, %d starts", err, len(sw.started))
+	}
+
+	plain := &timedSwitch{}
+	_, err = StartSwitch(ctx, plain, tool.Input{tool.PropDisplay: "off"}, time.Now())
+	if err == nil || plain.started != 0 {
+		t.Errorf("a tool with no display choice: %v, started %d", err, plain.started)
+	}
+}
+
+// TestCLIStartTakesADisplayFlag: --display is a flag of a tool that can
+// choose, and of no other.
+func TestCLIStartTakesADisplayFlag(t *testing.T) {
+	sw := &screenedSwitch{display: true}
+	cli, _, errb := newCLI(t, sw)
+	code := cli.Run(context.Background(), []string{"fake", "start", "--display", "off", "--for", "20ms", "--json"})
+	if code != ExitOK || sw.display || len(sw.started) != 1 || sw.started[0] {
+		t.Fatalf("code %d, display %v, starts %v: %s", code, sw.display, sw.started, errb)
+	}
+	plain, _, _ := newCLI(t, &timedSwitch{})
+	if code := plain.Run(context.Background(), []string{"fake", "start", "--display", "off"}); code != ExitUsage {
+		t.Errorf("a tool with no display choice took --display: exit %d", code)
+	}
+}

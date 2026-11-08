@@ -75,3 +75,28 @@ func TestParseHoldAcrossTheClockChange(t *testing.T) {
 		}
 	}
 }
+
+func TestParseDisplay(t *testing.T) {
+	for _, c := range []struct {
+		in        string
+		on, given bool
+		bad       bool
+	}{
+		{"", false, false, false},
+		{"  ", false, false, false},
+		{"on", true, true, false},
+		{" OFF ", false, true, false},
+		{"true", true, true, false},
+		{"no", false, true, false},
+		{"0", false, true, false},
+		{"maybe", false, false, true},
+	} {
+		on, given, err := ParseDisplay(Input{PropDisplay: c.in})
+		if on != c.on || given != c.given || (err != nil) != c.bad {
+			t.Errorf("%q: on %v, given %v, err %v; want %v, %v, bad %v", c.in, on, given, err, c.on, c.given, c.bad)
+		}
+		if c.bad && !errors.Is(err, ErrHold) {
+			t.Errorf("%q: %v does not wrap ErrHold", c.in, err)
+		}
+	}
+}

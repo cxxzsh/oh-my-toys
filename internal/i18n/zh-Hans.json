@@ -239,6 +239,8 @@
   "holdClock": "请输入形如 18:30 的时刻，24 小时制。",
   "schemaHoldFor": "保持多久，如 90m 或 1h30m",
   "schemaHoldUntil": "几点关闭，如 18:30",
+  "schemaHoldDisplay": "是否保持屏幕常亮：on 或 off；不填则沿用上次的选择",
+  "holdDisplay": "屏幕请填 on 或 off。",
   "switchModes": "方式",
   "switchCustom": "自定义",
   "switchModeLength": "时长",

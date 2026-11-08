@@ -90,6 +90,16 @@ func TimedSwitchSpecs(start, stop, status Message) []Spec {
 	}})
 }
 
+// ScreenedSwitchSpecs are TimedSwitchSpecs for a Screened tool: start also
+// says whether to keep the display on, "on" or "off".
+func ScreenedSwitchSpecs(start, stop, status Message) []Spec {
+	return switchSpecs(start, stop, status, Schema{Type: TypeObject, Properties: []Property{
+		{Name: PropFor, Schema: text(i18n.Messages.SchemaHoldFor)},
+		{Name: PropUntil, Schema: text(i18n.Messages.SchemaHoldUntil)},
+		{Name: PropDisplay, Schema: text(i18n.Messages.SchemaHoldDisplay)},
+	}})
+}
+
 func switchSpecs(start, stop, status Message, startInput Schema) []Spec {
 	return []Spec{
 		{Name: ActionStart, Summary: start, Input: startInput, Output: StatusOutput(), Risk: RiskSystem, Idempotent: true},

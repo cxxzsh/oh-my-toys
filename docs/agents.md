@@ -70,6 +70,8 @@ People can allow a tool to run without confirmation for a given client in Settin
 
 A switch tool that can run for a set time (Keep awake) takes two optional inputs on `start`, one at most: `for`, a length such as `90m` or `1h30m` (1 second to 99 hours 59 minutes), and `until`, a time of day such as `18:30` in 24 hours, which is tomorrow's when today's has passed. On the command line they are `--for` and `--until`. A start with neither uses the settings used last. Without the desktop app, `omt` holds the tool for that length and then exits by itself.
 
+A switch tool that can keep the display on too (Keep awake) also takes `display` on `start`: `on` or `off` (`--display` on the command line). It is the tool's choice from then on, the same one the switch on the tool's page makes, and it applies with or without `for` and `until`. Left out, the choice made last holds.
+
 A switch tool may also run by a daily plan of time spans, which is set in the desktop app only and works while the app runs. A run started by `start` and the plan hold the tool independently, and the tool stays on while either does. `status` describes the run a person started, with its own time left; when the plan holds the tool too, its end is in `note`, and when only the plan holds it, `status` describes the plan's stretch. `stop` ends the run and turns the plan off for the rest of that span.
 
 ## 6. Activity log
