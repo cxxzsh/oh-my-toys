@@ -14,6 +14,7 @@ import (
 	"errors"
 	"math/big"
 	"os"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -76,7 +77,9 @@ func TestWithTempPEM(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if mode := info.Mode().Perm(); mode != 0o600 {
+		// Windows keeps access control lists, not mode bits: Stat reports
+		// 0666 and 0777 whatever the ACL says.
+		if mode := info.Mode().Perm(); runtime.GOOS != "windows" && mode != 0o600 {
 			t.Errorf("mode = %#o, want 0600", mode)
 		}
 		got, err := os.ReadFile(p)

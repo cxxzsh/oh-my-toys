@@ -30,20 +30,8 @@ func TestConfigDefaultsAreSavedAndRead(t *testing.T) {
 		t.Fatalf("SetConfig: %v", err)
 	}
 	path := tl.path(configFile)
-	info, err := os.Stat(path)
-	if err != nil {
-		t.Fatalf("stat %s: %v", path, err)
-	}
-	if perm := info.Mode().Perm(); perm != fileMode {
-		t.Errorf("%s has mode %o, want %o", configFile, perm, fileMode)
-	}
-	dirInfo, err := os.Stat(tl.dir)
-	if err != nil {
-		t.Fatalf("stat %s: %v", tl.dir, err)
-	}
-	if perm := dirInfo.Mode().Perm(); perm != folderMode {
-		t.Errorf("%s has mode %o, want %o", tl.dir, perm, folderMode)
-	}
+	checkMode(t, path, fileMode)
+	checkMode(t, tl.dir, folderMode)
 
 	again := newTool(filepath.Dir(tl.dir), (&fakeSystem{}).system())
 	if got := again.Config(); !sameConfig(got, want) {
