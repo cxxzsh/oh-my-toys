@@ -3526,20 +3526,6 @@ func (msgs Messages) SwitchSpanBad() string {
 	return Catalog.Format(msgs.locale, "switchSpanBad", nil)
 }
 
-// SwitchSpanLimit says "{count, plural, one {Up to # time span.} other {Up to # time spans.}}"
-// in the language the app shows.
-//
-// Shown when a plan has the most spans it can.
-func SwitchSpanLimit(count int) string { return In(i18n.Locale()).SwitchSpanLimit(count) }
-
-// SwitchSpanLimit says "{count, plural, one {Up to # time span.} other {Up to # time spans.}}"
-// in the language of msgs.
-//
-// Shown when a plan has the most spans it can.
-func (msgs Messages) SwitchSpanLimit(count int) string {
-	return Catalog.Format(msgs.locale, "switchSpanLimit", map[string]any{"count": count})
-}
-
 // SwitchNextRun says "Next: {day} {time}"
 // in the language the app shows.
 //

@@ -28,11 +28,8 @@ func (w Weekdays) With(d time.Weekday, on bool) Weekdays {
 	return w &^ (1 << d)
 }
 
-// Limits of a plan.
-const (
-	MinutesPerDay = 24 * 60
-	MaxSegments   = 8
-)
+// MinutesPerDay is the length of a day on the clock.
+const MinutesPerDay = 24 * 60
 
 // Segment is a span of the day, on some days of the week. From and To are
 // minutes after midnight. A segment whose To is not after its From runs past
@@ -80,12 +77,11 @@ func (s Schedule) Equal(o Schedule) bool {
 	return s.Enabled == o.Enabled && s.Display == o.Display && slices.Equal(s.Segments, o.Segments)
 }
 
-// Clean returns the schedule without its invalid segments, and no more than
-// MaxSegments of them.
+// Clean returns the schedule without its invalid segments.
 func (s Schedule) Clean() Schedule {
 	kept := make([]Segment, 0, len(s.Segments))
 	for _, seg := range s.Segments {
-		if seg.Valid() && len(kept) < MaxSegments {
+		if seg.Valid() {
 			kept = append(kept, seg)
 		}
 	}

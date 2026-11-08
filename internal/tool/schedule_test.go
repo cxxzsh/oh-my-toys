@@ -126,13 +126,10 @@ func TestScheduleAcrossTheClockChange(t *testing.T) {
 }
 
 func TestScheduleClean(t *testing.T) {
-	s := Schedule{Enabled: true, Segments: []Segment{{AllDays, 600, 600}, {AllDays, 600, 700}}}
-	for len(s.Segments) < MaxSegments+3 {
-		s.Segments = append(s.Segments, Segment{AllDays, 600, 700})
-	}
+	s := Schedule{Enabled: true, Segments: []Segment{{AllDays, 600, 600}, {AllDays, 600, 700}, {0, 600, 700}, {AllDays, 700, 800}}}
 	got := s.Clean()
-	if len(got.Segments) != MaxSegments {
-		t.Fatalf("%d segments, want %d: the invalid one is dropped and the rest are capped", len(got.Segments), MaxSegments)
+	if len(got.Segments) != 2 {
+		t.Fatalf("%d segments, want 2: the ones with no length and no day are dropped", len(got.Segments))
 	}
 	for _, seg := range got.Segments {
 		if !seg.Valid() {

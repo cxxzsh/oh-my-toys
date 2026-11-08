@@ -248,7 +248,6 @@
   "switchRemoveSpan": "删除这个时间段",
   "switchPlanEmpty": "还没有时间段，添加一个即可按计划运行。",
   "switchSpanBad": "每个时间段需要形如 09:00 的时间，并至少选一天。",
-  "switchSpanLimit": "{count, plural, other {最多 # 个时间段。}}",
   "switchNextRun": "下次开启：{day} {time}",
   "weekdayMon": "一",
   "weekdayTue": "二",

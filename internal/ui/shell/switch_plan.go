@@ -149,7 +149,7 @@ func (a *App) planHead(c *ui.Context, t tool.Scheduled) {
 func (a *App) planRows(c *ui.Context, f *switchForm) {
 	shown := float32(ds.PlanRowsShown * (ds.ControlLg + ds.Space8))
 	ui.List(c.Key("plan-rows"), &f.list, len(f.rows), func(i int) { a.planRow(c, f, i) }).
-		FillWidth().MaxHeight(shown).Gap(ds.Space8).Label(i18n.SwitchPlan())
+		FillWidth().MaxHeight(shown).Gap(ds.Space8).Padding(0, ds.Space10, 0, 0).Label(i18n.SwitchPlan())
 }
 
 func (a *App) planRow(c *ui.Context, f *switchForm, i int) {
@@ -199,13 +199,9 @@ func (a *App) dayToggle(c *ui.Context, row int, d time.Weekday, days tool.Weekda
 }
 
 func (a *App) addSpanButton(c *ui.Context, f *switchForm) {
-	full := len(f.rows) >= tool.MaxSegments
-	opts := comp.ButtonOpts{Kind: comp.Secondary, Small: true, Disabled: full}
-	if a.kit.Button(c.Key("plan-add"), "+ "+i18n.SwitchAddSpan(), opts).Clicked() && !full {
+	opts := comp.ButtonOpts{Kind: comp.Secondary, Small: true}
+	if a.kit.Button(c.Key("plan-add"), "+ "+i18n.SwitchAddSpan(), opts).Clicked() {
 		f.rows = append(f.rows, planRow{days: tool.Workdays, from: newSpanFrom, to: newSpanTo})
-	}
-	if full {
-		comp.Text(c, i18n.SwitchSpanLimit(tool.MaxSegments), ds.Caption, ds.P(c).TextInactive)
 	}
 }
 

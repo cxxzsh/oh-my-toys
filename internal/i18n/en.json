@@ -1294,15 +1294,6 @@
   "@switchSpanBad": {
     "description": "Error under a plan's spans."
   },
-  "switchSpanLimit": "{count, plural, one {Up to # time span.} other {Up to # time spans.}}",
-  "@switchSpanLimit": {
-    "description": "Shown when a plan has the most spans it can.",
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "switchNextRun": "Next: {day} {time}",
   "@switchNextRun": {
     "description": "When the plan next turns the tool on.",

@@ -303,6 +303,24 @@ func TestSwitchPlanAddsASpanAndKeepsIt(t *testing.T) {
 	}
 }
 
+// TestSwitchPlanTakesManySpans: a week with a different plan each day needs
+// more spans than a handful, and the button never stops adding them.
+func TestSwitchPlanTakesManySpans(t *testing.T) {
+	const spans = 20
+	m := &modeSwitch{}
+	_, tt := modeSwitchPage(t, m)
+	planTabOf(t, tt)
+	for range spans {
+		if err := tt.Click("+ " + i18n.SwitchAddSpan()); err != nil {
+			t.Fatal(err)
+		}
+		tt.Frame()
+	}
+	if got := len(m.sched.Segments); got != spans {
+		t.Errorf("the plan has %d spans after adding %d", got, spans)
+	}
+}
+
 // TestSwitchPlanHalfTypedTimeKeepsTheSpan: a time being edited is not a
 // time yet, and until it is, the plan keeps the span as it was.
 func TestSwitchPlanHalfTypedTimeKeepsTheSpan(t *testing.T) {
