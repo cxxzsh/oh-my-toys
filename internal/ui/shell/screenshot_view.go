@@ -292,9 +292,7 @@ func (a *App) snapPaint(p *ui.Painter, r ui.Rect, ov *snapOverlay, s *snapSessio
 	p.ImageRegion(ov.bmp, ui.Rect{W: float32(w), H: float32(h)}, ui.Rect{W: float32(b.Dx()), H: float32(b.Dy())}, ui.ImageOptions{})
 	local := snapLocal(s.sel, b)
 	if local.W <= 0 || local.H <= 0 {
-		p.Fill(r, pal.Scrim, 0)
-		a.snapHoverWindow(p, ov, s, pal)
-		a.snapLoupeIf(p, ov, s, pal)
+		a.snapAim(p, r, ov, s, pal)
 		return
 	}
 	a.snapDim(p, r, local, pal.Scrim)
@@ -509,20 +507,23 @@ func (a *App) snapTag(p *ui.Painter, local ui.Rect, text string, pal *ds.Palette
 	p.Text(tag.X+(tag.W-txtW)/2, tag.Y+(th-ds.Caption.Size)/2, text, ds.Caption.Size, pal.TextPrimary)
 }
 
-// snapHoverWindow outlines the window a click would take as the
-// selection.
-func (a *App) snapHoverWindow(p *ui.Painter, ov *snapOverlay, s *snapSession, pal *ds.Palette) {
-	if s.dragging || !s.hoverOn || !pIn(s.hover, ov.shot.Bounds) {
-		return
+// snapAim dims a display but the window under the pointer, which a click
+// takes as the selection, so the aim reads like the shot.
+func (a *App) snapAim(p *ui.Painter, r ui.Rect, ov *snapOverlay, s *snapSession, pal *ds.Palette) {
+	win := image.Rectangle{}
+	if !s.dragging && s.hoverOn && pIn(s.hover, ov.shot.Bounds) {
+		win = snapWindowAt(s.wins, s.hover)
 	}
-	win := snapWindowAt(s.wins, s.hover)
 	if win.Empty() {
+		p.Fill(r, pal.Scrim, 0)
+		a.snapLoupeIf(p, ov, s, pal)
 		return
 	}
 	local := snapLocal(win, ov.shot.Bounds)
-	p.Fill(local, pal.AccentSoft, 0)
+	a.snapDim(p, r, local, pal.Scrim)
 	p.Stroke(local, pal.Accent, 0, ds.LineWidth*2)
 	a.snapTag(p, local, snapSizeText(win.Dx(), win.Dy()), pal)
+	a.snapLoupeIf(p, ov, s, pal)
 }
 
 // snapHud draws the hint while aiming, or a flash after a save.
