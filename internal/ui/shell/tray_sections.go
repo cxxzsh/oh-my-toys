@@ -229,7 +229,7 @@ func (a *App) trayChips(c *ui.Context, sw tool.Switch, st tool.Status) {
 			a.hideTray()
 			a.openMain(m.ID)
 		}
-		if !st.Until.IsZero() && a.trayChip(c, "extend", i18n.SwitchExtend(int(extendBy/time.Minute)), false) {
+		if canExtend(st) && a.trayChip(c, "extend", i18n.SwitchExtend(int(extendBy/time.Minute)), false) {
 			a.extend(timed)
 		}
 	})
@@ -255,8 +255,11 @@ func (a *App) trayChip(c *ui.Context, key, label string, active bool) bool {
 }
 
 // trayPlanLine says when the plan of a tool next turns it on, unless the
-// plan holds it on now or is off.
+// plan holds it on now or is off; the note, when there is one, instead.
 func trayPlanLine(sw tool.Switch, st tool.Status) (text string, ok bool) {
+	if st.Note != "" {
+		return st.Note, true
+	}
 	sched, has := sw.(tool.Scheduled)
 	if !has || st.Active == tool.ActivePlan {
 		return "", false

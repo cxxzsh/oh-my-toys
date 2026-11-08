@@ -30,6 +30,7 @@ type ipcResponse struct {
 	On     bool   `json:"on"`
 	Text   string `json:"text"`
 	Detail string `json:"detail,omitempty"`
+	Note   string `json:"note,omitempty"`
 	Error  string `json:"error,omitempty"`
 }
 
@@ -73,7 +74,7 @@ func switchResult(ctx context.Context, reg *Registry, req ipcRequest) ipcRespons
 		return ipcResponse{Error: problemText(err)}
 	}
 	st := sw.Status()
-	return ipcResponse{On: st.On, Text: st.Text, Detail: st.Detail}
+	return ipcResponse{On: st.On, Text: st.Text, Detail: st.Detail, Note: st.Note}
 }
 
 func runSwitch(ctx context.Context, sw tool.Switch, action string, in tool.Input) error {
@@ -112,7 +113,7 @@ func callSwitch(conn net.Conn, toolID, action string, in tool.Input) (tool.Statu
 	if resp.Error != "" {
 		return tool.Status{}, errors.New(resp.Error)
 	}
-	return tool.Status{On: resp.On, Text: resp.Text, Detail: resp.Detail}, nil
+	return tool.Status{On: resp.On, Text: resp.Text, Detail: resp.Detail, Note: resp.Note}, nil
 }
 
 func writeIPC(conn net.Conn, resp ipcResponse) {

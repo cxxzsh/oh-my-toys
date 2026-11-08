@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
 
@@ -95,7 +96,8 @@ func TestStopSkipsOnlyTheStretchItWasHolding(t *testing.T) {
 }
 
 // TestPlanAndAPersonHoldTogether: the tool is awake while either holds, is
-// named for the person's hold, and ends when the last of them ends.
+// named for the person's hold, which keeps its own start and end, and the
+// plan's end is said in a note.
 func TestPlanAndAPersonHoldTogether(t *testing.T) {
 	tl, held, _ := newTestTool(t)
 	tl.now = func() time.Time { return at(0, 10, 0) }
@@ -107,19 +109,22 @@ func TestPlanAndAPersonHoldTogether(t *testing.T) {
 	if *held != 2 || st.Active != idCustom {
 		t.Fatalf("held %d, active %q: the person's hold is named", *held, st.Active)
 	}
-	if !st.Until.Equal(at(0, 12, 0)) {
-		t.Errorf("ends at %v, want the later of 11:00 and 12:00", st.Until)
+	if !st.Since.Equal(at(0, 10, 0)) || !st.Until.Equal(at(0, 11, 0)) {
+		t.Errorf("the run is %v to %v, want the person's 10:00 to 11:00, not the plan's", st.Since, st.Until)
+	}
+	if want := i18n.AwakePlanAlso("12:00"); st.Note != want {
+		t.Errorf("note %q, want %q", st.Note, want)
 	}
 
 	runAction(t, tl, idUntilOff)
-	if st := tl.Status(); !st.Until.IsZero() {
-		t.Errorf("until %v, want none: a hold with no end has none", st.Until)
+	if st := tl.Status(); !st.Until.IsZero() || st.Note == "" {
+		t.Errorf("until %v, note %q: a hold with no end has none, and the plan is still said", st.Until, st.Note)
 	}
 
 	tl.expire() // the person's hold ends by itself; here it ends all the same
 	st = tl.Status()
-	if *held != 1 || st.Active != tool.ActivePlan {
-		t.Errorf("held %d, active %q: the plan goes on", *held, st.Active)
+	if *held != 1 || st.Active != tool.ActivePlan || st.Note != "" {
+		t.Errorf("held %d, active %q, note %q: the plan goes on, alone", *held, st.Active, st.Note)
 	}
 }
 

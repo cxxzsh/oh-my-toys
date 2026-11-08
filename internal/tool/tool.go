@@ -88,8 +88,9 @@ type Status struct {
 	Text   string    // "Running · 2:29:10 left"
 	Detail string    // "Display stays on"
 	Active string    // the ID of the quick action in effect; empty when off
-	Since  time.Time // when it started; zero when off
-	Until  time.Time // when it ends by itself; zero when off or until turned off
+	Since  time.Time // when the run in Active began; zero when off
+	Until  time.Time // when the run in Active ends by itself; zero when off or until turned off
+	Note   string    // another thing that holds the tool on, such as "Plan also holds it until 18:00"
 }
 
 // Clock writes a duration as 2:29:10.

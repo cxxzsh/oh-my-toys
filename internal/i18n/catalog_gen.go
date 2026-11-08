@@ -2244,6 +2244,36 @@ func (msgs Messages) SchemaStatusDetail() string {
 	return Catalog.Format(msgs.locale, "schemaStatusDetail", nil)
 }
 
+// SchemaStatusNote says "Other hold"
+// in the language the app shows.
+//
+// Output field: another thing that holds a switch tool on, besides the run
+// named in the status.
+func SchemaStatusNote() string { return In(i18n.Locale()).SchemaStatusNote() }
+
+// SchemaStatusNote says "Other hold"
+// in the language of msgs.
+//
+// Output field: another thing that holds a switch tool on, besides the run
+// named in the status.
+func (msgs Messages) SchemaStatusNote() string {
+	return Catalog.Format(msgs.locale, "schemaStatusNote", nil)
+}
+
+// AwakePlanAlso says "The plan also holds it until {time}"
+// in the language the app shows.
+//
+// Shown while a person's run and the plan both hold the tool on.
+func AwakePlanAlso(time_ string) string { return In(i18n.Locale()).AwakePlanAlso(time_) }
+
+// AwakePlanAlso says "The plan also holds it until {time}"
+// in the language of msgs.
+//
+// Shown while a person's run and the plan both hold the tool on.
+func (msgs Messages) AwakePlanAlso(time_ string) string {
+	return Catalog.Format(msgs.locale, "awakePlanAlso", map[string]any{"time": time_})
+}
+
 // CliUsage says "omt [--json] <tool> <action> [--flag value]"
 // in the language the app shows.
 //

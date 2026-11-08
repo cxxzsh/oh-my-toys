@@ -126,6 +126,9 @@ func (a *App) heroFacts(c *ui.Context, t tool.Switch, st tool.Status) {
 		a.valueRow(c, i18n.SwitchEnds(), ends)
 		a.valueRow(c, i18n.SwitchRunning(), tool.Clock(time.Since(st.Since).Round(time.Second)))
 		a.heroActions(c, t, st)
+		if st.Note != "" {
+			comp.Text(c, st.Note, ds.Caption, p.TextInactive).Padding(ds.Space8, 0, 0)
+		}
 	})
 }
 
@@ -187,11 +190,17 @@ func (a *App) presetTiles(c *ui.Context, t tool.Switch, st tool.Status) {
 	})
 }
 
+// canExtend reports whether a run can be given more time: it ends by
+// itself and a person started it. A plan's stretch is set by the plan.
+func canExtend(st tool.Status) bool {
+	return st.On && !st.Until.IsZero() && st.Active != tool.ActivePlan
+}
+
 // heroActions are what a person can do to a run in progress: give it more
-// time, when it ends by itself, or end it.
+// time, when it can have it, or end it.
 func (a *App) heroActions(c *ui.Context, t tool.Switch, st tool.Status) {
 	ui.Row(c).Gap(ds.Space8).Padding(ds.Space8, 0, 0).Children(func() {
-		if timed, ok := t.(tool.Timed); ok && !st.Until.IsZero() {
+		if timed, ok := t.(tool.Timed); ok && canExtend(st) {
 			label := i18n.SwitchExtend(int(extendBy / time.Minute))
 			if a.kit.Button(c.Key("extend"), label, comp.ButtonOpts{Kind: comp.Secondary, Small: true}).Clicked() {
 				a.extend(timed)
@@ -201,10 +210,10 @@ func (a *App) heroActions(c *ui.Context, t tool.Switch, st tool.Status) {
 	})
 }
 
-// extend gives a timed run extendBy more than it has left.
+// extend gives a person's run extendBy more than it has left.
 func (a *App) extend(t tool.Timed) {
-	if until := t.Status().Until; !until.IsZero() {
-		a.startFor(t, max(time.Until(until), 0)+extendBy)
+	if st := t.Status(); canExtend(st) {
+		a.startFor(t, max(time.Until(st.Until), 0)+extendBy)
 	}
 }
 

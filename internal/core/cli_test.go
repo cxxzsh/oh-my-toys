@@ -248,6 +248,7 @@ func planIDFrom(s string) string {
 
 type fakeSwitch struct {
 	on               bool
+	note             string
 	started, stopped int
 }
 
@@ -272,7 +273,7 @@ func (f *fakeSwitch) Stop() error {
 }
 
 func (f *fakeSwitch) Status() tool.Status {
-	return tool.Status{On: f.on, Text: "on"}
+	return tool.Status{On: f.on, Text: "on", Note: f.note}
 }
 
 // TestSwitchStartsForALengthAndEndsByItself is `omt <tool> start --for`

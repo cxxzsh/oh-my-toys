@@ -71,6 +71,7 @@ func StatusOutput() Schema {
 		{Name: "on", Schema: Schema{Type: TypeBoolean, Title: i18n.Messages.SchemaStatusOn}, Required: true},
 		{Name: "text", Schema: text(i18n.Messages.SchemaStatusText), Required: true},
 		{Name: "detail", Schema: text(i18n.Messages.SchemaStatusDetail)},
+		{Name: "note", Schema: text(i18n.Messages.SchemaStatusNote)},
 	}}
 }
 

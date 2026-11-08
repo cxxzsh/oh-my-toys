@@ -27,6 +27,7 @@ type statusDoc struct {
 	On     bool   `json:"on"`
 	Text   string `json:"text"`
 	Detail string `json:"detail,omitempty"`
+	Note   string `json:"note,omitempty"`
 }
 
 func (c CLI) printPlan(id string, p tool.Plan) {
@@ -51,12 +52,14 @@ func (c CLI) printResult(r tool.Result) {
 
 func (c CLI) printStatus(s tool.Status) {
 	if c.JSON {
-		writeJSON(c.Out, statusDoc{On: s.On, Text: s.Text, Detail: s.Detail})
+		writeJSON(c.Out, statusDoc{On: s.On, Text: s.Text, Detail: s.Detail, Note: s.Note})
 		return
 	}
 	writef(c.Out, "%s\n", s.Text)
-	if s.Detail != "" {
-		writef(c.Out, "%s\n", s.Detail)
+	for _, line := range []string{s.Detail, s.Note} {
+		if line != "" {
+			writef(c.Out, "%s\n", line)
+		}
 	}
 }
 

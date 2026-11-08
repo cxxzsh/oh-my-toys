@@ -161,8 +161,10 @@ func (t *Tool) stopHoldLocked() {
 }
 
 // Status says whether it runs, for how long still, and whether the display
-// stays on. A person's hold is what it names; the plan's, when it is the
-// only one.
+// stays on. A person's hold is what it names, with its own start and end;
+// the plan's, when it is the only one. When both hold, the plan's end is in
+// the note, so the countdown is never the plan's while a person asked for
+// less.
 func (t *Tool) Status() tool.Status {
 	t.mu.Lock()
 	defer t.mu.Unlock()
@@ -174,16 +176,19 @@ func (t *Tool) Status() tool.Status {
 	display := hand && t.display
 	if plan {
 		display = display || t.plan.display
-		st.Until = lastEnd(hand, t.until, t.plan.end)
-		st.Since = firstStart(hand, t.since, t.plan.since)
-		if !hand {
-			st.Active = tool.ActivePlan
-		}
+	}
+	if !hand {
+		st.Active, st.Since, st.Until = tool.ActivePlan, t.plan.since, t.plan.end
+	} else if plan {
+		st.Note = i18n.AwakePlanAlso(t.plan.end.Format(clockLayout))
 	}
 	st.Detail = displayDetail(display)
 	st.Text = t.statusText(hand, st.Until)
 	return st
 }
+
+// clockLayout is how the note writes a time of day.
+const clockLayout = "15:04"
 
 func (t *Tool) statusText(hand bool, until time.Time) string {
 	if until.IsZero() {
@@ -201,23 +206,4 @@ func displayDetail(on bool) string {
 		return i18n.AwakeDisplayOn()
 	}
 	return i18n.AwakeDisplayMaySleep()
-}
-
-// lastEnd is when the last of the holds ends; zero when one never does.
-func lastEnd(hand bool, handEnd, planEnd time.Time) time.Time {
-	if hand && handEnd.IsZero() {
-		return time.Time{}
-	}
-	if hand && handEnd.After(planEnd) {
-		return handEnd
-	}
-	return planEnd
-}
-
-// firstStart is when the first of the holds began.
-func firstStart(hand bool, handStart, planStart time.Time) time.Time {
-	if hand && handStart.Before(planStart) {
-		return handStart
-	}
-	return planStart
 }

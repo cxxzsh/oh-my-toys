@@ -814,6 +814,19 @@
   "@schemaStatusDetail": {
     "description": "Output field: a switch tool's mode."
   },
+  "schemaStatusNote": "Other hold",
+  "@schemaStatusNote": {
+    "description": "Output field: another thing that holds a switch tool on, besides the run named in the status."
+  },
+  "awakePlanAlso": "The plan also holds it until {time}",
+  "@awakePlanAlso": {
+    "description": "Shown while a person's run and the plan both hold the tool on.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "cliUsage": "omt [--json] <tool> <action> [--flag value]",
   "@cliUsage": {
     "description": "CLI usage line. The command and flags stay in English."

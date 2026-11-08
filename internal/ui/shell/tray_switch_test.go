@@ -160,3 +160,31 @@ func TestDayCellsMarkTheTimeNow(t *testing.T) {
 		}
 	}
 }
+
+// TestPlanHoldIsNotExtended: a stretch the plan holds has the plan's end, so
+// there is nothing to extend, while a person's run inside it can be; either
+// way the other hold is said, on the page and on the tray.
+func TestPlanHoldIsNotExtended(t *testing.T) {
+	const note = "the plan also holds it until 18:00"
+	label := i18n.SwitchExtend(int(extendBy / time.Minute))
+	now := time.Now()
+	byPlan := tool.Status{On: true, Active: tool.ActivePlan, Since: now, Until: now.Add(time.Hour)}
+	byHand := tool.Status{On: true, Active: "short", Since: now, Until: now.Add(time.Hour), Note: note}
+	for _, c := range []struct {
+		name   string
+		st     tool.Status
+		extend bool
+		note   bool
+	}{{"plan only", byPlan, false, false}, {"hand and plan", byHand, true, true}} {
+		_, page := modeSwitchPage(t, &modeSwitch{st: c.st})
+		tray := modeSwitchTray(t, &modeSwitch{st: c.st})
+		for where, tt := range map[string]*ui.Tester{"page": page, "tray": tray} {
+			if got := tt.HasText(label); got != c.extend {
+				t.Errorf("%s, %s: extend button %v, want %v", c.name, where, got, c.extend)
+			}
+			if got := tt.HasText(note); got != c.note {
+				t.Errorf("%s, %s: note shown %v, want %v", c.name, where, got, c.note)
+			}
+		}
+	}
+}

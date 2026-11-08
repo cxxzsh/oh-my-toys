@@ -181,7 +181,7 @@ func planValue(p tool.Plan) map[string]any {
 }
 
 func statusValue(st tool.Status) map[string]any {
-	return map[string]any{"on": st.On, "text": st.Text, "detail": st.Detail}
+	return map[string]any{"on": st.On, "text": st.Text, "detail": st.Detail, "note": st.Note}
 }
 
 func structured(v any) *mcpsdk.CallToolResult {

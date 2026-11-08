@@ -6,6 +6,7 @@ import (
 	"net"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -145,5 +146,41 @@ func TestIPCPlainSwitchNoLength(t *testing.T) {
 	_, err := CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStart, tool.Input{tool.PropFor: "1h"})
 	if err == nil || sw.started != 0 {
 		t.Fatalf("err %v, started %d: a switch that cannot run for a length must not start without one", err, sw.started)
+	}
+}
+
+// TestStatusNote: the other hold on a tool is part of
+// its status, over IPC to the app and in the text and JSON of `omt status`.
+func TestStatusNote(t *testing.T) {
+	sock := filepath.Join(t.TempDir(), "app.sock")
+	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "unix", sock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sw := &fakeSwitch{on: true, note: "the plan holds it too"}
+	reg, err := NewRegistry(sw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go func() { _ = ServeSwitch(ctx, reg, ln) }()
+
+	st, err := CallSwitch(context.Background(), "unix", sock, "fake", tool.ActionStatus, nil)
+	if err != nil || st.Note != sw.note {
+		t.Fatalf("status over IPC: %+v %v, want the note %q", st, err, sw.note)
+	}
+	for _, asJSON := range []bool{false, true} {
+		cli, out, errb := newCLI(t, sw)
+		args := []string{"fake", "status"}
+		if asJSON {
+			args = append(args, "--json")
+		}
+		if code := cli.Run(context.Background(), args); code != ExitOK {
+			t.Fatal(code, errb)
+		}
+		if !strings.Contains(out.String(), sw.note) {
+			t.Errorf("json=%v: no note in %q", asJSON, out.String())
+		}
 	}
 }
