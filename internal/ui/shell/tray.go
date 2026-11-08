@@ -110,6 +110,29 @@ func (a *App) toggleTray() {
 	a.panel.Show()
 }
 
+// The panel only learns its height from the frames it draws, so the first
+// time it opens it would show at the size it was made with and grow to its
+// content a moment later: a flash. So until it has fitted once it draws
+// nothing, though it is laid out. Later it keeps its height while closed, and
+// shows as it was. A frame knows the size of the one before it, so fitting
+// takes trayFramesToFit frames.
+const trayFramesToFit = 2
+
+// waitsForHeight reports whether the panel has yet to fit for the first time.
+func (a *App) waitsForHeight() bool { return a.panel != nil && !a.trayRevealed }
+
+// fitTray fits the panel to its content, and lets it draw once it fits.
+func (a *App) fitTray(c *ui.Context, content ui.Element) {
+	moved := fitHeight(c, a.panel, content)
+	if !a.waitsForHeight() {
+		return
+	}
+	c.Invalidate()
+	if a.trayFrames++; !moved && a.trayFrames >= trayFramesToFit {
+		a.trayRevealed = true
+	}
+}
+
 // placeTray puts the panel against the icon as it is now. The panel was
 // placed when it last changed size, and showing it does not place it again,
 // but the icon moves as the other items of the menu bar change width, and
@@ -137,11 +160,14 @@ func (a *App) trayView(c *ui.Context) {
 	if runtime.GOOS == goosLinux {
 		ds.ApplyShadow(panel, ds.S(c).ShadowPopover)
 	}
+	if a.waitsForHeight() {
+		panel.Invisible()
+	}
 	panel.Children(func() {
 		a.trayHead(c)
 		a.trayBody(c, items)
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.trayPainted() })
-	fitHeight(c, a.panel, panel)
+	a.fitTray(c, panel)
 }
 
 func (a *App) trayHead(c *ui.Context) {
@@ -169,17 +195,21 @@ func (a *App) trayHead(c *ui.Context) {
 		})
 }
 
-func fitHeight(c *ui.Context, w *mygo.Window, content ui.Element) {
+// fitHeight gives a window the height of its content, and reports whether it
+// had to: it is also true while the content has no size yet.
+func fitHeight(c *ui.Context, w *mygo.Window, content ui.Element) (moved bool) {
 	if w == nil {
-		return
+		return false
 	}
 	b := content.Bounds()
 	if b.H <= 0 {
-		return
+		return true
 	}
 	cw, ch := w.ContentSize()
 	if h := int(b.H + 0.5); h != ch {
 		w.SetContentSize(cw, h)
 		c.Invalidate()
+		return true
 	}
+	return false
 }

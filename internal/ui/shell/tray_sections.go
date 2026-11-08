@@ -184,8 +184,9 @@ func (a *App) traySwitchRow(c *ui.Context, i int, sw tool.Switch, chosen bool) {
 func (a *App) traySwitchBody(c *ui.Context, sw tool.Switch, st tool.Status) {
 	left, total, timed := timeLeft(st)
 	chips := hasChips(sw)
+	screened, hasDisplay := sw.(tool.Screened)
 	next, planned := trayPlanLine(sw, st)
-	if !timed && !chips && !planned {
+	if !timed && !chips && !hasDisplay && !planned {
 		return
 	}
 	ui.Column(c).FillWidth().Gap(ds.Space6).Padding(ds.Space2, ds.Space8, ds.Space8, ds.TraySubInset).Children(func() {
@@ -194,6 +195,9 @@ func (a *App) traySwitchBody(c *ui.Context, sw tool.Switch, st tool.Status) {
 		}
 		if chips {
 			a.trayChips(c, sw, st)
+		}
+		if hasDisplay {
+			a.displayOption(c, screened)
 		}
 		if planned {
 			comp.Text(c, next, ds.Caption, ds.P(c).TextInactive)

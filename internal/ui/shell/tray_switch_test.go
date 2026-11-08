@@ -193,3 +193,25 @@ func TestPlanHoldIsNotExtended(t *testing.T) {
 		}
 	}
 }
+
+// TestTrayHasTheDisplaySwitch: the tray has the switch of the display of a
+// tool that can choose, it reaches the tool and the settings as the page's
+// does, and a tool that cannot choose has none.
+func TestTrayHasTheDisplaySwitch(t *testing.T) {
+	m := &modeSwitch{display: true}
+	a, _ := modeSwitchPage(t, m)
+	tt := trayTester(a)
+	if err := tt.Click(i18n.SwitchDisplay()); err != nil {
+		t.Fatalf("no display switch on the tray: %v: %q", err, tt.Texts())
+	}
+	tt.Frame()
+	if m.display {
+		t.Error("the display is still kept on after the switch was turned off")
+	}
+	if on, kept := a.settings.Displays[modeToolID]; !kept || on {
+		t.Errorf("settings keep %v (kept %v), want a kept choice to let it sleep", on, kept)
+	}
+	if len(m.ran) != 0 || len(m.lengths) != 0 {
+		t.Errorf("the switch started a run: %v %v", m.ran, m.lengths)
+	}
+}

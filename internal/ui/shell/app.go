@@ -78,6 +78,8 @@ type App struct {
 	pal           paletteState
 	trayChosen    int
 	trayHidden    time.Time
+	trayRevealed  bool // the panel has fitted once, and draws
+	trayFrames    int  // frames laid out until it did
 	trayIcon      trayIconState
 	shortcut      string
 	shortcutTaken []string // the shortcuts tried that were taken
