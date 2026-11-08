@@ -260,3 +260,17 @@ func Decode(p pcap.Packet) tool.Flow
 ## 6. The inspector page
 
 `internal/ui/shell` draws it for any tool that is a `tool.Traffic` (type assertion in `toolBody`, as `Timed` and `Screened` are used); the UI never names the tool. It holds: a toolbar (start / stop, mode, clear, export, certificate status), the status note when the tool has one, a filter bar, a virtualised list, a detail pane, a rules editor and the permission, certificate and driver guidance.
+
+## 7. What has run on a real system
+
+The unit tests use fake command runners. These have also run against the real operating system:
+
+| System | How | What |
+|---|---|---|
+| macOS | by hand | Root certificate install, trust and removal; the system proxy taken over, stopped, restored after a crash and after SIGTERM, each leaving the settings as found; HTTPS opened through the proxy |
+| Windows Server 2025 | CI job `Live`, `OMT_LIVE=1` | The Internet Settings registry key: `Enable`, `Restore` and `RestorePointing`; the current user's Root store: `Install`, `Trusted`, `Remove`, checked with `certutil` itself |
+| Ubuntu | CI job `Live`, `OMT_LIVE=1` | The Debian anchor directory and the rebuilt system bundle, and Go's system pool trusting the root; `gsettings` under a session bus with dconf; an `AF_PACKET` capture of a TCP exchange on the loopback |
+
+The live tests live next to the platform code (`*_live_*_test.go`), skip without `OMT_LIVE`, and fail rather than skip with it. On Windows, `certutil` asks the person to confirm adding and removing a root certificate; the runner has a desktop and nobody at it, so `.github/scripts/approve-root-prompt.ps1` answers Yes to those two dialogs (`Security Warning` and `Root Certificate Store`), as a person would.
+
+Not run anywhere yet: the macOS `/dev/bpf*` grant; packet capture on Windows (it needs Npcap, which the runner does not have); the Linux trust store through `pkexec` (the runner is root) and the NSS databases; the desktop app itself on Windows and Linux.
