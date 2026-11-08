@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  pull_request:
+    # `edited` re-checks the title when it is changed.
+    types: [opened, edited, synchronize, reopened]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned: a new release of a tool must not turn a green branch red.
+  GOLANGCI_LINT_VERSION: v2.15.0
+  GOFUMPT_VERSION: v0.12.0
+  GOIMPORTS_VERSION: v0.52.0
+  GO_LICENSES_VERSION: v2.0.1
+  LOCAL_PREFIX: github.com/cxxzsh/oh-my-toys
+  # CONTRIBUTING.md section 3. github.com/go-text/typesetting is dual licensed
+  # Unlicense or BSD-3-Clause; we use it under the BSD-3-Clause.
+  ALLOWED_LICENSES: MIT,BSD-2-Clause,BSD-3-Clause,Apache-2.0,ISC,MPL-2.0
+  IGNORED_MODULES: github.com/go-text/typesetting
+
+jobs:
+  pr-title:
+    name: PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          # CONTRIBUTING.md section 13.
+          types: |
+            feat
+            fix
+            docs
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          # Starts with a lowercase letter, no trailing period, at most 72
+          # characters; this is the part after "type(scope): ". Proper nouns
+          # may keep their capitals, as in "back on macOS".
+          subjectPattern: ^[a-z0-9](.{0,70}[^.])?$
+          subjectPatternError: >
+            The summary "{subject}" must start with a lowercase letter, have
+            no trailing period and be at most 72 characters.
+
+  lint:
+    name: Lint (${{ matrix.goos }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # The per-OS code under internal/platform is split by build tags, so
+        # each OS is linted on its own.
+        goos: [linux, darwin, windows]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: gofumpt and goimports
+        if: matrix.goos == 'linux'
+        run: |
+          unformatted=$(
+            go run "mvdan.cc/gofumpt@$GOFUMPT_VERSION" -l .
+            go run "golang.org/x/tools/cmd/goimports@$GOIMPORTS_VERSION" -local "$LOCAL_PREFIX" -l .
+          )
+          if [ -n "$unformatted" ]; then
+            echo "::error::These files are not formatted; run gofumpt and goimports:"
+            echo "$unformatted"
+            exit 1
+          fi
+      - name: go vet
+        env:
+          GOOS: ${{ matrix.goos }}
+          CGO_ENABLED: "0"
+        run: go vet ./...
+      - uses: golangci/golangci-lint-action@v9
+        env:
+          GOOS: ${{ matrix.goos }}
+          CGO_ENABLED: "0"
+        with:
+          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          args: ./...
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, macos, windows]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      # The race detector needs cgo; the code itself builds without it.
+      - name: Test with the race detector
+        env:
+          CGO_ENABLED: "1"
+        run: go test -race ./...
+      - name: Test as shipped, without cgo
+        env:
+          CGO_ENABLED: "0"
+        run: go test ./...
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Cross-build every program for every platform
+        shell: bash
+        run: |
+          for goos in darwin windows linux; do
+            for goarch in amd64 arm64; do
+              echo "::group::$goos/$goarch"
+              GOOS=$goos GOARCH=$goarch go build ./...
+              echo "::endgroup::"
+            done
+          done
+
+  i18n:
+    name: i18n
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Check the catalogs
+        shell: bash
+        run: |
+          go tool mygo i18n check | tee i18n.log
+          # `i18n check` exits 0 on warnings, which include a message that
+          # zh-Hans lacks; here they fail the build.
+          if grep -q 'warning:' i18n.log; then
+            exit 1
+          fi
+      - name: Check the generated code is up to date
+        run: |
+          go tool mygo generate
+          go generate ./internal/ui/ds
+          git diff --exit-code -- internal
+
+  licences:
+    name: Licences
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Install go-licenses
+        run: GOBIN="$RUNNER_TEMP/bin" go install "github.com/google/go-licenses/v2@$GO_LICENSES_VERSION"
+      - name: Check the licences of the dependencies of every OS
+        shell: bash
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          for goos in linux darwin windows; do
+            echo "::group::$goos"
+            GOOS=$goos "$RUNNER_TEMP/bin/go-licenses" check ./... \
+              --allowed_licenses="$ALLOWED_LICENSES" \
+              --ignore "$IGNORED_MODULES"
+            echo "::endgroup::"
+          done
