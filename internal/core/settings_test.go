@@ -1,6 +1,8 @@
 package core
 
 import (
+	"os"
+	"path/filepath"
 	"slices"
 	"testing"
 	"time"
@@ -146,5 +148,33 @@ func TestPresetsAreSavedOnceAndKept(t *testing.T) {
 	got.RemovePreset("awake", 45*time.Minute)
 	if len(got.Presets("awake")) != 0 || len(got.SavedPresets) != 0 {
 		t.Errorf("after removing both: %v", got.SavedPresets)
+	}
+}
+
+// TestSettingsCarryVersion: a saved file says which version wrote it, and
+// one written before the app kept a version still reads.
+func TestSettingsCarryVersion(t *testing.T) {
+	dir := t.TempDir()
+	store := NewStore(dir)
+	if err := store.Save(Settings{Theme: "dark"}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load(Settings{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.Version != SettingsVersion || got.Theme != "dark" {
+		t.Fatalf("saved file reads as version %d, theme %q", got.Version, got.Theme)
+	}
+	path := filepath.Join(dir, "settings.json")
+	if err := os.WriteFile(path, []byte(`{"theme":"light"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	old, err := store.Load(Settings{})
+	if err != nil {
+		t.Fatalf("a file without a version: %v", err)
+	}
+	if old.Version != 0 || old.Theme != "light" {
+		t.Fatalf("old file reads as version %d, theme %q", old.Version, old.Theme)
 	}
 }

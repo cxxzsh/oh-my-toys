@@ -21,8 +21,10 @@ const (
 
 // Settings are what the app remembers between launches.
 type Settings struct {
-	Pinned []string `json:"pinned"`
-	Recent []string `json:"recent"`
+	// Version is the version of the file, stamped on every save.
+	Version int      `json:"version,omitempty"`
+	Pinned  []string `json:"pinned"`
+	Recent  []string `json:"recent"`
 	// Collapsed lists the sidebar sections that were closed.
 	Collapsed []string `json:"collapsed"`
 	// Order is the tool IDs in the order the user dragged them into; tools
@@ -100,6 +102,12 @@ func (v *Settings) RemovePreset(id string, d time.Duration) {
 	}
 }
 
+// SettingsVersion is the version of the settings file the app writes. A
+// file without one was written before the app kept a version, and still
+// reads: a change to how a field means something can then migrate the old
+// value instead of guessing what it was.
+const SettingsVersion = 1
+
 // Store keeps settings in a JSON file.
 type Store struct {
 	path string
@@ -128,6 +136,7 @@ func (s *Store) Load(def Settings) (Settings, error) {
 
 // Save writes the settings, replacing the file in one step.
 func (s *Store) Save(v Settings) error {
+	v.Version = SettingsVersion
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return fmt.Errorf("encode settings: %w", err)
