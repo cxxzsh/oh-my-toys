@@ -1,52 +1,97 @@
 # CI and releases
 
-This is the plan for continuous integration and automatic releases. The workflows are added once the project has Go code; this document is what they must do.
+The workflows are in `.github/workflows`: `ci.yml`, `release-please.yml` and
+`release.yml`. This document says what they do and what to set up before the
+first release.
 
 ## Overview
 
 1. A pull request runs **CI**. It must pass before merging.
 2. Merging to `main` updates a **release PR** that bumps the version and the changelog from the commit messages.
-3. Merging the release PR tags `vX.Y.Z` and runs the **release** workflow, which builds, signs and publishes the desktop app and `omt` for every platform to a GitHub Release. Installed apps update themselves from it.
+3. Merging the release PR tags `vX.Y.Z`, creates a **draft** release and runs the **release** workflow, which builds, signs and uploads the desktop app and `omt` for every platform to that draft, then publishes it. Installed apps update themselves from it.
 
-Nobody edits version numbers or the changelog by hand.
+Nobody edits version numbers or the changelog by hand: release-please writes
+both into the release PR.
 
 ## 1. CI (`.github/workflows/ci.yml`)
 
-Runs on every pull request and on every push to `main`.
+Runs on every pull request (including edits of its title) and on every push to
+`main`. A newer push cancels the run of an older one on the same branch.
 
 | Job | Runner | What it checks |
 |---|---|---|
-| PR title | ubuntu | The title follows Conventional Commits (it becomes the squash-merge commit message) |
-| Lint | ubuntu | `gofumpt`, `goimports`, `go vet`, and `golangci-lint` with the linters in CONTRIBUTING.md section 4, including `depguard` for the layers |
-| Test | ubuntu, macOS, Windows | `go test -race ./...` on each operating system |
-| Build | ubuntu | `CGO_ENABLED=0` cross-builds of `cmd/omt` and `cmd/oh-my-toys` for darwin, windows and linux on amd64 and arm64 |
-| i18n | ubuntu | Every key in `en.json` exists in `zh-Hans.json`, and the catalogs compile |
-| Licences | ubuntu | Every dependency's licence is on the allowed list in CONTRIBUTING.md |
+| PR title | ubuntu | The title follows Conventional Commits with the types of CONTRIBUTING.md section 13: an English, imperative, lowercase summary of at most 72 characters, with no trailing period. It becomes the squash-merge commit message. |
+| Lint | ubuntu, once per `GOOS` (linux, darwin, windows) | `gofumpt` and `goimports` with the local prefix (on linux), `go vet`, and `golangci-lint` with the linters in CONTRIBUTING.md section 4, including `depguard` for the layers. The per-OS code under `internal/platform` is split by build tags, so each OS is checked on its own. |
+| Test | ubuntu, macOS, Windows | `go test -race ./...`, with cgo as the race detector needs it, then `go test ./...` with `CGO_ENABLED=0`, as the programs ship. |
+| Build | ubuntu | `CGO_ENABLED=0` cross-builds of every package for darwin, windows and linux on amd64 and arm64. |
+| i18n | ubuntu | `go tool mygo i18n check` reports no errors, and no warning either, so every message in `en.json` exists in `zh-Hans.json`; then `go tool mygo generate` and `go generate ./internal/ui/ds` leave `internal/` unchanged, so the generated catalogs and tokens are committed with their sources. |
+| Licences | ubuntu, once per `GOOS` | `go-licenses` finds only the licences allowed by CONTRIBUTING.md section 3. |
 
-Go and the MyGo CLI are installed at the versions pinned in `go.mod`. Module and build caches are restored between runs to keep CI fast.
+`setup-go` restores the module and build caches between runs. The MyGo CLI is
+the tool `go.mod` pins, so nothing is installed for it. The versions of the
+tools CI adds (`golangci-lint`, `gofumpt`, `goimports`, `go-licenses`) are
+pinned in the `env` of the workflow: a new release of a tool must not turn a
+green branch red, so they are bumped by hand or by Dependabot.
+
+`github.com/go-text/typesetting` is dual licensed under the Unlicense and
+BSD-3-Clause; the app uses it under the BSD-3-Clause, so the licence job
+ignores the module instead of allowing the Unlicense.
 
 ## 2. Release PR (`.github/workflows/release-please.yml`)
 
-[release-please](https://github.com/googleapis/release-please) reads the Conventional Commits merged to `main` and keeps one open release PR:
+Runs on every push to `main`. [release-please](https://github.com/googleapis/release-please)
+reads the Conventional Commits merged since the last release and keeps one
+open release PR:
 
-- `fix` raises the patch version, `feat` the minor version, a `!` or `BREAKING CHANGE:` the major version (minor while the version is below 1.0).
-- The PR updates `CHANGELOG.md` and the version in the MyGo configuration.
-- Merging it creates the tag `vX.Y.Z` and a GitHub Release with the changelog as its notes.
+- `fix` raises the patch version, `feat` the minor version, a `!` or `BREAKING CHANGE:` the major version (the minor one while the version is below 1.0).
+- The PR updates `CHANGELOG.md` and the version in `mygo.json`. The configuration is in `release-please-config.json`, the last released version in `.release-please-manifest.json`.
+- Merging it creates the tag `vX.Y.Z` and a draft GitHub Release, whose notes are the changelog section of the version.
+
+With the manifest at 0.1.0, the version in `mygo.json` today, and the `feat`
+commits merged so far, the first release PR is titled
+`chore(main): release 0.2.0`.
+
+**A pull request and a tag made with the workflow's own token start no
+workflows.** Without `RELEASE_PLEASE_TOKEN`, the release PR gets no CI run, so
+it cannot satisfy a branch protection rule that requires CI, and the release
+workflow would not run for its tag. Add a fine-grained personal access token
+(contents and pull requests: read and write) or a GitHub App token as the
+secret `RELEASE_PLEASE_TOKEN`. The release itself is called from this workflow
+rather than triggered by the tag, so it runs either way.
 
 ## 3. Release (`.github/workflows/release.yml`)
 
-Runs when a `v*` tag is pushed. Based on MyGo's own release workflow (MyGo docs: `github-actions.md`, `distribution.md`, `updates.md`).
+It takes the tag as an input: `release-please.yml` calls it after creating a
+release, and it can be run by hand (`workflow_dispatch`) to build a tag again;
+its files replace the ones already on the draft.
 
 | Job | Runner | Output |
 |---|---|---|
+| Draft release | ubuntu | Checks that the tag matches `version` in `mygo.json`, so a wrong tag builds nothing, and creates the draft if the tag was pushed by hand. The draft exists before the builds start, so each of them uploads to it instead of making a draft of its own. |
 | macOS | macos-latest | Universal `.app` in a `.dmg`, signed and notarized; update archive |
-| Windows | ubuntu-latest (with NSIS) | `.exe` and installer for amd64 and arm64; update archive |
+| Windows | ubuntu-latest (with NSIS and `osslsigncode`) | `.exe` and installer for amd64 and arm64; update archive |
 | Linux | ubuntu-latest | `.tar.gz` with install script, `.deb`, `PKGBUILD` for amd64 and arm64; update archive |
-| CLI | ubuntu-latest | `omt` archives for every platform, with SHA-256 checksums |
+| CLI | ubuntu-latest | `omt` `.tar.gz` for darwin and linux and `.zip` for windows, on amd64 and arm64, with `omt-SHA256SUMS` |
+| Publish | ubuntu | Marks the draft as a release, or as a pre-release when the macOS app is not signed. |
 
-All files go to the release created in step 2. The desktop app checks that release for updates (MyGo `updates.github`), verifies the signature with the public key built into the app, and installs it; MyGo also produces delta updates from earlier versions.
+The app jobs run `go tool mygo build -platform … -upload`, which builds,
+signs, makes the installers and the update archives and uploads them to the
+draft; the CLI job builds `omt` with `go build` and uploads its archives with
+`gh`.
 
-The desktop app and `omt` share one version number and one release.
+Signing is configured in a copy of `mygo.json` made on the runner, so a build
+on a developer's machine and a release without the secrets stay ad hoc
+signed. Without the Apple certificate, Gatekeeper blocks the app on other
+Macs, so the publish job marks such a release a pre-release: installed apps
+skip pre-releases, so a build that is not signed for other Macs does not
+reach them (the app does not opt into pre-releases). Without the Windows
+certificate, SmartScreen warns on first launch.
+
+The desktop app and `omt` share one version number and one release. The app
+checks `cxxzsh/oh-my-toys` releases for updates (MyGo `updates.github`),
+verifies the signature with the public key in `mygo.json`, and installs them;
+MyGo also makes delta updates from earlier versions. The update window shows
+the section of `CHANGELOG.md` that `mygo build` puts in the manifests.
 
 ## Secrets
 
@@ -54,21 +99,44 @@ Stored as GitHub Actions secrets. None of them is ever committed.
 
 | Secret | Needed for | Notes |
 |---|---|---|
-| `MYGO_UPDATER_PRIVATE_KEY` | Signing updates | Created with `mygo keygen`. Losing it strands installed apps; leaking it lets anyone ship code to users. Keep a copy in a password manager. |
-| Apple Developer ID certificate and password | Signing the macOS app | Requires the Apple Developer Program (paid, yearly). |
-| App Store Connect API key | Notarizing the macOS app | Same account. |
-| Windows code signing (optional) | Signing the Windows installer | Without it, Windows SmartScreen warns on first launch. Can be added later. |
+| `RELEASE_PLEASE_TOKEN` | `release-please.yml` | A personal access token or GitHub App token, so that the release PR runs CI. See section 2. |
+| `MYGO_UPDATER_PRIVATE_KEY` | Signing updates | Created with `mygo keygen`, the contents of `mygo-update.key`. Losing it strands installed apps; leaking it lets anyone ship code to users. Keep a copy in a password manager. |
+| `MACOS_CERTIFICATE` | Signing the macOS app | Base64 of a "Developer ID Application" certificate and its private key exported from Keychain Access as a `.p12`. Requires the Apple Developer Program (paid, yearly). |
+| `MACOS_CERTIFICATE_PASSWORD` | Signing the macOS app | The password of the `.p12`. |
+| `APPLE_API_KEY` | Notarizing the macOS app | Base64 of the App Store Connect API key file (`AuthKey_XXXXXXXXXX.p8`), with its key ID and issuer in the next two. |
+| `APPLE_API_KEY_ID` | Notarizing the macOS app | The key's ID. |
+| `APPLE_API_ISSUER` | Notarizing the macOS app | The issuer UUID of the API key. |
+| `WINDOWS_CERTIFICATE` | Signing the Windows app | Base64 of the code signing `.pfx`. Without it, Windows SmartScreen warns on first launch; it can be added later. |
+| `WINDOWS_CERTIFICATE_PASSWORD` | Signing the Windows app | The password of the `.pfx`. |
 
-Until the Apple and Windows signing secrets exist, releases are built unsigned and marked as pre-releases.
+```sh
+base64 -i certificate.p12 | gh secret set MACOS_CERTIFICATE
+gh secret set MACOS_CERTIFICATE_PASSWORD
+base64 -i AuthKey_XXXXXXXXXX.p8 | gh secret set APPLE_API_KEY
+gh secret set APPLE_API_KEY_ID
+gh secret set APPLE_API_ISSUER
+gh secret set MYGO_UPDATER_PRIVATE_KEY < mygo-update.key
+base64 -i code-signing.pfx | gh secret set WINDOWS_CERTIFICATE
+gh secret set WINDOWS_CERTIFICATE_PASSWORD
+gh secret set RELEASE_PLEASE_TOKEN
+```
 
 ## Repository settings
 
 - `main` is protected: changes arrive through pull requests, CI must pass, force pushes are blocked and history must be linear (no merge commits).
 - Only squash merging is allowed, so each pull request becomes one Conventional Commit.
 - Branches are deleted after merging.
-- Dependabot opens weekly pull requests for Go modules and GitHub Actions.
+- Dependabot opens weekly pull requests for Go modules and GitHub Actions, in `.github/dependabot.yml`. Go modules except MyGo come as one pull request and MyGo alone, as CONTRIBUTING.md section 3 requires. Their commits are `build(deps)` and `ci(deps)`.
+- Actions are allowed to create pull requests and to write to the repository (Settings → Actions → General → Workflow permissions): release-please needs both.
+
+## First release
+
+1. Add the secrets above; at least `MYGO_UPDATER_PRIVATE_KEY`, `MACOS_CERTIFICATE`, `MACOS_CERTIFICATE_PASSWORD`, `APPLE_API_KEY`, `APPLE_API_KEY_ID`, `APPLE_API_ISSUER` and `RELEASE_PLEASE_TOKEN` for a signed macOS release.
+2. Push to `main`; release-please opens `chore(main): release 0.2.0`.
+3. Merge it; the release workflow builds and publishes `v0.2.0`.
 
 ## Later
 
 - Homebrew cask and formula, Scoop and winget manifests, and the AUR package, updated by the release workflow.
 - A nightly build from `main` for testers.
+- End-to-end tests of the desktop app (`dev/e2e`) on the macOS runner.
