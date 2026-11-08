@@ -98,6 +98,9 @@ func serviceNames(s sysproxy.Snapshot) []string {
 func TestStopRestoresThenForgetsTheState(t *testing.T) {
 	tl, fake := testTool(t)
 	fake.snap = priorSettings()
+	if err := tl.SetConfig(proxyConfig(t, true)); err != nil {
+		t.Fatalf("SetConfig: %v", err)
+	}
 	if err := tl.Start(context.Background()); err != nil {
 		t.Fatalf("Start: %v", err)
 	}
@@ -180,6 +183,9 @@ func dialProbeTo(t *testing.T, addr string) bool {
 func TestStopKeepsTheStateWhenTheRestoreFails(t *testing.T) {
 	tl, fake := testTool(t)
 	fake.snap = priorSettings()
+	if err := tl.SetConfig(proxyConfig(t, true)); err != nil {
+		t.Fatalf("SetConfig: %v", err)
+	}
 	if err := tl.Start(context.Background()); err != nil {
 		t.Fatalf("Start: %v", err)
 	}
