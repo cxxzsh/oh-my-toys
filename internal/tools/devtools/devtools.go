@@ -1,7 +1,8 @@
 // Package devtools holds tools for developing the app, which only the
 // -dev flag registers: made-up tools, to see the UI with hundreds of them,
-// and a tool that panics on purpose, to check that a failure stays inside
-// its tool.
+// a made-up traffic capture, to see the inspector page before the real
+// tool exists, and a tool that panics on purpose, to check that a failure
+// stays inside its tool.
 package devtools
 
 import (
@@ -124,7 +125,8 @@ func (f *FakeSwitch) Status() tool.Status {
 // switchEvery makes one made-up tool in this many a switch tool.
 const switchEvery = 10
 
-// Fakes makes n made-up tools spread over the categories.
+// Fakes makes n made-up tools spread over the categories, and the made-up
+// traffic tool, whose page is the inspector.
 func Fakes(n int, changed func()) []tool.Tool {
 	vs, ns, is := verbs(), nouns(), icons()
 	out := make([]tool.Tool, 0, n)
@@ -149,7 +151,7 @@ func Fakes(n int, changed func()) []tool.Tool {
 		m.Soon = true
 		out = append(out, &Fake{m})
 	}
-	return out
+	return append(out, NewTraffic())
 }
 
 func suffix(round, distinct int) string {

@@ -225,6 +225,10 @@ func (a *App) toolBody(c *ui.Context, t tool.Tool) {
 		a.capturePage(c, t)
 		return
 	}
+	if tr, ok := t.(tool.Traffic); ok {
+		a.trafficPage(c, tr)
+		return
+	}
 	switch t := t.(type) {
 	case tool.Switch:
 		a.switchPage(c, t)

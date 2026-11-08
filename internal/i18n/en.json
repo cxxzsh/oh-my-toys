@@ -1543,5 +1543,750 @@
   "weekdayNameSun": "Sunday",
   "@weekdayNameSun": {
     "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "trafficName": "Traffic",
+  "@trafficName": {
+    "description": "Tool name."
+  },
+  "trafficSummary": "Capture, inspect and rewrite network traffic.",
+  "@trafficSummary": {
+    "description": "Tool summary."
+  },
+  "trafficModeProxy": "Proxy",
+  "@trafficModeProxy": {
+    "description": "Capture mode: a local HTTP(S) proxy."
+  },
+  "trafficModePackets": "Packets",
+  "@trafficModePackets": {
+    "description": "Capture mode: the packets of one network interface."
+  },
+  "trafficPort": "Port",
+  "@trafficPort": {
+    "description": "Field label: the proxy's port."
+  },
+  "trafficPortBad": "“{input}” is no port. Use a number from 1024 to 65535, such as 9099.",
+  "@trafficPortBad": {
+    "description": "Error under the port field when it is not a usable port.",
+    "placeholders": {
+      "input": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficSystemProxy": "Set as system proxy",
+  "@trafficSystemProxy": {
+    "description": "Switch label: point the system proxy at the capture proxy."
+  },
+  "trafficDecrypt": "Decrypt HTTPS",
+  "@trafficDecrypt": {
+    "description": "Switch label: open HTTPS with the app's certificate."
+  },
+  "trafficBypass": "Bypass",
+  "@trafficBypass": {
+    "description": "Field label: hosts that are never decrypted."
+  },
+  "trafficBypassHint": "Hosts never decrypted, such as *.local, separated by commas",
+  "@trafficBypassHint": {
+    "description": "Hint under the bypass field."
+  },
+  "trafficInterface": "Interface",
+  "@trafficInterface": {
+    "description": "Field label: the interface packets are read from."
+  },
+  "trafficNoInterfaces": "No interface to read",
+  "@trafficNoInterfaces": {
+    "description": "Shown when the system lists no interface for packet capture."
+  },
+  "trafficClear": "Clear",
+  "@trafficClear": {
+    "description": "Button: forget every captured flow."
+  },
+  "trafficExport": "Export HAR…",
+  "@trafficExport": {
+    "description": "Button: save the flows shown as a HAR file."
+  },
+  "trafficExported": "Exported {path}",
+  "@trafficExported": {
+    "description": "Toast after saving a HAR file.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficCert": "Certificate",
+  "@trafficCert": {
+    "description": "Label of the app's root certificate and its state."
+  },
+  "trafficCertMissing": "Not created",
+  "@trafficCertMissing": {
+    "description": "Certificate state: it has not been made yet."
+  },
+  "trafficCertUntrusted": "Not trusted",
+  "@trafficCertUntrusted": {
+    "description": "Certificate state: it exists but the system does not trust it."
+  },
+  "trafficCertTrusted": "Trusted",
+  "@trafficCertTrusted": {
+    "description": "Certificate state: the system trusts it."
+  },
+  "trafficCertChip": "{state} · {fingerprint}",
+  "@trafficCertChip": {
+    "description": "Certificate chip: the state and the short fingerprint.",
+    "placeholders": {
+      "state": {
+        "type": "String"
+      },
+      "fingerprint": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficCertInstall": "Install",
+  "@trafficCertInstall": {
+    "description": "Button: make the system trust the certificate."
+  },
+  "trafficCertRemove": "Remove",
+  "@trafficCertRemove": {
+    "description": "Button: stop trusting the certificate and delete its key."
+  },
+  "trafficCertCopyPath": "Copy PEM Path",
+  "@trafficCertCopyPath": {
+    "description": "Button: copy the path of the certificate's PEM file."
+  },
+  "trafficCertCopied": "Copied the certificate path",
+  "@trafficCertCopied": {
+    "description": "Toast after copying the PEM path."
+  },
+  "trafficCertRemoveTitle": "Remove the certificate?",
+  "@trafficCertRemoveTitle": {
+    "description": "Dialog title before removing the root certificate."
+  },
+  "trafficCertRemoveBody": "HTTPS flows show as tunnels until you install it again. The key is deleted from this computer.",
+  "@trafficCertRemoveBody": {
+    "description": "Dialog text: what removing the certificate costs."
+  },
+  "trafficSearch": "Search URL, headers and body",
+  "@trafficSearch": {
+    "description": "Placeholder of the inspector's search field."
+  },
+  "trafficFilterFailed": "Failed only",
+  "@trafficFilterFailed": {
+    "description": "Chip: show only flows that failed or were blocked."
+  },
+  "trafficMethods": "Methods",
+  "@trafficMethods": {
+    "description": "Accessible name of the method filter chips."
+  },
+  "trafficTypes": "Types",
+  "@trafficTypes": {
+    "description": "Accessible name of the media type filter chips."
+  },
+  "trafficTypeJSON": "JSON",
+  "@trafficTypeJSON": {
+    "description": "Type chip: JSON responses."
+  },
+  "trafficTypeHTML": "HTML",
+  "@trafficTypeHTML": {
+    "description": "Type chip: HTML responses."
+  },
+  "trafficTypeJS": "JS",
+  "@trafficTypeJS": {
+    "description": "Type chip: JavaScript responses."
+  },
+  "trafficTypeCSS": "CSS",
+  "@trafficTypeCSS": {
+    "description": "Type chip: CSS responses."
+  },
+  "trafficTypeImage": "Image",
+  "@trafficTypeImage": {
+    "description": "Type chip: images."
+  },
+  "trafficTypeOther": "Other",
+  "@trafficTypeOther": {
+    "description": "Type chip: every other response type."
+  },
+  "trafficStatusNone": "None",
+  "@trafficStatusNone": {
+    "description": "Status chip: flows with no response yet."
+  },
+  "trafficClearFilters": "Clear Filters",
+  "@trafficClearFilters": {
+    "description": "Button: remove every filter and the search text."
+  },
+  "trafficFollow": "Follow",
+  "@trafficFollow": {
+    "description": "Switch label: keep the list at its end as flows arrive."
+  },
+  "trafficColID": "#",
+  "@trafficColID": {
+    "description": "Column header of a flow's number."
+  },
+  "trafficColTime": "Time",
+  "@trafficColTime": {
+    "description": "Column header: when the flow started."
+  },
+  "trafficColMethod": "Method",
+  "@trafficColMethod": {
+    "description": "Column header: the HTTP method."
+  },
+  "trafficColHost": "Host",
+  "@trafficColHost": {
+    "description": "Column header: the host of the request."
+  },
+  "trafficColPath": "Path",
+  "@trafficColPath": {
+    "description": "Column header: the path and query of the request."
+  },
+  "trafficColType": "Type",
+  "@trafficColType": {
+    "description": "Column header: the response's media type."
+  },
+  "trafficColSize": "Size",
+  "@trafficColSize": {
+    "description": "Column header: the bytes of the response or packet."
+  },
+  "trafficColDuration": "Took",
+  "@trafficColDuration": {
+    "description": "Column header: how long the flow took."
+  },
+  "trafficColProtocol": "Protocol",
+  "@trafficColProtocol": {
+    "description": "Column header: the protocol of a packet."
+  },
+  "trafficColDestination": "Destination",
+  "@trafficColDestination": {
+    "description": "Column header: where a packet went."
+  },
+  "trafficColInfo": "Info",
+  "@trafficColInfo": {
+    "description": "Column header: what a packet is, in one line."
+  },
+  "trafficColLength": "Length",
+  "@trafficColLength": {
+    "description": "Column header: the length of a packet."
+  },
+  "trafficFailed": "Failed",
+  "@trafficFailed": {
+    "description": "Flow state: the connection broke or the server could not be reached."
+  },
+  "trafficBlocked": "Blocked",
+  "@trafficBlocked": {
+    "description": "Flow state: a rule refused it."
+  },
+  "trafficOpen": "Open",
+  "@trafficOpen": {
+    "description": "Flow state: the response has not finished."
+  },
+  "trafficEmpty": "Nothing captured yet",
+  "@trafficEmpty": {
+    "description": "Empty state title of the inspector's list."
+  },
+  "trafficEmptyProxy": "Press Start, then use the network as usual.",
+  "@trafficEmptyProxy": {
+    "description": "Empty state next step in proxy mode."
+  },
+  "trafficEmptyPackets": "Pick an interface, press Start, then use the network as usual.",
+  "@trafficEmptyPackets": {
+    "description": "Empty state next step in packet mode."
+  },
+  "trafficEmptyFiltered": "No flow matches these filters.",
+  "@trafficEmptyFiltered": {
+    "description": "Empty state when the filters hide every flow."
+  },
+  "trafficFilterHost": "Filter to This Host",
+  "@trafficFilterHost": {
+    "description": "Context menu item: show only the flows of this host."
+  },
+  "trafficCopyURL": "Copy URL",
+  "@trafficCopyURL": {
+    "description": "Context menu item: copy the flow's URL."
+  },
+  "trafficCopyRow": "Copy as Text",
+  "@trafficCopyRow": {
+    "description": "Context menu item: copy the row as text."
+  },
+  "trafficReplay": "Replay",
+  "@trafficReplay": {
+    "description": "Button and context menu item: send the request again."
+  },
+  "trafficTabOverview": "Overview",
+  "@trafficTabOverview": {
+    "description": "Detail tab: everything about the flow in one place."
+  },
+  "trafficTabRequest": "Request",
+  "@trafficTabRequest": {
+    "description": "Detail tab: the request's headers and body."
+  },
+  "trafficTabResponse": "Response",
+  "@trafficTabResponse": {
+    "description": "Detail tab: the response's headers and body."
+  },
+  "trafficTabLayers": "Layers",
+  "@trafficTabLayers": {
+    "description": "Detail tab: a packet's protocol layers."
+  },
+  "trafficTabHex": "Hex",
+  "@trafficTabHex": {
+    "description": "Detail tab: a packet's bytes as a hex dump."
+  },
+  "trafficURL": "URL",
+  "@trafficURL": {
+    "description": "Detail field: the whole URL of the request."
+  },
+  "trafficTLS": "TLS",
+  "@trafficTLS": {
+    "description": "Detail field: the TLS version of the flow."
+  },
+  "trafficServer": "Server",
+  "@trafficServer": {
+    "description": "Detail field: the address the proxy reached."
+  },
+  "trafficStarted": "Started",
+  "@trafficStarted": {
+    "description": "Detail field: when the flow started."
+  },
+  "trafficRuleHits": "Rules Applied",
+  "@trafficRuleHits": {
+    "description": "Detail field: the names of the rules that matched."
+  },
+  "trafficReplayOf": "Replay of {id}",
+  "@trafficReplayOf": {
+    "description": "Detail field: the number of the flow this one sent again.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficHeaders": "Headers",
+  "@trafficHeaders": {
+    "description": "Heading above a message's header lines."
+  },
+  "trafficNoBody": "No body",
+  "@trafficNoBody": {
+    "description": "Shown where a message carried no body."
+  },
+  "trafficBodyTruncated": "The body was cut at {size} while capturing.",
+  "@trafficBodyTruncated": {
+    "description": "Notice above a body the tool cut short.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficBodyCapped": "Showing the first {size}. Copying gives all of it.",
+  "@trafficBodyCapped": {
+    "description": "Notice above a long body the view only lays out in part.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficImageBody": "{type} · {size}",
+  "@trafficImageBody": {
+    "description": "Caption of an image body: its type and size.",
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficBinaryBody": "{size} · {type}",
+  "@trafficBinaryBody": {
+    "description": "Caption of a binary body: its size and type.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficNoSelection": "Select a flow to see what it carried.",
+  "@trafficNoSelection": {
+    "description": "Empty state of the detail pane."
+  },
+  "trafficMillis": "{ms, number, ::group-off} ms",
+  "@trafficMillis": {
+    "description": "A duration shorter than a second.",
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "trafficSeconds": "{s, number, ::.0} s",
+  "@trafficSeconds": {
+    "description": "A duration of a second or more.",
+    "placeholders": {
+      "s": {
+        "type": "double"
+      }
+    }
+  },
+  "trafficErrTitle": "Something went wrong",
+  "@trafficErrTitle": {
+    "description": "Headline of an error the inspector cannot explain further."
+  },
+  "trafficErrDetail": "The details are in the log.",
+  "@trafficErrDetail": {
+    "description": "Line under an unexplained error."
+  },
+  "trafficErrPermissionTitle": "The system refused access",
+  "@trafficErrPermissionTitle": {
+    "description": "Headline when the system refuses the capture or the change."
+  },
+  "trafficErrPermissionSteps": "1. Open the system's security settings. 2. Allow oh-my-toys to capture network traffic: on macOS give your account access to /dev/bpf*, on Windows run oh-my-toys as administrator. 3. Press Start again.",
+  "@trafficErrPermissionSteps": {
+    "description": "Steps to fix a refused capture."
+  },
+  "trafficErrDriverTitle": "Install Npcap first",
+  "@trafficErrDriverTitle": {
+    "description": "Headline when the packet capture driver is missing."
+  },
+  "trafficErrDriverSteps": "Windows reads packets through Npcap. 1. Download it from npcap.com. 2. Install it. 3. Quit and reopen oh-my-toys, then press Start again.",
+  "@trafficErrDriverSteps": {
+    "description": "Steps to install the missing packet capture driver."
+  },
+  "trafficErrPortTitle": "That port is taken",
+  "@trafficErrPortTitle": {
+    "description": "Headline when another program holds the proxy port."
+  },
+  "trafficErrPortSteps": "1. Type another port above 1023 in the toolbar. 2. Quit the program that holds it, if you know which one. 3. Press Start again.",
+  "@trafficErrPortSteps": {
+    "description": "Steps to fix a taken port."
+  },
+  "trafficErrCertTitle": "The certificate is not trusted",
+  "@trafficErrCertTitle": {
+    "description": "Headline when HTTPS cannot be decrypted."
+  },
+  "trafficErrCertSteps": "1. Press Install beside the certificate. 2. Approve the prompt the system shows. 3. Press Start again.",
+  "@trafficErrCertSteps": {
+    "description": "Steps to trust the root certificate."
+  },
+  "trafficErrUnsupportedTitle": "Not available on this system",
+  "@trafficErrUnsupportedTitle": {
+    "description": "Headline when the system cannot do what was asked."
+  },
+  "trafficErrUnsupportedSteps": "This system cannot do that. Use proxy mode, or run oh-my-toys on macOS, Windows or Linux.",
+  "@trafficErrUnsupportedSteps": {
+    "description": "Steps when the system lacks the thing asked for."
+  },
+  "trafficUpstream": "Upstream proxy",
+  "@trafficUpstream": {
+    "description": "Field label: a proxy the capture sends its traffic through."
+  },
+  "trafficUpstreamPlaceholder": "None: go direct",
+  "@trafficUpstreamPlaceholder": {
+    "description": "Placeholder of the upstream proxy field."
+  },
+  "trafficUpstreamHint": "Use this when your internet only works through a proxy.",
+  "@trafficUpstreamHint": {
+    "description": "Help under the upstream proxy field."
+  },
+  "trafficUpstreamBad": "“{input}” is no proxy. Use http://host:port or socks5://host:port.",
+  "@trafficUpstreamBad": {
+    "description": "Error under the upstream proxy field when it is not an address.",
+    "placeholders": {
+      "input": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficDismiss": "Dismiss",
+  "@trafficDismiss": {
+    "description": "Button: close the error banner."
+  },
+  "trafficStart": "Start a capture",
+  "@trafficStart": {
+    "description": "Quick action title and spec summary: begin capturing."
+  },
+  "trafficStop": "Stop the capture and put the system proxy back",
+  "@trafficStop": {
+    "description": "Quick action title and spec summary: end the capture."
+  },
+  "trafficStatus": "Say whether a capture runs, and what it has recorded",
+  "@trafficStatus": {
+    "description": "Spec summary: report the capture's state."
+  },
+  "trafficRunningProxy": "Capturing {addr}, {flows, plural, one {# flow} other {# flows}}",
+  "@trafficRunningProxy": {
+    "description": "Status line while the proxy captures.",
+    "placeholders": {
+      "addr": {
+        "type": "String"
+      },
+      "flows": {
+        "type": "int"
+      }
+    }
+  },
+  "trafficRunningPackets": "Capturing {name}, {packets, plural, one {# packet} other {# packets}}",
+  "@trafficRunningPackets": {
+    "description": "Status line while packets are captured.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "packets": {
+        "type": "int"
+      }
+    }
+  },
+  "trafficDetail": "Details",
+  "@trafficDetail": {
+    "description": "Accessible name of the detail pane's tabs."
+  },
+  "trafficBody": "Body",
+  "@trafficBody": {
+    "description": "Accessible name of a message body."
+  },
+  "trafficGrantReason": "Oh My Toys needs to let administrator accounts on this Mac capture network traffic until the next restart.",
+  "@trafficGrantReason": {
+    "description": "What the system's prompt says when it asks to allow packet capture."
+  },
+  "trafficView": "View",
+  "@trafficView": {
+    "description": "Accessible name of the Flows and Rules tabs."
+  },
+  "trafficViewFlows": "Flows",
+  "@trafficViewFlows": {
+    "description": "Tab: the captured traffic."
+  },
+  "trafficViewRules": "Rules",
+  "@trafficViewRules": {
+    "description": "Tab: the rule book."
+  },
+  "trafficRulesHelp": "Rules apply in order: the first mock or block that matches ends it.",
+  "@trafficRulesHelp": {
+    "description": "One line above the rule list: order matters."
+  },
+  "trafficNewRule": "New Rule",
+  "@trafficNewRule": {
+    "description": "Button: start a rule of a chosen kind."
+  },
+  "trafficKindRewrite": "Rewrite",
+  "@trafficKindRewrite": {
+    "description": "Kind of rule: change the request or the response."
+  },
+  "trafficKindMock": "Mock",
+  "@trafficKindMock": {
+    "description": "Kind of rule: answer with a response of its own."
+  },
+  "trafficKindBlock": "Block",
+  "@trafficKindBlock": {
+    "description": "Kind of rule: close the connection without an answer."
+  },
+  "trafficKindDelay": "Delay",
+  "@trafficKindDelay": {
+    "description": "Kind of rule: hold the response back."
+  },
+  "trafficRulesEmpty": "No rules yet. Add one to rewrite, mock, block or delay traffic.",
+  "@trafficRulesEmpty": {
+    "description": "Empty state of the rule list."
+  },
+  "trafficRuleMoveUp": "Move Up",
+  "@trafficRuleMoveUp": {
+    "description": "Button: a rule takes effect earlier."
+  },
+  "trafficRuleMoveDown": "Move Down",
+  "@trafficRuleMoveDown": {
+    "description": "Button: a rule takes effect later."
+  },
+  "trafficRuleDuplicate": "Duplicate",
+  "@trafficRuleDuplicate": {
+    "description": "Button: copy the chosen rule."
+  },
+  "trafficRuleDelete": "Delete",
+  "@trafficRuleDelete": {
+    "description": "Button: remove the chosen rule."
+  },
+  "trafficRuleDeleteTitle": "Delete “{name}”?",
+  "@trafficRuleDeleteTitle": {
+    "description": "Dialog title before removing a rule.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "trafficRuleDeleteBody": "Traffic it changed goes out as it is again.",
+  "@trafficRuleDeleteBody": {
+    "description": "Dialog text: what removing a rule costs."
+  },
+  "trafficRuleUntitled": "Untitled rule",
+  "@trafficRuleUntitled": {
+    "description": "Name shown for a rule that has none."
+  },
+  "trafficRuleName": "Name",
+  "@trafficRuleName": {
+    "description": "Field label: what a rule is called."
+  },
+  "trafficRulePattern": "Pattern",
+  "@trafficRulePattern": {
+    "description": "Field label: what a rule matches."
+  },
+  "trafficRulePatternHint": "scheme://host/path?query, with * for any run of characters",
+  "@trafficRulePatternHint": {
+    "description": "Hint under the pattern field."
+  },
+  "trafficRuleRegexp": "Regular expression",
+  "@trafficRuleRegexp": {
+    "description": "Switch label: read the pattern as a regular expression."
+  },
+  "trafficRuleMethods": "Methods",
+  "@trafficRuleMethods": {
+    "description": "Group label above the method chips of a rule."
+  },
+  "trafficRuleStatusKeep": "Keep",
+  "@trafficRuleStatusKeep": {
+    "description": "Placeholder of the status field: the response keeps its status."
+  },
+  "trafficRuleStatusBad": "Enter a status from 200 to 599",
+  "@trafficRuleStatusBad": {
+    "description": "Error under the status field."
+  },
+  "trafficRulePatternBad": "A rule needs a pattern",
+  "@trafficRulePatternBad": {
+    "description": "Error under an empty pattern."
+  },
+  "trafficRuleRegexpBad": "This pattern is not a valid regular expression",
+  "@trafficRuleRegexpBad": {
+    "description": "Error under a pattern that does not compile."
+  },
+  "trafficRuleDelay": "Delay",
+  "@trafficRuleDelay": {
+    "description": "Field label: how long a delay rule holds the response."
+  },
+  "trafficRuleDelayHint": "0 to 300000 milliseconds",
+  "@trafficRuleDelayHint": {
+    "description": "Hint under the delay field."
+  },
+  "trafficRuleDelayBad": "Enter a delay of 0 to 300000 milliseconds",
+  "@trafficRuleDelayBad": {
+    "description": "Error under the delay field."
+  },
+  "trafficRuleRedirect": "Redirect to",
+  "@trafficRuleRedirect": {
+    "description": "Field label: the URL a rewrite sends the request to."
+  },
+  "trafficRuleRedirectHint": "Send the request to this URL instead",
+  "@trafficRuleRedirectHint": {
+    "description": "Hint under the redirect field."
+  },
+  "trafficRuleReqHeaders": "Request headers",
+  "@trafficRuleReqHeaders": {
+    "description": "Heading above the request header edits."
+  },
+  "trafficRuleRespHeaders": "Response headers",
+  "@trafficRuleRespHeaders": {
+    "description": "Heading above the response header edits."
+  },
+  "trafficRuleHeaderName": "Name",
+  "@trafficRuleHeaderName": {
+    "description": "Field label of a header edit's name."
+  },
+  "trafficRuleHeaderValue": "Value",
+  "@trafficRuleHeaderValue": {
+    "description": "Field label of a header edit's value."
+  },
+  "trafficRuleHeaderRemove": "Remove",
+  "@trafficRuleHeaderRemove": {
+    "description": "Switch label: remove this header instead of setting it."
+  },
+  "trafficRuleHeaderBad": "A header row needs a name",
+  "@trafficRuleHeaderBad": {
+    "description": "Error under a header edit without a name."
+  },
+  "trafficRuleAddHeader": "Add Header",
+  "@trafficRuleAddHeader": {
+    "description": "Button: one more header edit."
+  },
+  "trafficRuleRemoveRow": "Remove This Row",
+  "@trafficRuleRemoveRow": {
+    "description": "Button: take a header edit out of the list."
+  },
+  "trafficRuleReqBody": "Request body",
+  "@trafficRuleReqBody": {
+    "description": "Heading above the request body edit."
+  },
+  "trafficRuleRespBody": "Response body",
+  "@trafficRuleRespBody": {
+    "description": "Heading above the response body edit."
+  },
+  "trafficRuleFind": "Find",
+  "@trafficRuleFind": {
+    "description": "Field label: text a body edit replaces."
+  },
+  "trafficRuleReplace": "Replace with",
+  "@trafficRuleReplace": {
+    "description": "Field label: what a body edit writes instead."
+  },
+  "trafficRuleBodyHelp": "Leave Find empty to replace the whole body.",
+  "@trafficRuleBodyHelp": {
+    "description": "Help under a body edit."
+  },
+  "trafficRuleMockFile": "Serve a file",
+  "@trafficRuleMockFile": {
+    "description": "Field label: a local file answered instead of the body."
+  },
+  "trafficRuleMockFileHint": "A chosen file is served instead of the body above.",
+  "@trafficRuleMockFileHint": {
+    "description": "Hint under the mock file field."
+  },
+  "trafficRuleChooseFile": "Choose File…",
+  "@trafficRuleChooseFile": {
+    "description": "Button: pick the file a mock serves."
+  },
+  "trafficRuleClearFile": "Use the Body",
+  "@trafficRuleClearFile": {
+    "description": "Button: forget the chosen file."
+  },
+  "trafficRuleBlockNote": "A block closes the connection without an answer.",
+  "@trafficRuleBlockNote": {
+    "description": "What a block rule does, under the form."
+  },
+  "trafficRuleNotSaved": "The rule was not saved",
+  "@trafficRuleNotSaved": {
+    "description": "Headline above the engine's error."
+  },
+  "trafficRuleFlash": "Rule saved",
+  "@trafficRuleFlash": {
+    "description": "Toast after the rule book is kept."
+  },
+  "trafficMockThis": "Mock This Response",
+  "@trafficMockThis": {
+    "description": "Menu item: a mock rule from the chosen flow."
+  },
+  "trafficBlockThisURL": "Block This URL",
+  "@trafficBlockThisURL": {
+    "description": "Menu item: a block rule for this URL."
+  },
+  "trafficBlockThisHost": "Block This Host",
+  "@trafficBlockThisHost": {
+    "description": "Menu item: a block rule for this host."
+  },
+  "trafficRuleRewriteResponse": "Rewrite Response…",
+  "@trafficRuleRewriteResponse": {
+    "description": "Menu item: a rewrite rule from the chosen flow."
+  },
+  "trafficEditRule": "Edit Rule",
+  "@trafficEditRule": {
+    "description": "Link beside a rule that fired in a flow's detail."
+  },
+  "trafficRuleDeleteConfirm": "Delete Rule",
+  "@trafficRuleDeleteConfirm": {
+    "description": "Button in the dialog that deletes a rule."
+  },
+  "trafficCaptureStoppedNote": "The capture stopped. See the log for the reason.",
+  "@trafficCaptureStoppedNote": {
+    "description": "Status note when a capture stops on its own."
   }
 }

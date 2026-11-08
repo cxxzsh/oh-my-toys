@@ -4261,3 +4261,2325 @@ func WeekdayNameSun() string { return In(i18n.Locale()).WeekdayNameSun() }
 func (msgs Messages) WeekdayNameSun() string {
 	return Catalog.Format(msgs.locale, "weekdayNameSun", nil)
 }
+
+// TrafficName says "Traffic"
+// in the language the app shows.
+//
+// Tool name.
+func TrafficName() string { return In(i18n.Locale()).TrafficName() }
+
+// TrafficName says "Traffic"
+// in the language of msgs.
+//
+// Tool name.
+func (msgs Messages) TrafficName() string {
+	return Catalog.Format(msgs.locale, "trafficName", nil)
+}
+
+// TrafficSummary says "Capture, inspect and rewrite network traffic."
+// in the language the app shows.
+//
+// Tool summary.
+func TrafficSummary() string { return In(i18n.Locale()).TrafficSummary() }
+
+// TrafficSummary says "Capture, inspect and rewrite network traffic."
+// in the language of msgs.
+//
+// Tool summary.
+func (msgs Messages) TrafficSummary() string {
+	return Catalog.Format(msgs.locale, "trafficSummary", nil)
+}
+
+// TrafficModeProxy says "Proxy"
+// in the language the app shows.
+//
+// Capture mode: a local HTTP(S) proxy.
+func TrafficModeProxy() string { return In(i18n.Locale()).TrafficModeProxy() }
+
+// TrafficModeProxy says "Proxy"
+// in the language of msgs.
+//
+// Capture mode: a local HTTP(S) proxy.
+func (msgs Messages) TrafficModeProxy() string {
+	return Catalog.Format(msgs.locale, "trafficModeProxy", nil)
+}
+
+// TrafficModePackets says "Packets"
+// in the language the app shows.
+//
+// Capture mode: the packets of one network interface.
+func TrafficModePackets() string { return In(i18n.Locale()).TrafficModePackets() }
+
+// TrafficModePackets says "Packets"
+// in the language of msgs.
+//
+// Capture mode: the packets of one network interface.
+func (msgs Messages) TrafficModePackets() string {
+	return Catalog.Format(msgs.locale, "trafficModePackets", nil)
+}
+
+// TrafficPort says "Port"
+// in the language the app shows.
+//
+// Field label: the proxy's port.
+func TrafficPort() string { return In(i18n.Locale()).TrafficPort() }
+
+// TrafficPort says "Port"
+// in the language of msgs.
+//
+// Field label: the proxy's port.
+func (msgs Messages) TrafficPort() string {
+	return Catalog.Format(msgs.locale, "trafficPort", nil)
+}
+
+// TrafficPortBad says "“{input}” is no port. Use a number from 1024 to 65535, such as 9099."
+// in the language the app shows.
+//
+// Error under the port field when it is not a usable port.
+func TrafficPortBad(input string) string { return In(i18n.Locale()).TrafficPortBad(input) }
+
+// TrafficPortBad says "“{input}” is no port. Use a number from 1024 to 65535, such as 9099."
+// in the language of msgs.
+//
+// Error under the port field when it is not a usable port.
+func (msgs Messages) TrafficPortBad(input string) string {
+	return Catalog.Format(msgs.locale, "trafficPortBad", map[string]any{"input": input})
+}
+
+// TrafficSystemProxy says "Set as system proxy"
+// in the language the app shows.
+//
+// Switch label: point the system proxy at the capture proxy.
+func TrafficSystemProxy() string { return In(i18n.Locale()).TrafficSystemProxy() }
+
+// TrafficSystemProxy says "Set as system proxy"
+// in the language of msgs.
+//
+// Switch label: point the system proxy at the capture proxy.
+func (msgs Messages) TrafficSystemProxy() string {
+	return Catalog.Format(msgs.locale, "trafficSystemProxy", nil)
+}
+
+// TrafficDecrypt says "Decrypt HTTPS"
+// in the language the app shows.
+//
+// Switch label: open HTTPS with the app's certificate.
+func TrafficDecrypt() string { return In(i18n.Locale()).TrafficDecrypt() }
+
+// TrafficDecrypt says "Decrypt HTTPS"
+// in the language of msgs.
+//
+// Switch label: open HTTPS with the app's certificate.
+func (msgs Messages) TrafficDecrypt() string {
+	return Catalog.Format(msgs.locale, "trafficDecrypt", nil)
+}
+
+// TrafficBypass says "Bypass"
+// in the language the app shows.
+//
+// Field label: hosts that are never decrypted.
+func TrafficBypass() string { return In(i18n.Locale()).TrafficBypass() }
+
+// TrafficBypass says "Bypass"
+// in the language of msgs.
+//
+// Field label: hosts that are never decrypted.
+func (msgs Messages) TrafficBypass() string {
+	return Catalog.Format(msgs.locale, "trafficBypass", nil)
+}
+
+// TrafficBypassHint says "Hosts never decrypted, such as *.local, separated by commas"
+// in the language the app shows.
+//
+// Hint under the bypass field.
+func TrafficBypassHint() string { return In(i18n.Locale()).TrafficBypassHint() }
+
+// TrafficBypassHint says "Hosts never decrypted, such as *.local, separated by commas"
+// in the language of msgs.
+//
+// Hint under the bypass field.
+func (msgs Messages) TrafficBypassHint() string {
+	return Catalog.Format(msgs.locale, "trafficBypassHint", nil)
+}
+
+// TrafficInterface says "Interface"
+// in the language the app shows.
+//
+// Field label: the interface packets are read from.
+func TrafficInterface() string { return In(i18n.Locale()).TrafficInterface() }
+
+// TrafficInterface says "Interface"
+// in the language of msgs.
+//
+// Field label: the interface packets are read from.
+func (msgs Messages) TrafficInterface() string {
+	return Catalog.Format(msgs.locale, "trafficInterface", nil)
+}
+
+// TrafficNoInterfaces says "No interface to read"
+// in the language the app shows.
+//
+// Shown when the system lists no interface for packet capture.
+func TrafficNoInterfaces() string { return In(i18n.Locale()).TrafficNoInterfaces() }
+
+// TrafficNoInterfaces says "No interface to read"
+// in the language of msgs.
+//
+// Shown when the system lists no interface for packet capture.
+func (msgs Messages) TrafficNoInterfaces() string {
+	return Catalog.Format(msgs.locale, "trafficNoInterfaces", nil)
+}
+
+// TrafficClear says "Clear"
+// in the language the app shows.
+//
+// Button: forget every captured flow.
+func TrafficClear() string { return In(i18n.Locale()).TrafficClear() }
+
+// TrafficClear says "Clear"
+// in the language of msgs.
+//
+// Button: forget every captured flow.
+func (msgs Messages) TrafficClear() string {
+	return Catalog.Format(msgs.locale, "trafficClear", nil)
+}
+
+// TrafficExport says "Export HAR…"
+// in the language the app shows.
+//
+// Button: save the flows shown as a HAR file.
+func TrafficExport() string { return In(i18n.Locale()).TrafficExport() }
+
+// TrafficExport says "Export HAR…"
+// in the language of msgs.
+//
+// Button: save the flows shown as a HAR file.
+func (msgs Messages) TrafficExport() string {
+	return Catalog.Format(msgs.locale, "trafficExport", nil)
+}
+
+// TrafficExported says "Exported {path}"
+// in the language the app shows.
+//
+// Toast after saving a HAR file.
+func TrafficExported(path string) string { return In(i18n.Locale()).TrafficExported(path) }
+
+// TrafficExported says "Exported {path}"
+// in the language of msgs.
+//
+// Toast after saving a HAR file.
+func (msgs Messages) TrafficExported(path string) string {
+	return Catalog.Format(msgs.locale, "trafficExported", map[string]any{"path": path})
+}
+
+// TrafficCert says "Certificate"
+// in the language the app shows.
+//
+// Label of the app's root certificate and its state.
+func TrafficCert() string { return In(i18n.Locale()).TrafficCert() }
+
+// TrafficCert says "Certificate"
+// in the language of msgs.
+//
+// Label of the app's root certificate and its state.
+func (msgs Messages) TrafficCert() string {
+	return Catalog.Format(msgs.locale, "trafficCert", nil)
+}
+
+// TrafficCertMissing says "Not created"
+// in the language the app shows.
+//
+// Certificate state: it has not been made yet.
+func TrafficCertMissing() string { return In(i18n.Locale()).TrafficCertMissing() }
+
+// TrafficCertMissing says "Not created"
+// in the language of msgs.
+//
+// Certificate state: it has not been made yet.
+func (msgs Messages) TrafficCertMissing() string {
+	return Catalog.Format(msgs.locale, "trafficCertMissing", nil)
+}
+
+// TrafficCertUntrusted says "Not trusted"
+// in the language the app shows.
+//
+// Certificate state: it exists but the system does not trust it.
+func TrafficCertUntrusted() string { return In(i18n.Locale()).TrafficCertUntrusted() }
+
+// TrafficCertUntrusted says "Not trusted"
+// in the language of msgs.
+//
+// Certificate state: it exists but the system does not trust it.
+func (msgs Messages) TrafficCertUntrusted() string {
+	return Catalog.Format(msgs.locale, "trafficCertUntrusted", nil)
+}
+
+// TrafficCertTrusted says "Trusted"
+// in the language the app shows.
+//
+// Certificate state: the system trusts it.
+func TrafficCertTrusted() string { return In(i18n.Locale()).TrafficCertTrusted() }
+
+// TrafficCertTrusted says "Trusted"
+// in the language of msgs.
+//
+// Certificate state: the system trusts it.
+func (msgs Messages) TrafficCertTrusted() string {
+	return Catalog.Format(msgs.locale, "trafficCertTrusted", nil)
+}
+
+// TrafficCertChip says "{state} · {fingerprint}"
+// in the language the app shows.
+//
+// Certificate chip: the state and the short fingerprint.
+func TrafficCertChip(state string, fingerprint string) string {
+	return In(i18n.Locale()).TrafficCertChip(state, fingerprint)
+}
+
+// TrafficCertChip says "{state} · {fingerprint}"
+// in the language of msgs.
+//
+// Certificate chip: the state and the short fingerprint.
+func (msgs Messages) TrafficCertChip(state string, fingerprint string) string {
+	return Catalog.Format(msgs.locale, "trafficCertChip", map[string]any{"state": state, "fingerprint": fingerprint})
+}
+
+// TrafficCertInstall says "Install"
+// in the language the app shows.
+//
+// Button: make the system trust the certificate.
+func TrafficCertInstall() string { return In(i18n.Locale()).TrafficCertInstall() }
+
+// TrafficCertInstall says "Install"
+// in the language of msgs.
+//
+// Button: make the system trust the certificate.
+func (msgs Messages) TrafficCertInstall() string {
+	return Catalog.Format(msgs.locale, "trafficCertInstall", nil)
+}
+
+// TrafficCertRemove says "Remove"
+// in the language the app shows.
+//
+// Button: stop trusting the certificate and delete its key.
+func TrafficCertRemove() string { return In(i18n.Locale()).TrafficCertRemove() }
+
+// TrafficCertRemove says "Remove"
+// in the language of msgs.
+//
+// Button: stop trusting the certificate and delete its key.
+func (msgs Messages) TrafficCertRemove() string {
+	return Catalog.Format(msgs.locale, "trafficCertRemove", nil)
+}
+
+// TrafficCertCopyPath says "Copy PEM Path"
+// in the language the app shows.
+//
+// Button: copy the path of the certificate's PEM file.
+func TrafficCertCopyPath() string { return In(i18n.Locale()).TrafficCertCopyPath() }
+
+// TrafficCertCopyPath says "Copy PEM Path"
+// in the language of msgs.
+//
+// Button: copy the path of the certificate's PEM file.
+func (msgs Messages) TrafficCertCopyPath() string {
+	return Catalog.Format(msgs.locale, "trafficCertCopyPath", nil)
+}
+
+// TrafficCertCopied says "Copied the certificate path"
+// in the language the app shows.
+//
+// Toast after copying the PEM path.
+func TrafficCertCopied() string { return In(i18n.Locale()).TrafficCertCopied() }
+
+// TrafficCertCopied says "Copied the certificate path"
+// in the language of msgs.
+//
+// Toast after copying the PEM path.
+func (msgs Messages) TrafficCertCopied() string {
+	return Catalog.Format(msgs.locale, "trafficCertCopied", nil)
+}
+
+// TrafficCertRemoveTitle says "Remove the certificate?"
+// in the language the app shows.
+//
+// Dialog title before removing the root certificate.
+func TrafficCertRemoveTitle() string { return In(i18n.Locale()).TrafficCertRemoveTitle() }
+
+// TrafficCertRemoveTitle says "Remove the certificate?"
+// in the language of msgs.
+//
+// Dialog title before removing the root certificate.
+func (msgs Messages) TrafficCertRemoveTitle() string {
+	return Catalog.Format(msgs.locale, "trafficCertRemoveTitle", nil)
+}
+
+// TrafficCertRemoveBody says "HTTPS flows show as tunnels until you install it again. The key is deleted from this computer."
+// in the language the app shows.
+//
+// Dialog text: what removing the certificate costs.
+func TrafficCertRemoveBody() string { return In(i18n.Locale()).TrafficCertRemoveBody() }
+
+// TrafficCertRemoveBody says "HTTPS flows show as tunnels until you install it again. The key is deleted from this computer."
+// in the language of msgs.
+//
+// Dialog text: what removing the certificate costs.
+func (msgs Messages) TrafficCertRemoveBody() string {
+	return Catalog.Format(msgs.locale, "trafficCertRemoveBody", nil)
+}
+
+// TrafficSearch says "Search URL, headers and body"
+// in the language the app shows.
+//
+// Placeholder of the inspector's search field.
+func TrafficSearch() string { return In(i18n.Locale()).TrafficSearch() }
+
+// TrafficSearch says "Search URL, headers and body"
+// in the language of msgs.
+//
+// Placeholder of the inspector's search field.
+func (msgs Messages) TrafficSearch() string {
+	return Catalog.Format(msgs.locale, "trafficSearch", nil)
+}
+
+// TrafficFilterFailed says "Failed only"
+// in the language the app shows.
+//
+// Chip: show only flows that failed or were blocked.
+func TrafficFilterFailed() string { return In(i18n.Locale()).TrafficFilterFailed() }
+
+// TrafficFilterFailed says "Failed only"
+// in the language of msgs.
+//
+// Chip: show only flows that failed or were blocked.
+func (msgs Messages) TrafficFilterFailed() string {
+	return Catalog.Format(msgs.locale, "trafficFilterFailed", nil)
+}
+
+// TrafficMethods says "Methods"
+// in the language the app shows.
+//
+// Accessible name of the method filter chips.
+func TrafficMethods() string { return In(i18n.Locale()).TrafficMethods() }
+
+// TrafficMethods says "Methods"
+// in the language of msgs.
+//
+// Accessible name of the method filter chips.
+func (msgs Messages) TrafficMethods() string {
+	return Catalog.Format(msgs.locale, "trafficMethods", nil)
+}
+
+// TrafficTypes says "Types"
+// in the language the app shows.
+//
+// Accessible name of the media type filter chips.
+func TrafficTypes() string { return In(i18n.Locale()).TrafficTypes() }
+
+// TrafficTypes says "Types"
+// in the language of msgs.
+//
+// Accessible name of the media type filter chips.
+func (msgs Messages) TrafficTypes() string {
+	return Catalog.Format(msgs.locale, "trafficTypes", nil)
+}
+
+// TrafficTypeJSON says "JSON"
+// in the language the app shows.
+//
+// Type chip: JSON responses.
+func TrafficTypeJSON() string { return In(i18n.Locale()).TrafficTypeJSON() }
+
+// TrafficTypeJSON says "JSON"
+// in the language of msgs.
+//
+// Type chip: JSON responses.
+func (msgs Messages) TrafficTypeJSON() string {
+	return Catalog.Format(msgs.locale, "trafficTypeJSON", nil)
+}
+
+// TrafficTypeHTML says "HTML"
+// in the language the app shows.
+//
+// Type chip: HTML responses.
+func TrafficTypeHTML() string { return In(i18n.Locale()).TrafficTypeHTML() }
+
+// TrafficTypeHTML says "HTML"
+// in the language of msgs.
+//
+// Type chip: HTML responses.
+func (msgs Messages) TrafficTypeHTML() string {
+	return Catalog.Format(msgs.locale, "trafficTypeHTML", nil)
+}
+
+// TrafficTypeJS says "JS"
+// in the language the app shows.
+//
+// Type chip: JavaScript responses.
+func TrafficTypeJS() string { return In(i18n.Locale()).TrafficTypeJS() }
+
+// TrafficTypeJS says "JS"
+// in the language of msgs.
+//
+// Type chip: JavaScript responses.
+func (msgs Messages) TrafficTypeJS() string {
+	return Catalog.Format(msgs.locale, "trafficTypeJS", nil)
+}
+
+// TrafficTypeCSS says "CSS"
+// in the language the app shows.
+//
+// Type chip: CSS responses.
+func TrafficTypeCSS() string { return In(i18n.Locale()).TrafficTypeCSS() }
+
+// TrafficTypeCSS says "CSS"
+// in the language of msgs.
+//
+// Type chip: CSS responses.
+func (msgs Messages) TrafficTypeCSS() string {
+	return Catalog.Format(msgs.locale, "trafficTypeCSS", nil)
+}
+
+// TrafficTypeImage says "Image"
+// in the language the app shows.
+//
+// Type chip: images.
+func TrafficTypeImage() string { return In(i18n.Locale()).TrafficTypeImage() }
+
+// TrafficTypeImage says "Image"
+// in the language of msgs.
+//
+// Type chip: images.
+func (msgs Messages) TrafficTypeImage() string {
+	return Catalog.Format(msgs.locale, "trafficTypeImage", nil)
+}
+
+// TrafficTypeOther says "Other"
+// in the language the app shows.
+//
+// Type chip: every other response type.
+func TrafficTypeOther() string { return In(i18n.Locale()).TrafficTypeOther() }
+
+// TrafficTypeOther says "Other"
+// in the language of msgs.
+//
+// Type chip: every other response type.
+func (msgs Messages) TrafficTypeOther() string {
+	return Catalog.Format(msgs.locale, "trafficTypeOther", nil)
+}
+
+// TrafficStatusNone says "None"
+// in the language the app shows.
+//
+// Status chip: flows with no response yet.
+func TrafficStatusNone() string { return In(i18n.Locale()).TrafficStatusNone() }
+
+// TrafficStatusNone says "None"
+// in the language of msgs.
+//
+// Status chip: flows with no response yet.
+func (msgs Messages) TrafficStatusNone() string {
+	return Catalog.Format(msgs.locale, "trafficStatusNone", nil)
+}
+
+// TrafficClearFilters says "Clear Filters"
+// in the language the app shows.
+//
+// Button: remove every filter and the search text.
+func TrafficClearFilters() string { return In(i18n.Locale()).TrafficClearFilters() }
+
+// TrafficClearFilters says "Clear Filters"
+// in the language of msgs.
+//
+// Button: remove every filter and the search text.
+func (msgs Messages) TrafficClearFilters() string {
+	return Catalog.Format(msgs.locale, "trafficClearFilters", nil)
+}
+
+// TrafficFollow says "Follow"
+// in the language the app shows.
+//
+// Switch label: keep the list at its end as flows arrive.
+func TrafficFollow() string { return In(i18n.Locale()).TrafficFollow() }
+
+// TrafficFollow says "Follow"
+// in the language of msgs.
+//
+// Switch label: keep the list at its end as flows arrive.
+func (msgs Messages) TrafficFollow() string {
+	return Catalog.Format(msgs.locale, "trafficFollow", nil)
+}
+
+// TrafficColID says "#"
+// in the language the app shows.
+//
+// Column header of a flow's number.
+func TrafficColID() string { return In(i18n.Locale()).TrafficColID() }
+
+// TrafficColID says "#"
+// in the language of msgs.
+//
+// Column header of a flow's number.
+func (msgs Messages) TrafficColID() string {
+	return Catalog.Format(msgs.locale, "trafficColID", nil)
+}
+
+// TrafficColTime says "Time"
+// in the language the app shows.
+//
+// Column header: when the flow started.
+func TrafficColTime() string { return In(i18n.Locale()).TrafficColTime() }
+
+// TrafficColTime says "Time"
+// in the language of msgs.
+//
+// Column header: when the flow started.
+func (msgs Messages) TrafficColTime() string {
+	return Catalog.Format(msgs.locale, "trafficColTime", nil)
+}
+
+// TrafficColMethod says "Method"
+// in the language the app shows.
+//
+// Column header: the HTTP method.
+func TrafficColMethod() string { return In(i18n.Locale()).TrafficColMethod() }
+
+// TrafficColMethod says "Method"
+// in the language of msgs.
+//
+// Column header: the HTTP method.
+func (msgs Messages) TrafficColMethod() string {
+	return Catalog.Format(msgs.locale, "trafficColMethod", nil)
+}
+
+// TrafficColHost says "Host"
+// in the language the app shows.
+//
+// Column header: the host of the request.
+func TrafficColHost() string { return In(i18n.Locale()).TrafficColHost() }
+
+// TrafficColHost says "Host"
+// in the language of msgs.
+//
+// Column header: the host of the request.
+func (msgs Messages) TrafficColHost() string {
+	return Catalog.Format(msgs.locale, "trafficColHost", nil)
+}
+
+// TrafficColPath says "Path"
+// in the language the app shows.
+//
+// Column header: the path and query of the request.
+func TrafficColPath() string { return In(i18n.Locale()).TrafficColPath() }
+
+// TrafficColPath says "Path"
+// in the language of msgs.
+//
+// Column header: the path and query of the request.
+func (msgs Messages) TrafficColPath() string {
+	return Catalog.Format(msgs.locale, "trafficColPath", nil)
+}
+
+// TrafficColType says "Type"
+// in the language the app shows.
+//
+// Column header: the response's media type.
+func TrafficColType() string { return In(i18n.Locale()).TrafficColType() }
+
+// TrafficColType says "Type"
+// in the language of msgs.
+//
+// Column header: the response's media type.
+func (msgs Messages) TrafficColType() string {
+	return Catalog.Format(msgs.locale, "trafficColType", nil)
+}
+
+// TrafficColSize says "Size"
+// in the language the app shows.
+//
+// Column header: the bytes of the response or packet.
+func TrafficColSize() string { return In(i18n.Locale()).TrafficColSize() }
+
+// TrafficColSize says "Size"
+// in the language of msgs.
+//
+// Column header: the bytes of the response or packet.
+func (msgs Messages) TrafficColSize() string {
+	return Catalog.Format(msgs.locale, "trafficColSize", nil)
+}
+
+// TrafficColDuration says "Took"
+// in the language the app shows.
+//
+// Column header: how long the flow took.
+func TrafficColDuration() string { return In(i18n.Locale()).TrafficColDuration() }
+
+// TrafficColDuration says "Took"
+// in the language of msgs.
+//
+// Column header: how long the flow took.
+func (msgs Messages) TrafficColDuration() string {
+	return Catalog.Format(msgs.locale, "trafficColDuration", nil)
+}
+
+// TrafficColProtocol says "Protocol"
+// in the language the app shows.
+//
+// Column header: the protocol of a packet.
+func TrafficColProtocol() string { return In(i18n.Locale()).TrafficColProtocol() }
+
+// TrafficColProtocol says "Protocol"
+// in the language of msgs.
+//
+// Column header: the protocol of a packet.
+func (msgs Messages) TrafficColProtocol() string {
+	return Catalog.Format(msgs.locale, "trafficColProtocol", nil)
+}
+
+// TrafficColDestination says "Destination"
+// in the language the app shows.
+//
+// Column header: where a packet went.
+func TrafficColDestination() string { return In(i18n.Locale()).TrafficColDestination() }
+
+// TrafficColDestination says "Destination"
+// in the language of msgs.
+//
+// Column header: where a packet went.
+func (msgs Messages) TrafficColDestination() string {
+	return Catalog.Format(msgs.locale, "trafficColDestination", nil)
+}
+
+// TrafficColInfo says "Info"
+// in the language the app shows.
+//
+// Column header: what a packet is, in one line.
+func TrafficColInfo() string { return In(i18n.Locale()).TrafficColInfo() }
+
+// TrafficColInfo says "Info"
+// in the language of msgs.
+//
+// Column header: what a packet is, in one line.
+func (msgs Messages) TrafficColInfo() string {
+	return Catalog.Format(msgs.locale, "trafficColInfo", nil)
+}
+
+// TrafficColLength says "Length"
+// in the language the app shows.
+//
+// Column header: the length of a packet.
+func TrafficColLength() string { return In(i18n.Locale()).TrafficColLength() }
+
+// TrafficColLength says "Length"
+// in the language of msgs.
+//
+// Column header: the length of a packet.
+func (msgs Messages) TrafficColLength() string {
+	return Catalog.Format(msgs.locale, "trafficColLength", nil)
+}
+
+// TrafficFailed says "Failed"
+// in the language the app shows.
+//
+// Flow state: the connection broke or the server could not be reached.
+func TrafficFailed() string { return In(i18n.Locale()).TrafficFailed() }
+
+// TrafficFailed says "Failed"
+// in the language of msgs.
+//
+// Flow state: the connection broke or the server could not be reached.
+func (msgs Messages) TrafficFailed() string {
+	return Catalog.Format(msgs.locale, "trafficFailed", nil)
+}
+
+// TrafficBlocked says "Blocked"
+// in the language the app shows.
+//
+// Flow state: a rule refused it.
+func TrafficBlocked() string { return In(i18n.Locale()).TrafficBlocked() }
+
+// TrafficBlocked says "Blocked"
+// in the language of msgs.
+//
+// Flow state: a rule refused it.
+func (msgs Messages) TrafficBlocked() string {
+	return Catalog.Format(msgs.locale, "trafficBlocked", nil)
+}
+
+// TrafficOpen says "Open"
+// in the language the app shows.
+//
+// Flow state: the response has not finished.
+func TrafficOpen() string { return In(i18n.Locale()).TrafficOpen() }
+
+// TrafficOpen says "Open"
+// in the language of msgs.
+//
+// Flow state: the response has not finished.
+func (msgs Messages) TrafficOpen() string {
+	return Catalog.Format(msgs.locale, "trafficOpen", nil)
+}
+
+// TrafficEmpty says "Nothing captured yet"
+// in the language the app shows.
+//
+// Empty state title of the inspector's list.
+func TrafficEmpty() string { return In(i18n.Locale()).TrafficEmpty() }
+
+// TrafficEmpty says "Nothing captured yet"
+// in the language of msgs.
+//
+// Empty state title of the inspector's list.
+func (msgs Messages) TrafficEmpty() string {
+	return Catalog.Format(msgs.locale, "trafficEmpty", nil)
+}
+
+// TrafficEmptyProxy says "Press Start, then use the network as usual."
+// in the language the app shows.
+//
+// Empty state next step in proxy mode.
+func TrafficEmptyProxy() string { return In(i18n.Locale()).TrafficEmptyProxy() }
+
+// TrafficEmptyProxy says "Press Start, then use the network as usual."
+// in the language of msgs.
+//
+// Empty state next step in proxy mode.
+func (msgs Messages) TrafficEmptyProxy() string {
+	return Catalog.Format(msgs.locale, "trafficEmptyProxy", nil)
+}
+
+// TrafficEmptyPackets says "Pick an interface, press Start, then use the network as usual."
+// in the language the app shows.
+//
+// Empty state next step in packet mode.
+func TrafficEmptyPackets() string { return In(i18n.Locale()).TrafficEmptyPackets() }
+
+// TrafficEmptyPackets says "Pick an interface, press Start, then use the network as usual."
+// in the language of msgs.
+//
+// Empty state next step in packet mode.
+func (msgs Messages) TrafficEmptyPackets() string {
+	return Catalog.Format(msgs.locale, "trafficEmptyPackets", nil)
+}
+
+// TrafficEmptyFiltered says "No flow matches these filters."
+// in the language the app shows.
+//
+// Empty state when the filters hide every flow.
+func TrafficEmptyFiltered() string { return In(i18n.Locale()).TrafficEmptyFiltered() }
+
+// TrafficEmptyFiltered says "No flow matches these filters."
+// in the language of msgs.
+//
+// Empty state when the filters hide every flow.
+func (msgs Messages) TrafficEmptyFiltered() string {
+	return Catalog.Format(msgs.locale, "trafficEmptyFiltered", nil)
+}
+
+// TrafficFilterHost says "Filter to This Host"
+// in the language the app shows.
+//
+// Context menu item: show only the flows of this host.
+func TrafficFilterHost() string { return In(i18n.Locale()).TrafficFilterHost() }
+
+// TrafficFilterHost says "Filter to This Host"
+// in the language of msgs.
+//
+// Context menu item: show only the flows of this host.
+func (msgs Messages) TrafficFilterHost() string {
+	return Catalog.Format(msgs.locale, "trafficFilterHost", nil)
+}
+
+// TrafficCopyURL says "Copy URL"
+// in the language the app shows.
+//
+// Context menu item: copy the flow's URL.
+func TrafficCopyURL() string { return In(i18n.Locale()).TrafficCopyURL() }
+
+// TrafficCopyURL says "Copy URL"
+// in the language of msgs.
+//
+// Context menu item: copy the flow's URL.
+func (msgs Messages) TrafficCopyURL() string {
+	return Catalog.Format(msgs.locale, "trafficCopyURL", nil)
+}
+
+// TrafficCopyRow says "Copy as Text"
+// in the language the app shows.
+//
+// Context menu item: copy the row as text.
+func TrafficCopyRow() string { return In(i18n.Locale()).TrafficCopyRow() }
+
+// TrafficCopyRow says "Copy as Text"
+// in the language of msgs.
+//
+// Context menu item: copy the row as text.
+func (msgs Messages) TrafficCopyRow() string {
+	return Catalog.Format(msgs.locale, "trafficCopyRow", nil)
+}
+
+// TrafficReplay says "Replay"
+// in the language the app shows.
+//
+// Button and context menu item: send the request again.
+func TrafficReplay() string { return In(i18n.Locale()).TrafficReplay() }
+
+// TrafficReplay says "Replay"
+// in the language of msgs.
+//
+// Button and context menu item: send the request again.
+func (msgs Messages) TrafficReplay() string {
+	return Catalog.Format(msgs.locale, "trafficReplay", nil)
+}
+
+// TrafficTabOverview says "Overview"
+// in the language the app shows.
+//
+// Detail tab: everything about the flow in one place.
+func TrafficTabOverview() string { return In(i18n.Locale()).TrafficTabOverview() }
+
+// TrafficTabOverview says "Overview"
+// in the language of msgs.
+//
+// Detail tab: everything about the flow in one place.
+func (msgs Messages) TrafficTabOverview() string {
+	return Catalog.Format(msgs.locale, "trafficTabOverview", nil)
+}
+
+// TrafficTabRequest says "Request"
+// in the language the app shows.
+//
+// Detail tab: the request's headers and body.
+func TrafficTabRequest() string { return In(i18n.Locale()).TrafficTabRequest() }
+
+// TrafficTabRequest says "Request"
+// in the language of msgs.
+//
+// Detail tab: the request's headers and body.
+func (msgs Messages) TrafficTabRequest() string {
+	return Catalog.Format(msgs.locale, "trafficTabRequest", nil)
+}
+
+// TrafficTabResponse says "Response"
+// in the language the app shows.
+//
+// Detail tab: the response's headers and body.
+func TrafficTabResponse() string { return In(i18n.Locale()).TrafficTabResponse() }
+
+// TrafficTabResponse says "Response"
+// in the language of msgs.
+//
+// Detail tab: the response's headers and body.
+func (msgs Messages) TrafficTabResponse() string {
+	return Catalog.Format(msgs.locale, "trafficTabResponse", nil)
+}
+
+// TrafficTabLayers says "Layers"
+// in the language the app shows.
+//
+// Detail tab: a packet's protocol layers.
+func TrafficTabLayers() string { return In(i18n.Locale()).TrafficTabLayers() }
+
+// TrafficTabLayers says "Layers"
+// in the language of msgs.
+//
+// Detail tab: a packet's protocol layers.
+func (msgs Messages) TrafficTabLayers() string {
+	return Catalog.Format(msgs.locale, "trafficTabLayers", nil)
+}
+
+// TrafficTabHex says "Hex"
+// in the language the app shows.
+//
+// Detail tab: a packet's bytes as a hex dump.
+func TrafficTabHex() string { return In(i18n.Locale()).TrafficTabHex() }
+
+// TrafficTabHex says "Hex"
+// in the language of msgs.
+//
+// Detail tab: a packet's bytes as a hex dump.
+func (msgs Messages) TrafficTabHex() string {
+	return Catalog.Format(msgs.locale, "trafficTabHex", nil)
+}
+
+// TrafficURL says "URL"
+// in the language the app shows.
+//
+// Detail field: the whole URL of the request.
+func TrafficURL() string { return In(i18n.Locale()).TrafficURL() }
+
+// TrafficURL says "URL"
+// in the language of msgs.
+//
+// Detail field: the whole URL of the request.
+func (msgs Messages) TrafficURL() string {
+	return Catalog.Format(msgs.locale, "trafficURL", nil)
+}
+
+// TrafficTLS says "TLS"
+// in the language the app shows.
+//
+// Detail field: the TLS version of the flow.
+func TrafficTLS() string { return In(i18n.Locale()).TrafficTLS() }
+
+// TrafficTLS says "TLS"
+// in the language of msgs.
+//
+// Detail field: the TLS version of the flow.
+func (msgs Messages) TrafficTLS() string {
+	return Catalog.Format(msgs.locale, "trafficTLS", nil)
+}
+
+// TrafficServer says "Server"
+// in the language the app shows.
+//
+// Detail field: the address the proxy reached.
+func TrafficServer() string { return In(i18n.Locale()).TrafficServer() }
+
+// TrafficServer says "Server"
+// in the language of msgs.
+//
+// Detail field: the address the proxy reached.
+func (msgs Messages) TrafficServer() string {
+	return Catalog.Format(msgs.locale, "trafficServer", nil)
+}
+
+// TrafficStarted says "Started"
+// in the language the app shows.
+//
+// Detail field: when the flow started.
+func TrafficStarted() string { return In(i18n.Locale()).TrafficStarted() }
+
+// TrafficStarted says "Started"
+// in the language of msgs.
+//
+// Detail field: when the flow started.
+func (msgs Messages) TrafficStarted() string {
+	return Catalog.Format(msgs.locale, "trafficStarted", nil)
+}
+
+// TrafficRuleHits says "Rules Applied"
+// in the language the app shows.
+//
+// Detail field: the names of the rules that matched.
+func TrafficRuleHits() string { return In(i18n.Locale()).TrafficRuleHits() }
+
+// TrafficRuleHits says "Rules Applied"
+// in the language of msgs.
+//
+// Detail field: the names of the rules that matched.
+func (msgs Messages) TrafficRuleHits() string {
+	return Catalog.Format(msgs.locale, "trafficRuleHits", nil)
+}
+
+// TrafficReplayOf says "Replay of {id}"
+// in the language the app shows.
+//
+// Detail field: the number of the flow this one sent again.
+func TrafficReplayOf(id string) string { return In(i18n.Locale()).TrafficReplayOf(id) }
+
+// TrafficReplayOf says "Replay of {id}"
+// in the language of msgs.
+//
+// Detail field: the number of the flow this one sent again.
+func (msgs Messages) TrafficReplayOf(id string) string {
+	return Catalog.Format(msgs.locale, "trafficReplayOf", map[string]any{"id": id})
+}
+
+// TrafficHeaders says "Headers"
+// in the language the app shows.
+//
+// Heading above a message's header lines.
+func TrafficHeaders() string { return In(i18n.Locale()).TrafficHeaders() }
+
+// TrafficHeaders says "Headers"
+// in the language of msgs.
+//
+// Heading above a message's header lines.
+func (msgs Messages) TrafficHeaders() string {
+	return Catalog.Format(msgs.locale, "trafficHeaders", nil)
+}
+
+// TrafficNoBody says "No body"
+// in the language the app shows.
+//
+// Shown where a message carried no body.
+func TrafficNoBody() string { return In(i18n.Locale()).TrafficNoBody() }
+
+// TrafficNoBody says "No body"
+// in the language of msgs.
+//
+// Shown where a message carried no body.
+func (msgs Messages) TrafficNoBody() string {
+	return Catalog.Format(msgs.locale, "trafficNoBody", nil)
+}
+
+// TrafficBodyTruncated says "The body was cut at {size} while capturing."
+// in the language the app shows.
+//
+// Notice above a body the tool cut short.
+func TrafficBodyTruncated(size string) string { return In(i18n.Locale()).TrafficBodyTruncated(size) }
+
+// TrafficBodyTruncated says "The body was cut at {size} while capturing."
+// in the language of msgs.
+//
+// Notice above a body the tool cut short.
+func (msgs Messages) TrafficBodyTruncated(size string) string {
+	return Catalog.Format(msgs.locale, "trafficBodyTruncated", map[string]any{"size": size})
+}
+
+// TrafficBodyCapped says "Showing the first {size}. Copying gives all of it."
+// in the language the app shows.
+//
+// Notice above a long body the view only lays out in part.
+func TrafficBodyCapped(size string) string { return In(i18n.Locale()).TrafficBodyCapped(size) }
+
+// TrafficBodyCapped says "Showing the first {size}. Copying gives all of it."
+// in the language of msgs.
+//
+// Notice above a long body the view only lays out in part.
+func (msgs Messages) TrafficBodyCapped(size string) string {
+	return Catalog.Format(msgs.locale, "trafficBodyCapped", map[string]any{"size": size})
+}
+
+// TrafficImageBody says "{type} · {size}"
+// in the language the app shows.
+//
+// Caption of an image body: its type and size.
+func TrafficImageBody(type_ string, size string) string {
+	return In(i18n.Locale()).TrafficImageBody(type_, size)
+}
+
+// TrafficImageBody says "{type} · {size}"
+// in the language of msgs.
+//
+// Caption of an image body: its type and size.
+func (msgs Messages) TrafficImageBody(type_ string, size string) string {
+	return Catalog.Format(msgs.locale, "trafficImageBody", map[string]any{"type": type_, "size": size})
+}
+
+// TrafficBinaryBody says "{size} · {type}"
+// in the language the app shows.
+//
+// Caption of a binary body: its size and type.
+func TrafficBinaryBody(size string, type_ string) string {
+	return In(i18n.Locale()).TrafficBinaryBody(size, type_)
+}
+
+// TrafficBinaryBody says "{size} · {type}"
+// in the language of msgs.
+//
+// Caption of a binary body: its size and type.
+func (msgs Messages) TrafficBinaryBody(size string, type_ string) string {
+	return Catalog.Format(msgs.locale, "trafficBinaryBody", map[string]any{"size": size, "type": type_})
+}
+
+// TrafficNoSelection says "Select a flow to see what it carried."
+// in the language the app shows.
+//
+// Empty state of the detail pane.
+func TrafficNoSelection() string { return In(i18n.Locale()).TrafficNoSelection() }
+
+// TrafficNoSelection says "Select a flow to see what it carried."
+// in the language of msgs.
+//
+// Empty state of the detail pane.
+func (msgs Messages) TrafficNoSelection() string {
+	return Catalog.Format(msgs.locale, "trafficNoSelection", nil)
+}
+
+// TrafficMillis says "{ms, number, ::group-off} ms"
+// in the language the app shows.
+//
+// A duration shorter than a second.
+func TrafficMillis(ms int) string { return In(i18n.Locale()).TrafficMillis(ms) }
+
+// TrafficMillis says "{ms, number, ::group-off} ms"
+// in the language of msgs.
+//
+// A duration shorter than a second.
+func (msgs Messages) TrafficMillis(ms int) string {
+	return Catalog.Format(msgs.locale, "trafficMillis", map[string]any{"ms": ms})
+}
+
+// TrafficSeconds says "{s, number, ::.0} s"
+// in the language the app shows.
+//
+// A duration of a second or more.
+func TrafficSeconds(s float64) string { return In(i18n.Locale()).TrafficSeconds(s) }
+
+// TrafficSeconds says "{s, number, ::.0} s"
+// in the language of msgs.
+//
+// A duration of a second or more.
+func (msgs Messages) TrafficSeconds(s float64) string {
+	return Catalog.Format(msgs.locale, "trafficSeconds", map[string]any{"s": s})
+}
+
+// TrafficErrTitle says "Something went wrong"
+// in the language the app shows.
+//
+// Headline of an error the inspector cannot explain further.
+func TrafficErrTitle() string { return In(i18n.Locale()).TrafficErrTitle() }
+
+// TrafficErrTitle says "Something went wrong"
+// in the language of msgs.
+//
+// Headline of an error the inspector cannot explain further.
+func (msgs Messages) TrafficErrTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrTitle", nil)
+}
+
+// TrafficErrDetail says "The details are in the log."
+// in the language the app shows.
+//
+// Line under an unexplained error.
+func TrafficErrDetail() string { return In(i18n.Locale()).TrafficErrDetail() }
+
+// TrafficErrDetail says "The details are in the log."
+// in the language of msgs.
+//
+// Line under an unexplained error.
+func (msgs Messages) TrafficErrDetail() string {
+	return Catalog.Format(msgs.locale, "trafficErrDetail", nil)
+}
+
+// TrafficErrPermissionTitle says "The system refused access"
+// in the language the app shows.
+//
+// Headline when the system refuses the capture or the change.
+func TrafficErrPermissionTitle() string { return In(i18n.Locale()).TrafficErrPermissionTitle() }
+
+// TrafficErrPermissionTitle says "The system refused access"
+// in the language of msgs.
+//
+// Headline when the system refuses the capture or the change.
+func (msgs Messages) TrafficErrPermissionTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrPermissionTitle", nil)
+}
+
+// TrafficErrPermissionSteps says "1. Open the system's security settings. 2. Allow oh-my-toys to capture network traffic: on macOS give your account ac…"
+// in the language the app shows.
+//
+// Steps to fix a refused capture.
+func TrafficErrPermissionSteps() string { return In(i18n.Locale()).TrafficErrPermissionSteps() }
+
+// TrafficErrPermissionSteps says "1. Open the system's security settings. 2. Allow oh-my-toys to capture network traffic: on macOS give your account ac…"
+// in the language of msgs.
+//
+// Steps to fix a refused capture.
+func (msgs Messages) TrafficErrPermissionSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrPermissionSteps", nil)
+}
+
+// TrafficErrDriverTitle says "Install Npcap first"
+// in the language the app shows.
+//
+// Headline when the packet capture driver is missing.
+func TrafficErrDriverTitle() string { return In(i18n.Locale()).TrafficErrDriverTitle() }
+
+// TrafficErrDriverTitle says "Install Npcap first"
+// in the language of msgs.
+//
+// Headline when the packet capture driver is missing.
+func (msgs Messages) TrafficErrDriverTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrDriverTitle", nil)
+}
+
+// TrafficErrDriverSteps says "Windows reads packets through Npcap. 1. Download it from npcap.com. 2. Install it. 3. Quit and reopen oh-my-toys, the…"
+// in the language the app shows.
+//
+// Steps to install the missing packet capture driver.
+func TrafficErrDriverSteps() string { return In(i18n.Locale()).TrafficErrDriverSteps() }
+
+// TrafficErrDriverSteps says "Windows reads packets through Npcap. 1. Download it from npcap.com. 2. Install it. 3. Quit and reopen oh-my-toys, the…"
+// in the language of msgs.
+//
+// Steps to install the missing packet capture driver.
+func (msgs Messages) TrafficErrDriverSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrDriverSteps", nil)
+}
+
+// TrafficErrPortTitle says "That port is taken"
+// in the language the app shows.
+//
+// Headline when another program holds the proxy port.
+func TrafficErrPortTitle() string { return In(i18n.Locale()).TrafficErrPortTitle() }
+
+// TrafficErrPortTitle says "That port is taken"
+// in the language of msgs.
+//
+// Headline when another program holds the proxy port.
+func (msgs Messages) TrafficErrPortTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrPortTitle", nil)
+}
+
+// TrafficErrPortSteps says "1. Type another port above 1023 in the toolbar. 2. Quit the program that holds it, if you know which one. 3. Press St…"
+// in the language the app shows.
+//
+// Steps to fix a taken port.
+func TrafficErrPortSteps() string { return In(i18n.Locale()).TrafficErrPortSteps() }
+
+// TrafficErrPortSteps says "1. Type another port above 1023 in the toolbar. 2. Quit the program that holds it, if you know which one. 3. Press St…"
+// in the language of msgs.
+//
+// Steps to fix a taken port.
+func (msgs Messages) TrafficErrPortSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrPortSteps", nil)
+}
+
+// TrafficErrCertTitle says "The certificate is not trusted"
+// in the language the app shows.
+//
+// Headline when HTTPS cannot be decrypted.
+func TrafficErrCertTitle() string { return In(i18n.Locale()).TrafficErrCertTitle() }
+
+// TrafficErrCertTitle says "The certificate is not trusted"
+// in the language of msgs.
+//
+// Headline when HTTPS cannot be decrypted.
+func (msgs Messages) TrafficErrCertTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrCertTitle", nil)
+}
+
+// TrafficErrCertSteps says "1. Press Install beside the certificate. 2. Approve the prompt the system shows. 3. Press Start again."
+// in the language the app shows.
+//
+// Steps to trust the root certificate.
+func TrafficErrCertSteps() string { return In(i18n.Locale()).TrafficErrCertSteps() }
+
+// TrafficErrCertSteps says "1. Press Install beside the certificate. 2. Approve the prompt the system shows. 3. Press Start again."
+// in the language of msgs.
+//
+// Steps to trust the root certificate.
+func (msgs Messages) TrafficErrCertSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrCertSteps", nil)
+}
+
+// TrafficErrUnsupportedTitle says "Not available on this system"
+// in the language the app shows.
+//
+// Headline when the system cannot do what was asked.
+func TrafficErrUnsupportedTitle() string { return In(i18n.Locale()).TrafficErrUnsupportedTitle() }
+
+// TrafficErrUnsupportedTitle says "Not available on this system"
+// in the language of msgs.
+//
+// Headline when the system cannot do what was asked.
+func (msgs Messages) TrafficErrUnsupportedTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrUnsupportedTitle", nil)
+}
+
+// TrafficErrUnsupportedSteps says "This system cannot do that. Use proxy mode, or run oh-my-toys on macOS, Windows or Linux."
+// in the language the app shows.
+//
+// Steps when the system lacks the thing asked for.
+func TrafficErrUnsupportedSteps() string { return In(i18n.Locale()).TrafficErrUnsupportedSteps() }
+
+// TrafficErrUnsupportedSteps says "This system cannot do that. Use proxy mode, or run oh-my-toys on macOS, Windows or Linux."
+// in the language of msgs.
+//
+// Steps when the system lacks the thing asked for.
+func (msgs Messages) TrafficErrUnsupportedSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrUnsupportedSteps", nil)
+}
+
+// TrafficUpstream says "Upstream proxy"
+// in the language the app shows.
+//
+// Field label: a proxy the capture sends its traffic through.
+func TrafficUpstream() string { return In(i18n.Locale()).TrafficUpstream() }
+
+// TrafficUpstream says "Upstream proxy"
+// in the language of msgs.
+//
+// Field label: a proxy the capture sends its traffic through.
+func (msgs Messages) TrafficUpstream() string {
+	return Catalog.Format(msgs.locale, "trafficUpstream", nil)
+}
+
+// TrafficUpstreamPlaceholder says "None: go direct"
+// in the language the app shows.
+//
+// Placeholder of the upstream proxy field.
+func TrafficUpstreamPlaceholder() string { return In(i18n.Locale()).TrafficUpstreamPlaceholder() }
+
+// TrafficUpstreamPlaceholder says "None: go direct"
+// in the language of msgs.
+//
+// Placeholder of the upstream proxy field.
+func (msgs Messages) TrafficUpstreamPlaceholder() string {
+	return Catalog.Format(msgs.locale, "trafficUpstreamPlaceholder", nil)
+}
+
+// TrafficUpstreamHint says "Use this when your internet only works through a proxy."
+// in the language the app shows.
+//
+// Help under the upstream proxy field.
+func TrafficUpstreamHint() string { return In(i18n.Locale()).TrafficUpstreamHint() }
+
+// TrafficUpstreamHint says "Use this when your internet only works through a proxy."
+// in the language of msgs.
+//
+// Help under the upstream proxy field.
+func (msgs Messages) TrafficUpstreamHint() string {
+	return Catalog.Format(msgs.locale, "trafficUpstreamHint", nil)
+}
+
+// TrafficUpstreamBad says "“{input}” is no proxy. Use http://host:port or socks5://host:port."
+// in the language the app shows.
+//
+// Error under the upstream proxy field when it is not an address.
+func TrafficUpstreamBad(input string) string { return In(i18n.Locale()).TrafficUpstreamBad(input) }
+
+// TrafficUpstreamBad says "“{input}” is no proxy. Use http://host:port or socks5://host:port."
+// in the language of msgs.
+//
+// Error under the upstream proxy field when it is not an address.
+func (msgs Messages) TrafficUpstreamBad(input string) string {
+	return Catalog.Format(msgs.locale, "trafficUpstreamBad", map[string]any{"input": input})
+}
+
+// TrafficDismiss says "Dismiss"
+// in the language the app shows.
+//
+// Button: close the error banner.
+func TrafficDismiss() string { return In(i18n.Locale()).TrafficDismiss() }
+
+// TrafficDismiss says "Dismiss"
+// in the language of msgs.
+//
+// Button: close the error banner.
+func (msgs Messages) TrafficDismiss() string {
+	return Catalog.Format(msgs.locale, "trafficDismiss", nil)
+}
+
+// TrafficStart says "Start a capture"
+// in the language the app shows.
+//
+// Quick action title and spec summary: begin capturing.
+func TrafficStart() string { return In(i18n.Locale()).TrafficStart() }
+
+// TrafficStart says "Start a capture"
+// in the language of msgs.
+//
+// Quick action title and spec summary: begin capturing.
+func (msgs Messages) TrafficStart() string {
+	return Catalog.Format(msgs.locale, "trafficStart", nil)
+}
+
+// TrafficStop says "Stop the capture and put the system proxy back"
+// in the language the app shows.
+//
+// Quick action title and spec summary: end the capture.
+func TrafficStop() string { return In(i18n.Locale()).TrafficStop() }
+
+// TrafficStop says "Stop the capture and put the system proxy back"
+// in the language of msgs.
+//
+// Quick action title and spec summary: end the capture.
+func (msgs Messages) TrafficStop() string {
+	return Catalog.Format(msgs.locale, "trafficStop", nil)
+}
+
+// TrafficStatus says "Say whether a capture runs, and what it has recorded"
+// in the language the app shows.
+//
+// Spec summary: report the capture's state.
+func TrafficStatus() string { return In(i18n.Locale()).TrafficStatus() }
+
+// TrafficStatus says "Say whether a capture runs, and what it has recorded"
+// in the language of msgs.
+//
+// Spec summary: report the capture's state.
+func (msgs Messages) TrafficStatus() string {
+	return Catalog.Format(msgs.locale, "trafficStatus", nil)
+}
+
+// TrafficRunningProxy says "Capturing {addr}, {flows, plural, one {# flow} other {# flows}}"
+// in the language the app shows.
+//
+// Status line while the proxy captures.
+func TrafficRunningProxy(addr string, flows int) string {
+	return In(i18n.Locale()).TrafficRunningProxy(addr, flows)
+}
+
+// TrafficRunningProxy says "Capturing {addr}, {flows, plural, one {# flow} other {# flows}}"
+// in the language of msgs.
+//
+// Status line while the proxy captures.
+func (msgs Messages) TrafficRunningProxy(addr string, flows int) string {
+	return Catalog.Format(msgs.locale, "trafficRunningProxy", map[string]any{"addr": addr, "flows": flows})
+}
+
+// TrafficRunningPackets says "Capturing {name}, {packets, plural, one {# packet} other {# packets}}"
+// in the language the app shows.
+//
+// Status line while packets are captured.
+func TrafficRunningPackets(name string, packets int) string {
+	return In(i18n.Locale()).TrafficRunningPackets(name, packets)
+}
+
+// TrafficRunningPackets says "Capturing {name}, {packets, plural, one {# packet} other {# packets}}"
+// in the language of msgs.
+//
+// Status line while packets are captured.
+func (msgs Messages) TrafficRunningPackets(name string, packets int) string {
+	return Catalog.Format(msgs.locale, "trafficRunningPackets", map[string]any{"name": name, "packets": packets})
+}
+
+// TrafficDetail says "Details"
+// in the language the app shows.
+//
+// Accessible name of the detail pane's tabs.
+func TrafficDetail() string { return In(i18n.Locale()).TrafficDetail() }
+
+// TrafficDetail says "Details"
+// in the language of msgs.
+//
+// Accessible name of the detail pane's tabs.
+func (msgs Messages) TrafficDetail() string {
+	return Catalog.Format(msgs.locale, "trafficDetail", nil)
+}
+
+// TrafficBody says "Body"
+// in the language the app shows.
+//
+// Accessible name of a message body.
+func TrafficBody() string { return In(i18n.Locale()).TrafficBody() }
+
+// TrafficBody says "Body"
+// in the language of msgs.
+//
+// Accessible name of a message body.
+func (msgs Messages) TrafficBody() string {
+	return Catalog.Format(msgs.locale, "trafficBody", nil)
+}
+
+// TrafficGrantReason says "Oh My Toys needs to let administrator accounts on this Mac capture network traffic until the next restart."
+// in the language the app shows.
+//
+// What the system's prompt says when it asks to allow packet capture.
+func TrafficGrantReason() string { return In(i18n.Locale()).TrafficGrantReason() }
+
+// TrafficGrantReason says "Oh My Toys needs to let administrator accounts on this Mac capture network traffic until the next restart."
+// in the language of msgs.
+//
+// What the system's prompt says when it asks to allow packet capture.
+func (msgs Messages) TrafficGrantReason() string {
+	return Catalog.Format(msgs.locale, "trafficGrantReason", nil)
+}
+
+// TrafficView says "View"
+// in the language the app shows.
+//
+// Accessible name of the Flows and Rules tabs.
+func TrafficView() string { return In(i18n.Locale()).TrafficView() }
+
+// TrafficView says "View"
+// in the language of msgs.
+//
+// Accessible name of the Flows and Rules tabs.
+func (msgs Messages) TrafficView() string {
+	return Catalog.Format(msgs.locale, "trafficView", nil)
+}
+
+// TrafficViewFlows says "Flows"
+// in the language the app shows.
+//
+// Tab: the captured traffic.
+func TrafficViewFlows() string { return In(i18n.Locale()).TrafficViewFlows() }
+
+// TrafficViewFlows says "Flows"
+// in the language of msgs.
+//
+// Tab: the captured traffic.
+func (msgs Messages) TrafficViewFlows() string {
+	return Catalog.Format(msgs.locale, "trafficViewFlows", nil)
+}
+
+// TrafficViewRules says "Rules"
+// in the language the app shows.
+//
+// Tab: the rule book.
+func TrafficViewRules() string { return In(i18n.Locale()).TrafficViewRules() }
+
+// TrafficViewRules says "Rules"
+// in the language of msgs.
+//
+// Tab: the rule book.
+func (msgs Messages) TrafficViewRules() string {
+	return Catalog.Format(msgs.locale, "trafficViewRules", nil)
+}
+
+// TrafficRulesHelp says "Rules apply in order: the first mock or block that matches ends it."
+// in the language the app shows.
+//
+// One line above the rule list: order matters.
+func TrafficRulesHelp() string { return In(i18n.Locale()).TrafficRulesHelp() }
+
+// TrafficRulesHelp says "Rules apply in order: the first mock or block that matches ends it."
+// in the language of msgs.
+//
+// One line above the rule list: order matters.
+func (msgs Messages) TrafficRulesHelp() string {
+	return Catalog.Format(msgs.locale, "trafficRulesHelp", nil)
+}
+
+// TrafficNewRule says "New Rule"
+// in the language the app shows.
+//
+// Button: start a rule of a chosen kind.
+func TrafficNewRule() string { return In(i18n.Locale()).TrafficNewRule() }
+
+// TrafficNewRule says "New Rule"
+// in the language of msgs.
+//
+// Button: start a rule of a chosen kind.
+func (msgs Messages) TrafficNewRule() string {
+	return Catalog.Format(msgs.locale, "trafficNewRule", nil)
+}
+
+// TrafficKindRewrite says "Rewrite"
+// in the language the app shows.
+//
+// Kind of rule: change the request or the response.
+func TrafficKindRewrite() string { return In(i18n.Locale()).TrafficKindRewrite() }
+
+// TrafficKindRewrite says "Rewrite"
+// in the language of msgs.
+//
+// Kind of rule: change the request or the response.
+func (msgs Messages) TrafficKindRewrite() string {
+	return Catalog.Format(msgs.locale, "trafficKindRewrite", nil)
+}
+
+// TrafficKindMock says "Mock"
+// in the language the app shows.
+//
+// Kind of rule: answer with a response of its own.
+func TrafficKindMock() string { return In(i18n.Locale()).TrafficKindMock() }
+
+// TrafficKindMock says "Mock"
+// in the language of msgs.
+//
+// Kind of rule: answer with a response of its own.
+func (msgs Messages) TrafficKindMock() string {
+	return Catalog.Format(msgs.locale, "trafficKindMock", nil)
+}
+
+// TrafficKindBlock says "Block"
+// in the language the app shows.
+//
+// Kind of rule: close the connection without an answer.
+func TrafficKindBlock() string { return In(i18n.Locale()).TrafficKindBlock() }
+
+// TrafficKindBlock says "Block"
+// in the language of msgs.
+//
+// Kind of rule: close the connection without an answer.
+func (msgs Messages) TrafficKindBlock() string {
+	return Catalog.Format(msgs.locale, "trafficKindBlock", nil)
+}
+
+// TrafficKindDelay says "Delay"
+// in the language the app shows.
+//
+// Kind of rule: hold the response back.
+func TrafficKindDelay() string { return In(i18n.Locale()).TrafficKindDelay() }
+
+// TrafficKindDelay says "Delay"
+// in the language of msgs.
+//
+// Kind of rule: hold the response back.
+func (msgs Messages) TrafficKindDelay() string {
+	return Catalog.Format(msgs.locale, "trafficKindDelay", nil)
+}
+
+// TrafficRulesEmpty says "No rules yet. Add one to rewrite, mock, block or delay traffic."
+// in the language the app shows.
+//
+// Empty state of the rule list.
+func TrafficRulesEmpty() string { return In(i18n.Locale()).TrafficRulesEmpty() }
+
+// TrafficRulesEmpty says "No rules yet. Add one to rewrite, mock, block or delay traffic."
+// in the language of msgs.
+//
+// Empty state of the rule list.
+func (msgs Messages) TrafficRulesEmpty() string {
+	return Catalog.Format(msgs.locale, "trafficRulesEmpty", nil)
+}
+
+// TrafficRuleMoveUp says "Move Up"
+// in the language the app shows.
+//
+// Button: a rule takes effect earlier.
+func TrafficRuleMoveUp() string { return In(i18n.Locale()).TrafficRuleMoveUp() }
+
+// TrafficRuleMoveUp says "Move Up"
+// in the language of msgs.
+//
+// Button: a rule takes effect earlier.
+func (msgs Messages) TrafficRuleMoveUp() string {
+	return Catalog.Format(msgs.locale, "trafficRuleMoveUp", nil)
+}
+
+// TrafficRuleMoveDown says "Move Down"
+// in the language the app shows.
+//
+// Button: a rule takes effect later.
+func TrafficRuleMoveDown() string { return In(i18n.Locale()).TrafficRuleMoveDown() }
+
+// TrafficRuleMoveDown says "Move Down"
+// in the language of msgs.
+//
+// Button: a rule takes effect later.
+func (msgs Messages) TrafficRuleMoveDown() string {
+	return Catalog.Format(msgs.locale, "trafficRuleMoveDown", nil)
+}
+
+// TrafficRuleDuplicate says "Duplicate"
+// in the language the app shows.
+//
+// Button: copy the chosen rule.
+func TrafficRuleDuplicate() string { return In(i18n.Locale()).TrafficRuleDuplicate() }
+
+// TrafficRuleDuplicate says "Duplicate"
+// in the language of msgs.
+//
+// Button: copy the chosen rule.
+func (msgs Messages) TrafficRuleDuplicate() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDuplicate", nil)
+}
+
+// TrafficRuleDelete says "Delete"
+// in the language the app shows.
+//
+// Button: remove the chosen rule.
+func TrafficRuleDelete() string { return In(i18n.Locale()).TrafficRuleDelete() }
+
+// TrafficRuleDelete says "Delete"
+// in the language of msgs.
+//
+// Button: remove the chosen rule.
+func (msgs Messages) TrafficRuleDelete() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDelete", nil)
+}
+
+// TrafficRuleDeleteTitle says "Delete “{name}”?"
+// in the language the app shows.
+//
+// Dialog title before removing a rule.
+func TrafficRuleDeleteTitle(name string) string {
+	return In(i18n.Locale()).TrafficRuleDeleteTitle(name)
+}
+
+// TrafficRuleDeleteTitle says "Delete “{name}”?"
+// in the language of msgs.
+//
+// Dialog title before removing a rule.
+func (msgs Messages) TrafficRuleDeleteTitle(name string) string {
+	return Catalog.Format(msgs.locale, "trafficRuleDeleteTitle", map[string]any{"name": name})
+}
+
+// TrafficRuleDeleteBody says "Traffic it changed goes out as it is again."
+// in the language the app shows.
+//
+// Dialog text: what removing a rule costs.
+func TrafficRuleDeleteBody() string { return In(i18n.Locale()).TrafficRuleDeleteBody() }
+
+// TrafficRuleDeleteBody says "Traffic it changed goes out as it is again."
+// in the language of msgs.
+//
+// Dialog text: what removing a rule costs.
+func (msgs Messages) TrafficRuleDeleteBody() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDeleteBody", nil)
+}
+
+// TrafficRuleUntitled says "Untitled rule"
+// in the language the app shows.
+//
+// Name shown for a rule that has none.
+func TrafficRuleUntitled() string { return In(i18n.Locale()).TrafficRuleUntitled() }
+
+// TrafficRuleUntitled says "Untitled rule"
+// in the language of msgs.
+//
+// Name shown for a rule that has none.
+func (msgs Messages) TrafficRuleUntitled() string {
+	return Catalog.Format(msgs.locale, "trafficRuleUntitled", nil)
+}
+
+// TrafficRuleName says "Name"
+// in the language the app shows.
+//
+// Field label: what a rule is called.
+func TrafficRuleName() string { return In(i18n.Locale()).TrafficRuleName() }
+
+// TrafficRuleName says "Name"
+// in the language of msgs.
+//
+// Field label: what a rule is called.
+func (msgs Messages) TrafficRuleName() string {
+	return Catalog.Format(msgs.locale, "trafficRuleName", nil)
+}
+
+// TrafficRulePattern says "Pattern"
+// in the language the app shows.
+//
+// Field label: what a rule matches.
+func TrafficRulePattern() string { return In(i18n.Locale()).TrafficRulePattern() }
+
+// TrafficRulePattern says "Pattern"
+// in the language of msgs.
+//
+// Field label: what a rule matches.
+func (msgs Messages) TrafficRulePattern() string {
+	return Catalog.Format(msgs.locale, "trafficRulePattern", nil)
+}
+
+// TrafficRulePatternHint says "scheme://host/path?query, with * for any run of characters"
+// in the language the app shows.
+//
+// Hint under the pattern field.
+func TrafficRulePatternHint() string { return In(i18n.Locale()).TrafficRulePatternHint() }
+
+// TrafficRulePatternHint says "scheme://host/path?query, with * for any run of characters"
+// in the language of msgs.
+//
+// Hint under the pattern field.
+func (msgs Messages) TrafficRulePatternHint() string {
+	return Catalog.Format(msgs.locale, "trafficRulePatternHint", nil)
+}
+
+// TrafficRuleRegexp says "Regular expression"
+// in the language the app shows.
+//
+// Switch label: read the pattern as a regular expression.
+func TrafficRuleRegexp() string { return In(i18n.Locale()).TrafficRuleRegexp() }
+
+// TrafficRuleRegexp says "Regular expression"
+// in the language of msgs.
+//
+// Switch label: read the pattern as a regular expression.
+func (msgs Messages) TrafficRuleRegexp() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRegexp", nil)
+}
+
+// TrafficRuleMethods says "Methods"
+// in the language the app shows.
+//
+// Group label above the method chips of a rule.
+func TrafficRuleMethods() string { return In(i18n.Locale()).TrafficRuleMethods() }
+
+// TrafficRuleMethods says "Methods"
+// in the language of msgs.
+//
+// Group label above the method chips of a rule.
+func (msgs Messages) TrafficRuleMethods() string {
+	return Catalog.Format(msgs.locale, "trafficRuleMethods", nil)
+}
+
+// TrafficRuleStatusKeep says "Keep"
+// in the language the app shows.
+//
+// Placeholder of the status field: the response keeps its status.
+func TrafficRuleStatusKeep() string { return In(i18n.Locale()).TrafficRuleStatusKeep() }
+
+// TrafficRuleStatusKeep says "Keep"
+// in the language of msgs.
+//
+// Placeholder of the status field: the response keeps its status.
+func (msgs Messages) TrafficRuleStatusKeep() string {
+	return Catalog.Format(msgs.locale, "trafficRuleStatusKeep", nil)
+}
+
+// TrafficRuleStatusBad says "Enter a status from 200 to 599"
+// in the language the app shows.
+//
+// Error under the status field.
+func TrafficRuleStatusBad() string { return In(i18n.Locale()).TrafficRuleStatusBad() }
+
+// TrafficRuleStatusBad says "Enter a status from 200 to 599"
+// in the language of msgs.
+//
+// Error under the status field.
+func (msgs Messages) TrafficRuleStatusBad() string {
+	return Catalog.Format(msgs.locale, "trafficRuleStatusBad", nil)
+}
+
+// TrafficRulePatternBad says "A rule needs a pattern"
+// in the language the app shows.
+//
+// Error under an empty pattern.
+func TrafficRulePatternBad() string { return In(i18n.Locale()).TrafficRulePatternBad() }
+
+// TrafficRulePatternBad says "A rule needs a pattern"
+// in the language of msgs.
+//
+// Error under an empty pattern.
+func (msgs Messages) TrafficRulePatternBad() string {
+	return Catalog.Format(msgs.locale, "trafficRulePatternBad", nil)
+}
+
+// TrafficRuleRegexpBad says "This pattern is not a valid regular expression"
+// in the language the app shows.
+//
+// Error under a pattern that does not compile.
+func TrafficRuleRegexpBad() string { return In(i18n.Locale()).TrafficRuleRegexpBad() }
+
+// TrafficRuleRegexpBad says "This pattern is not a valid regular expression"
+// in the language of msgs.
+//
+// Error under a pattern that does not compile.
+func (msgs Messages) TrafficRuleRegexpBad() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRegexpBad", nil)
+}
+
+// TrafficRuleDelay says "Delay"
+// in the language the app shows.
+//
+// Field label: how long a delay rule holds the response.
+func TrafficRuleDelay() string { return In(i18n.Locale()).TrafficRuleDelay() }
+
+// TrafficRuleDelay says "Delay"
+// in the language of msgs.
+//
+// Field label: how long a delay rule holds the response.
+func (msgs Messages) TrafficRuleDelay() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDelay", nil)
+}
+
+// TrafficRuleDelayHint says "0 to 300000 milliseconds"
+// in the language the app shows.
+//
+// Hint under the delay field.
+func TrafficRuleDelayHint() string { return In(i18n.Locale()).TrafficRuleDelayHint() }
+
+// TrafficRuleDelayHint says "0 to 300000 milliseconds"
+// in the language of msgs.
+//
+// Hint under the delay field.
+func (msgs Messages) TrafficRuleDelayHint() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDelayHint", nil)
+}
+
+// TrafficRuleDelayBad says "Enter a delay of 0 to 300000 milliseconds"
+// in the language the app shows.
+//
+// Error under the delay field.
+func TrafficRuleDelayBad() string { return In(i18n.Locale()).TrafficRuleDelayBad() }
+
+// TrafficRuleDelayBad says "Enter a delay of 0 to 300000 milliseconds"
+// in the language of msgs.
+//
+// Error under the delay field.
+func (msgs Messages) TrafficRuleDelayBad() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDelayBad", nil)
+}
+
+// TrafficRuleRedirect says "Redirect to"
+// in the language the app shows.
+//
+// Field label: the URL a rewrite sends the request to.
+func TrafficRuleRedirect() string { return In(i18n.Locale()).TrafficRuleRedirect() }
+
+// TrafficRuleRedirect says "Redirect to"
+// in the language of msgs.
+//
+// Field label: the URL a rewrite sends the request to.
+func (msgs Messages) TrafficRuleRedirect() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRedirect", nil)
+}
+
+// TrafficRuleRedirectHint says "Send the request to this URL instead"
+// in the language the app shows.
+//
+// Hint under the redirect field.
+func TrafficRuleRedirectHint() string { return In(i18n.Locale()).TrafficRuleRedirectHint() }
+
+// TrafficRuleRedirectHint says "Send the request to this URL instead"
+// in the language of msgs.
+//
+// Hint under the redirect field.
+func (msgs Messages) TrafficRuleRedirectHint() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRedirectHint", nil)
+}
+
+// TrafficRuleReqHeaders says "Request headers"
+// in the language the app shows.
+//
+// Heading above the request header edits.
+func TrafficRuleReqHeaders() string { return In(i18n.Locale()).TrafficRuleReqHeaders() }
+
+// TrafficRuleReqHeaders says "Request headers"
+// in the language of msgs.
+//
+// Heading above the request header edits.
+func (msgs Messages) TrafficRuleReqHeaders() string {
+	return Catalog.Format(msgs.locale, "trafficRuleReqHeaders", nil)
+}
+
+// TrafficRuleRespHeaders says "Response headers"
+// in the language the app shows.
+//
+// Heading above the response header edits.
+func TrafficRuleRespHeaders() string { return In(i18n.Locale()).TrafficRuleRespHeaders() }
+
+// TrafficRuleRespHeaders says "Response headers"
+// in the language of msgs.
+//
+// Heading above the response header edits.
+func (msgs Messages) TrafficRuleRespHeaders() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRespHeaders", nil)
+}
+
+// TrafficRuleHeaderName says "Name"
+// in the language the app shows.
+//
+// Field label of a header edit's name.
+func TrafficRuleHeaderName() string { return In(i18n.Locale()).TrafficRuleHeaderName() }
+
+// TrafficRuleHeaderName says "Name"
+// in the language of msgs.
+//
+// Field label of a header edit's name.
+func (msgs Messages) TrafficRuleHeaderName() string {
+	return Catalog.Format(msgs.locale, "trafficRuleHeaderName", nil)
+}
+
+// TrafficRuleHeaderValue says "Value"
+// in the language the app shows.
+//
+// Field label of a header edit's value.
+func TrafficRuleHeaderValue() string { return In(i18n.Locale()).TrafficRuleHeaderValue() }
+
+// TrafficRuleHeaderValue says "Value"
+// in the language of msgs.
+//
+// Field label of a header edit's value.
+func (msgs Messages) TrafficRuleHeaderValue() string {
+	return Catalog.Format(msgs.locale, "trafficRuleHeaderValue", nil)
+}
+
+// TrafficRuleHeaderRemove says "Remove"
+// in the language the app shows.
+//
+// Switch label: remove this header instead of setting it.
+func TrafficRuleHeaderRemove() string { return In(i18n.Locale()).TrafficRuleHeaderRemove() }
+
+// TrafficRuleHeaderRemove says "Remove"
+// in the language of msgs.
+//
+// Switch label: remove this header instead of setting it.
+func (msgs Messages) TrafficRuleHeaderRemove() string {
+	return Catalog.Format(msgs.locale, "trafficRuleHeaderRemove", nil)
+}
+
+// TrafficRuleHeaderBad says "A header row needs a name"
+// in the language the app shows.
+//
+// Error under a header edit without a name.
+func TrafficRuleHeaderBad() string { return In(i18n.Locale()).TrafficRuleHeaderBad() }
+
+// TrafficRuleHeaderBad says "A header row needs a name"
+// in the language of msgs.
+//
+// Error under a header edit without a name.
+func (msgs Messages) TrafficRuleHeaderBad() string {
+	return Catalog.Format(msgs.locale, "trafficRuleHeaderBad", nil)
+}
+
+// TrafficRuleAddHeader says "Add Header"
+// in the language the app shows.
+//
+// Button: one more header edit.
+func TrafficRuleAddHeader() string { return In(i18n.Locale()).TrafficRuleAddHeader() }
+
+// TrafficRuleAddHeader says "Add Header"
+// in the language of msgs.
+//
+// Button: one more header edit.
+func (msgs Messages) TrafficRuleAddHeader() string {
+	return Catalog.Format(msgs.locale, "trafficRuleAddHeader", nil)
+}
+
+// TrafficRuleRemoveRow says "Remove This Row"
+// in the language the app shows.
+//
+// Button: take a header edit out of the list.
+func TrafficRuleRemoveRow() string { return In(i18n.Locale()).TrafficRuleRemoveRow() }
+
+// TrafficRuleRemoveRow says "Remove This Row"
+// in the language of msgs.
+//
+// Button: take a header edit out of the list.
+func (msgs Messages) TrafficRuleRemoveRow() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRemoveRow", nil)
+}
+
+// TrafficRuleReqBody says "Request body"
+// in the language the app shows.
+//
+// Heading above the request body edit.
+func TrafficRuleReqBody() string { return In(i18n.Locale()).TrafficRuleReqBody() }
+
+// TrafficRuleReqBody says "Request body"
+// in the language of msgs.
+//
+// Heading above the request body edit.
+func (msgs Messages) TrafficRuleReqBody() string {
+	return Catalog.Format(msgs.locale, "trafficRuleReqBody", nil)
+}
+
+// TrafficRuleRespBody says "Response body"
+// in the language the app shows.
+//
+// Heading above the response body edit.
+func TrafficRuleRespBody() string { return In(i18n.Locale()).TrafficRuleRespBody() }
+
+// TrafficRuleRespBody says "Response body"
+// in the language of msgs.
+//
+// Heading above the response body edit.
+func (msgs Messages) TrafficRuleRespBody() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRespBody", nil)
+}
+
+// TrafficRuleFind says "Find"
+// in the language the app shows.
+//
+// Field label: text a body edit replaces.
+func TrafficRuleFind() string { return In(i18n.Locale()).TrafficRuleFind() }
+
+// TrafficRuleFind says "Find"
+// in the language of msgs.
+//
+// Field label: text a body edit replaces.
+func (msgs Messages) TrafficRuleFind() string {
+	return Catalog.Format(msgs.locale, "trafficRuleFind", nil)
+}
+
+// TrafficRuleReplace says "Replace with"
+// in the language the app shows.
+//
+// Field label: what a body edit writes instead.
+func TrafficRuleReplace() string { return In(i18n.Locale()).TrafficRuleReplace() }
+
+// TrafficRuleReplace says "Replace with"
+// in the language of msgs.
+//
+// Field label: what a body edit writes instead.
+func (msgs Messages) TrafficRuleReplace() string {
+	return Catalog.Format(msgs.locale, "trafficRuleReplace", nil)
+}
+
+// TrafficRuleBodyHelp says "Leave Find empty to replace the whole body."
+// in the language the app shows.
+//
+// Help under a body edit.
+func TrafficRuleBodyHelp() string { return In(i18n.Locale()).TrafficRuleBodyHelp() }
+
+// TrafficRuleBodyHelp says "Leave Find empty to replace the whole body."
+// in the language of msgs.
+//
+// Help under a body edit.
+func (msgs Messages) TrafficRuleBodyHelp() string {
+	return Catalog.Format(msgs.locale, "trafficRuleBodyHelp", nil)
+}
+
+// TrafficRuleMockFile says "Serve a file"
+// in the language the app shows.
+//
+// Field label: a local file answered instead of the body.
+func TrafficRuleMockFile() string { return In(i18n.Locale()).TrafficRuleMockFile() }
+
+// TrafficRuleMockFile says "Serve a file"
+// in the language of msgs.
+//
+// Field label: a local file answered instead of the body.
+func (msgs Messages) TrafficRuleMockFile() string {
+	return Catalog.Format(msgs.locale, "trafficRuleMockFile", nil)
+}
+
+// TrafficRuleMockFileHint says "A chosen file is served instead of the body above."
+// in the language the app shows.
+//
+// Hint under the mock file field.
+func TrafficRuleMockFileHint() string { return In(i18n.Locale()).TrafficRuleMockFileHint() }
+
+// TrafficRuleMockFileHint says "A chosen file is served instead of the body above."
+// in the language of msgs.
+//
+// Hint under the mock file field.
+func (msgs Messages) TrafficRuleMockFileHint() string {
+	return Catalog.Format(msgs.locale, "trafficRuleMockFileHint", nil)
+}
+
+// TrafficRuleChooseFile says "Choose File…"
+// in the language the app shows.
+//
+// Button: pick the file a mock serves.
+func TrafficRuleChooseFile() string { return In(i18n.Locale()).TrafficRuleChooseFile() }
+
+// TrafficRuleChooseFile says "Choose File…"
+// in the language of msgs.
+//
+// Button: pick the file a mock serves.
+func (msgs Messages) TrafficRuleChooseFile() string {
+	return Catalog.Format(msgs.locale, "trafficRuleChooseFile", nil)
+}
+
+// TrafficRuleClearFile says "Use the Body"
+// in the language the app shows.
+//
+// Button: forget the chosen file.
+func TrafficRuleClearFile() string { return In(i18n.Locale()).TrafficRuleClearFile() }
+
+// TrafficRuleClearFile says "Use the Body"
+// in the language of msgs.
+//
+// Button: forget the chosen file.
+func (msgs Messages) TrafficRuleClearFile() string {
+	return Catalog.Format(msgs.locale, "trafficRuleClearFile", nil)
+}
+
+// TrafficRuleBlockNote says "A block closes the connection without an answer."
+// in the language the app shows.
+//
+// What a block rule does, under the form.
+func TrafficRuleBlockNote() string { return In(i18n.Locale()).TrafficRuleBlockNote() }
+
+// TrafficRuleBlockNote says "A block closes the connection without an answer."
+// in the language of msgs.
+//
+// What a block rule does, under the form.
+func (msgs Messages) TrafficRuleBlockNote() string {
+	return Catalog.Format(msgs.locale, "trafficRuleBlockNote", nil)
+}
+
+// TrafficRuleNotSaved says "The rule was not saved"
+// in the language the app shows.
+//
+// Headline above the engine's error.
+func TrafficRuleNotSaved() string { return In(i18n.Locale()).TrafficRuleNotSaved() }
+
+// TrafficRuleNotSaved says "The rule was not saved"
+// in the language of msgs.
+//
+// Headline above the engine's error.
+func (msgs Messages) TrafficRuleNotSaved() string {
+	return Catalog.Format(msgs.locale, "trafficRuleNotSaved", nil)
+}
+
+// TrafficRuleFlash says "Rule saved"
+// in the language the app shows.
+//
+// Toast after the rule book is kept.
+func TrafficRuleFlash() string { return In(i18n.Locale()).TrafficRuleFlash() }
+
+// TrafficRuleFlash says "Rule saved"
+// in the language of msgs.
+//
+// Toast after the rule book is kept.
+func (msgs Messages) TrafficRuleFlash() string {
+	return Catalog.Format(msgs.locale, "trafficRuleFlash", nil)
+}
+
+// TrafficMockThis says "Mock This Response"
+// in the language the app shows.
+//
+// Menu item: a mock rule from the chosen flow.
+func TrafficMockThis() string { return In(i18n.Locale()).TrafficMockThis() }
+
+// TrafficMockThis says "Mock This Response"
+// in the language of msgs.
+//
+// Menu item: a mock rule from the chosen flow.
+func (msgs Messages) TrafficMockThis() string {
+	return Catalog.Format(msgs.locale, "trafficMockThis", nil)
+}
+
+// TrafficBlockThisURL says "Block This URL"
+// in the language the app shows.
+//
+// Menu item: a block rule for this URL.
+func TrafficBlockThisURL() string { return In(i18n.Locale()).TrafficBlockThisURL() }
+
+// TrafficBlockThisURL says "Block This URL"
+// in the language of msgs.
+//
+// Menu item: a block rule for this URL.
+func (msgs Messages) TrafficBlockThisURL() string {
+	return Catalog.Format(msgs.locale, "trafficBlockThisURL", nil)
+}
+
+// TrafficBlockThisHost says "Block This Host"
+// in the language the app shows.
+//
+// Menu item: a block rule for this host.
+func TrafficBlockThisHost() string { return In(i18n.Locale()).TrafficBlockThisHost() }
+
+// TrafficBlockThisHost says "Block This Host"
+// in the language of msgs.
+//
+// Menu item: a block rule for this host.
+func (msgs Messages) TrafficBlockThisHost() string {
+	return Catalog.Format(msgs.locale, "trafficBlockThisHost", nil)
+}
+
+// TrafficRuleRewriteResponse says "Rewrite Response…"
+// in the language the app shows.
+//
+// Menu item: a rewrite rule from the chosen flow.
+func TrafficRuleRewriteResponse() string { return In(i18n.Locale()).TrafficRuleRewriteResponse() }
+
+// TrafficRuleRewriteResponse says "Rewrite Response…"
+// in the language of msgs.
+//
+// Menu item: a rewrite rule from the chosen flow.
+func (msgs Messages) TrafficRuleRewriteResponse() string {
+	return Catalog.Format(msgs.locale, "trafficRuleRewriteResponse", nil)
+}
+
+// TrafficEditRule says "Edit Rule"
+// in the language the app shows.
+//
+// Link beside a rule that fired in a flow's detail.
+func TrafficEditRule() string { return In(i18n.Locale()).TrafficEditRule() }
+
+// TrafficEditRule says "Edit Rule"
+// in the language of msgs.
+//
+// Link beside a rule that fired in a flow's detail.
+func (msgs Messages) TrafficEditRule() string {
+	return Catalog.Format(msgs.locale, "trafficEditRule", nil)
+}
+
+// TrafficRuleDeleteConfirm says "Delete Rule"
+// in the language the app shows.
+//
+// Button in the dialog that deletes a rule.
+func TrafficRuleDeleteConfirm() string { return In(i18n.Locale()).TrafficRuleDeleteConfirm() }
+
+// TrafficRuleDeleteConfirm says "Delete Rule"
+// in the language of msgs.
+//
+// Button in the dialog that deletes a rule.
+func (msgs Messages) TrafficRuleDeleteConfirm() string {
+	return Catalog.Format(msgs.locale, "trafficRuleDeleteConfirm", nil)
+}
+
+// TrafficCaptureStoppedNote says "The capture stopped. See the log for the reason."
+// in the language the app shows.
+//
+// Status note when a capture stops on its own.
+func TrafficCaptureStoppedNote() string { return In(i18n.Locale()).TrafficCaptureStoppedNote() }
+
+// TrafficCaptureStoppedNote says "The capture stopped. See the log for the reason."
+// in the language of msgs.
+//
+// Status note when a capture stops on its own.
+func (msgs Messages) TrafficCaptureStoppedNote() string {
+	return Catalog.Format(msgs.locale, "trafficCaptureStoppedNote", nil)
+}
