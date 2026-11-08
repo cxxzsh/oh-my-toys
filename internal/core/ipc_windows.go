@@ -35,7 +35,7 @@ func SwitchDial() (network, address string, err error) {
 	if err != nil {
 		return "", "", err
 	}
-	b, err := os.ReadFile(path)
+	b, err := os.ReadFile(path) //nolint:gosec // G304: portFile builds the path from os.UserCacheDir, not from user input
 	if err != nil {
 		return "", "", err
 	}

@@ -6,7 +6,7 @@
   "out": "build",
   "updates": {
     "publicKey": "ZR4vCYTSbJmJ2Dr0BINaU6ao8S8/mntMSlrK3gX3vKA=",
-    "url": "https://downloads.ohmytoys.invalid/"
+    "github": "cxxzsh/oh-my-toys"
   },
   "macos": {
     "minimumSystemVersion": "12.0"

@@ -54,11 +54,11 @@ func TestDecryptsReplaysAndExports(t *testing.T) {
 	}
 
 	rows := waitRows(t, tl.Log(), tool.SourceProxy, 1)
-	flow := flowOf(t, tl, rows[0].ID)
+	flow := waitFlow(t, tl, rows[0].ID)
 	checkDecrypted(t, flow, wantURL)
 
 	replayed := replay(t, tl, flow.ID)
-	if second := flowOf(t, tl, replayed); second.ReplayOf != flow.ID {
+	if second := waitFlow(t, tl, replayed); second.ReplayOf != flow.ID {
 		t.Errorf("ReplayOf = %d, want %d", second.ReplayOf, flow.ID)
 	}
 
@@ -95,16 +95,6 @@ func startDecryptingCapture(t *testing.T) (*Tool, tool.CaptureConfig, *httptest.
 	}
 	t.Cleanup(func() { _ = tl.Stop() })
 	return tl, cfg, upstream, root
-}
-
-// flowOf reads a recorded flow.
-func flowOf(t *testing.T, tl *Tool, id uint64) tool.Flow {
-	t.Helper()
-	flow, ok := tl.Log().Get(id)
-	if !ok {
-		t.Fatalf("flow %d is not recorded", id)
-	}
-	return flow
 }
 
 // checkDecrypted checks what the capture recorded of one request.

@@ -1,0 +1,196 @@
+name: Release
+
+# Called by release-please.yml once a release PR is merged; run it by hand to
+# build a tag again (its files replace the ones already on the draft).
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: The tag to release, such as v0.2.0
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The tag to release, such as v0.2.0
+        type: string
+        required: true
+
+permissions:
+  contents: write # the draft release and the uploads to it
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ inputs.tag }}
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  draft-release:
+    name: Draft release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+      # A tag that disagrees with mygo.json would publish a build under
+      # another version, so a wrong tag builds nothing.
+      - name: Check the version
+        run: test "$TAG" = "v$(jq -r .version mygo.json)"
+      # release-please already made the draft; this is for a tag pushed by
+      # hand. The draft exists before the builds start so that each of them
+      # uploads to it instead of making a draft of its own.
+      - name: Create the draft release
+        run: |
+          if ! gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --draft --verify-tag --title "$TAG" --generate-notes
+          fi
+
+  app:
+    name: ${{ matrix.name }}
+    needs: draft-release
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: macOS, os: macos-latest, platform: "darwin/universal" }
+          - { name: Windows, os: ubuntu-latest, platform: "windows/amd64,windows/arm64" }
+          - { name: Linux, os: ubuntu-latest, platform: "linux/amd64,linux/arm64" }
+    env:
+      # NSIS 3.13 crashes with std::bad_alloc when the locale is unset.
+      LANG: en_US.UTF-8
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      # Signing is set up in a copy of mygo.json made on the runner, so that
+      # builds on a developer's machine and releases without the secrets stay
+      # ad hoc signed.
+      - name: Sign and notarize the macOS app
+        if: matrix.name == 'macOS'
+        shell: bash
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+        run: |
+          if [ -z "$MACOS_CERTIFICATE" ]; then
+            echo "::warning::No Apple signing secrets: the macOS app is signed ad hoc and Gatekeeper blocks it on other Macs."
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          password="$(openssl rand -base64 24)"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          echo "$MACOS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" login.keychain
+          echo "$APPLE_API_KEY" | base64 --decode > "$RUNNER_TEMP/AuthKey.p8"
+          xcrun notarytool store-credentials notary --keychain "$keychain" \
+            --key "$RUNNER_TEMP/AuthKey.p8" --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER"
+          rm "$RUNNER_TEMP/AuthKey.p8"
+          identity="$(security find-identity -v -p codesigning "$keychain" \
+            | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -n 1)"
+          test -n "$identity"
+          jq --arg identity "$identity" --arg keychain "$keychain" \
+            '.macos.signingIdentity = $identity | .macos.notarize = {keychainProfile: "notary", keychain: $keychain}' \
+            mygo.json > "$RUNNER_TEMP/mygo.json"
+          mv "$RUNNER_TEMP/mygo.json" mygo.json
+
+      - name: Install NSIS, for the Windows installers
+        if: matrix.name == 'Windows'
+        run: sudo apt-get update && sudo apt-get install -y nsis osslsigncode
+      - name: Sign the Windows app
+        if: matrix.name == 'Windows'
+        env:
+          WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
+        run: |
+          if [ -z "$WINDOWS_CERTIFICATE" ]; then
+            echo "::warning::No Windows signing certificate: SmartScreen warns on first launch."
+            exit 0
+          fi
+          echo "$WINDOWS_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/code-signing.pfx"
+          jq --arg certificate "$RUNNER_TEMP/code-signing.pfx" '.windows.certificate = $certificate' \
+            mygo.json > "$RUNNER_TEMP/mygo.json"
+          mv "$RUNNER_TEMP/mygo.json" mygo.json
+
+      - name: Build and upload
+        env:
+          MYGO_UPDATER_PRIVATE_KEY: ${{ secrets.MYGO_UPDATER_PRIVATE_KEY }}
+          MYGO_WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+        run: go tool mygo build -platform "${{ matrix.platform }}" -upload
+
+  cli:
+    name: CLI
+    needs: draft-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Build the archives and their checksums
+        run: |
+          version="${TAG#v}"
+          dist="$GITHUB_WORKSPACE/dist"
+          mkdir "$dist"
+          for target in darwin/amd64 darwin/arm64 linux/amd64 linux/arm64 windows/amd64 windows/arm64; do
+            goos="${target%/*}"
+            goarch="${target#*/}"
+            exe=omt
+            if [ "$goos" = windows ]; then
+              exe=omt.exe
+            fi
+            stage="$(mktemp -d)"
+            GOOS="$goos" GOARCH="$goarch" go build -trimpath -ldflags "-s -w" -o "$stage/$exe" ./cmd/omt
+            cp LICENSE "$stage/"
+            name="omt-$version-$goos-$goarch"
+            if [ "$goos" = windows ]; then
+              (cd "$stage" && zip -q "$dist/$name.zip" "$exe" LICENSE)
+            else
+              tar -C "$stage" -czf "$dist/$name.tar.gz" "$exe" LICENSE
+            fi
+          done
+          (cd "$dist" && sha256sum -- * > omt-SHA256SUMS)
+      - name: Upload to the draft release
+        run: gh release upload "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --clobber
+
+  publish:
+    name: Publish
+    needs: [app, cli]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Apps update only to a release that is not a pre-release, unless their
+      # user opted in, so a build that is not signed for other Macs stays
+      # out of everyone's update.
+      - name: Publish the release
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+        run: |
+          flags=()
+          if [ -z "$MACOS_CERTIFICATE" ] || [[ "$TAG" == *-* ]]; then
+            flags+=(--prerelease)
+          fi
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false "${flags[@]}"

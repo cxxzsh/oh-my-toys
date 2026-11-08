@@ -46,13 +46,7 @@ func TestSetRulesKeepsTheBookForTheNextLaunch(t *testing.T) {
 	if got := tl.Rules(); len(got) != 2 || got[0].ID != "mock-1" {
 		t.Fatalf("Rules() = %+v, want the book just set", got)
 	}
-	info, err := os.Stat(tl.path(rulesFile))
-	if err != nil {
-		t.Fatalf("stat %s: %v", rulesFile, err)
-	}
-	if perm := info.Mode().Perm(); perm != fileMode {
-		t.Errorf("%s has mode %o, want %o", rulesFile, perm, fileMode)
-	}
+	checkMode(t, tl.path(rulesFile), fileMode)
 
 	again := newTool(filepath.Dir(tl.dir), (&fakeSystem{}).system())
 	if got := again.Rules(); len(got) != 2 || got[1].ID != "rewrite-1" {

@@ -15,6 +15,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -373,9 +374,13 @@ func TestLeafServesATLSConnection(t *testing.T) {
 	}
 }
 
-// checkMode fails when path does not have mode.
+// checkMode fails when path does not have mode. Windows keeps access control
+// lists, not mode bits: Stat reports 0666 and 0777 whatever the ACL says.
 func checkMode(t *testing.T, path string, mode os.FileMode) {
 	t.Helper()
+	if runtime.GOOS == "windows" {
+		return
+	}
 	info, err := os.Stat(path)
 	if err != nil {
 		t.Fatal(err)

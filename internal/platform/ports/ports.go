@@ -48,15 +48,6 @@ func Kill(pid int) error {
 	return nil
 }
 
-func isSystemPath(path string) bool {
-	for _, p := range []string{"/System/", "/usr/libexec/", "/usr/sbin/", "/sbin/", `C:\Windows\`, `c:\windows\`} {
-		if strings.HasPrefix(path, p) {
-			return true
-		}
-	}
-	return false
-}
-
 // splitHostPort splits "127.0.0.1:8080", "[::1]:5432" or "*:3000" at the
 // last colon.
 func splitHostPort(s string) (string, int, bool) {

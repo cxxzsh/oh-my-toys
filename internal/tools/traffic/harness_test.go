@@ -241,18 +241,49 @@ func (s *fakeSource) Close() error {
 	return nil
 }
 
-// waitRows waits until the log holds at least want rows of source, and
-// returns the snapshot it read.
+// waitRows waits until the log holds at least want finished rows of source,
+// and returns the snapshot it read. A row appears when its request goes out,
+// and its body is written only when the response finishes.
 func waitRows(t *testing.T, log tool.FlowLog, source tool.FlowSource, want int) []tool.FlowRow {
 	t.Helper()
 	deadline := time.Now().Add(captureWait)
 	for {
 		rows := log.Rows(tool.Filter{Source: source})
-		if len(rows) >= want {
+		if len(rows) >= want && allFinished(rows[:want]) {
 			return rows
 		}
 		if time.Now().After(deadline) {
-			t.Fatalf("the log holds %d rows, want %d", len(rows), want)
+			t.Fatalf("the log holds %d rows, want %d finished", len(rows), want)
+		}
+		time.Sleep(pollEvery)
+	}
+}
+
+// allFinished reports whether none of the rows is still open.
+func allFinished(rows []tool.FlowRow) bool {
+	for _, row := range rows {
+		if row.State == tool.FlowOpen {
+			return false
+		}
+	}
+	return true
+}
+
+// waitFlow waits until the log holds the flow and it is no longer open, and
+// returns it with its response.
+func waitFlow(t *testing.T, tl *Tool, id uint64) tool.Flow {
+	t.Helper()
+	deadline := time.Now().Add(captureWait)
+	for {
+		if flow, ok := tl.Log().Get(id); ok && flow.State != tool.FlowOpen {
+			return flow
+		}
+		if time.Now().After(deadline) {
+			flow, ok := tl.Log().Get(id)
+			if !ok {
+				t.Fatalf("flow %d is not recorded", id)
+			}
+			t.Fatalf("flow %d is still open (%d)", id, flow.State)
 		}
 		time.Sleep(pollEvery)
 	}
