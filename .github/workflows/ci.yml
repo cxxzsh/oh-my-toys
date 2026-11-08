@@ -120,7 +120,7 @@ jobs:
         if: matrix.os == 'windows'
         run: |
           $approver = Start-Process -PassThru -WindowStyle Hidden -FilePath pwsh -ArgumentList '-NoProfile', '-File', '.github/scripts/approve-root-prompt.ps1' -RedirectStandardOutput approver.log
-          go test -v -count=1 -timeout 5m -run TestLive ./internal/platform/sysproxy/ ./internal/platform/trust/
+          go test -v -count=1 -timeout 2m -run TestLive ./internal/platform/sysproxy/ ./internal/platform/trust/
           $status = $LASTEXITCODE
           Stop-Process -Id $approver.Id -Force
           Get-Content approver.log
