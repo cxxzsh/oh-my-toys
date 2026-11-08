@@ -15,6 +15,8 @@ The Traffic tool (`traffic`, category network) records network traffic and lets 
 
 Decisions that bound the work: loopback only; bodies are cut at `tool.MaxBody` (4 MiB); the proxy log keeps at most 5000 flows and 256 MiB of bodies, the packet log 50000 packets, and the oldest go first; the tool exists in the desktop app only (like Screenshot, it is registered in `cmd/oh-my-toys` and not in `omt`), so neither the command line nor MCP can start a capture or read one: a flow can hold secrets and a capture changes the system proxy.
 
+Known limit (macOS): the system proxy is set on every network service, but apps read the settings of the primary service. When a proxy app's virtual interface is primary (observed with Surge's `utun`: `scutil --proxy` showed no proxy while Traffic was capturing), system-proxy-aware apps do not reach the listener. The client has to be pointed at `127.0.0.1:<port>` directly, or the other proxy app's system proxy turned off.
+
 ## 2. Safety rules (every slice follows these)
 
 1. **The system proxy must come back.** Before the app changes it, the old settings are saved to a state file; Stop, quitting and a crash recovery at the next start restore them. A proxy left pointing at a dead port cuts the person off the network.
