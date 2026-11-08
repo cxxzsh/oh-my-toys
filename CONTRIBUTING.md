@@ -24,7 +24,7 @@ oh-my-toys is a toolbox: many small tools, one app. The code is in layers, and *
 cmd/oh-my-toys/       desktop app entry
 cmd/omt/              command line entry
 internal/core/        registry, search, state, runner, settings
-internal/tools/<id>/  one directory per tool; <id> is also the CLI subcommand
+internal/tools/<id>/  one directory per tool; a tool with several parts may split them into sub-packages of its directory, which import each other and nothing of another tool
 internal/ui/          MyGo views and design tokens
 internal/platform/    per-OS code, split by build tags
 internal/i18n/        catalogs: en.json (source), zh-Hans.json

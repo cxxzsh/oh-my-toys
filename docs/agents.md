@@ -92,7 +92,7 @@ So that scripts and agents can rely on it:
 ## 8. Transport
 
 - `omt mcp` speaks MCP over stdio, using the official Go SDK ([modelcontextprotocol/go-sdk](https://github.com/modelcontextprotocol/go-sdk)), which needs no cgo.
-- No network listener, no cloud service and no telemetry.
+- No network listener of `omt` or `omt mcp`, no cloud service and no telemetry. The one listener the project has is the desktop app's Traffic tool: it binds `127.0.0.1` only, and only while a capture runs. What it captured can hold secrets, so the tool is not offered through `omt` or MCP at all.
 - Setup is one entry in the agent client's configuration, such as `{"command": "omt", "args": ["mcp"]}`.
 
 ## 9. Rollout
