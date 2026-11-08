@@ -2,10 +2,12 @@ name: PR title
 
 # A pull request's title becomes its squash-merge commit message, so it must
 # follow Conventional Commits. It is a workflow of its own: editing the title,
-# or the body, re-runs only this check, not the whole of CI.
+# or the body, re-runs only this check, not the whole of CI. It runs on every
+# push too, so that the newest commit carries the check a branch protection
+# rule requires.
 on:
   pull_request:
-    types: [opened, edited, reopened]
+    types: [opened, edited, synchronize, reopened]
 
 permissions:
   pull-requests: read
