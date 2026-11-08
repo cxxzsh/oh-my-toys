@@ -92,6 +92,10 @@ type proxyRun struct {
 	addr       string
 	decrypting bool
 	cancel     context.CancelFunc
+	// ineffective is set when the system proxy points at the capture but
+	// apps read another service's setting, so the capture sees only what
+	// a client sends to it on purpose.
+	ineffective bool
 }
 
 // New makes the tool, keeping its state under dir/traffic.
@@ -195,10 +199,17 @@ func (t *Tool) Recover() error {
 func (t *Tool) Status() tool.Status {
 	t.mu.Lock()
 	proxyOn, packets, since, note := t.proxy, t.packet, t.since, t.note
+	var ineffectiveAt string
+	if proxyOn != nil && proxyOn.ineffective {
+		ineffectiveAt = proxyOn.addr
+	}
 	t.mu.Unlock()
 
 	switch {
 	case proxyOn != nil:
+		if note == "" && ineffectiveAt != "" {
+			note = i18n.TrafficProxyIneffective(ineffectiveAt)
+		}
 		return tool.Status{
 			On: true, Since: since, Note: note,
 			Text:   i18n.TrafficRunningProxy(proxyOn.addr, t.proxylog.Len()),

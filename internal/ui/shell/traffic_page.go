@@ -210,6 +210,7 @@ func (a *App) trafficPage(c *ui.Context, t tool.Traffic) {
 			st.saved = ""
 		}
 		a.trafficHead(c, t, st)
+		a.trafficNote(c, t)
 		a.trafficControls(c, t, st)
 		a.trafficTabs(c, st)
 		a.trafficProblem(c, st)
@@ -293,6 +294,14 @@ func (a *App) trafficHead(c *ui.Context, t tool.Traffic, st *trafficState) {
 		Description: m.Summary(msgs()),
 		Meta:        func() { a.trafficActions(c, t, st) },
 	})
+}
+
+// trafficNote is what the capture asks the person to know beyond its
+// state: a system proxy that apps will not use, for one.
+func (a *App) trafficNote(c *ui.Context, t tool.Traffic) {
+	if note := t.Status().Note; note != "" {
+		comp.Text(c, note, ds.Caption, ds.P(c).TextInactive).Selectable()
+	}
 }
 
 // trafficActions starts and stops the capture, clears the log and saves a

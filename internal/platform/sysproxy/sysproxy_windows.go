@@ -82,6 +82,10 @@ func points(s Snapshot, hostport string) bool {
 	return windowsSettingsPoint(*s.Windows, host, port)
 }
 
+// effective reports true: WinINET is the one proxy setting apps of this
+// user read, and it is the one Enable writes.
+func effective(string) (bool, error) { return true, nil }
+
 // restorePointing restores the saved settings only while WinINET still
 // points at hostport, because a different value is the person's own change
 // made after the crash.

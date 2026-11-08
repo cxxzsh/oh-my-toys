@@ -52,6 +52,10 @@ type proxySettings struct {
 	// restorePointing puts back only the services that still point at the
 	// capture, which is what a leftover state file is undone with.
 	restorePointing func(sysproxy.Snapshot, string) error
+	// effective says whether the proxy apps read points at the capture: a
+	// primary service with settings of its own (a proxy app's interface)
+	// keeps them.
+	effective func(hostport string) (bool, error)
 }
 
 // trustStore is the store the root certificate is trusted in.
@@ -77,6 +81,7 @@ func realSystem() system {
 			enable:          sysproxy.Enable,
 			restore:         sysproxy.Restore,
 			restorePointing: sysproxy.RestorePointing,
+			effective:       sysproxy.Effective,
 		},
 		trust: trustStore{
 			install: trust.Install,

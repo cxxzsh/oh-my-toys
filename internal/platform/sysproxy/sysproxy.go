@@ -132,6 +132,14 @@ func Points(s Snapshot, hostport string) bool { return points(s, hostport) }
 // service while others still point at the dead address.
 func RestorePointing(s Snapshot, hostport string) error { return restorePointing(s, hostport) }
 
+// Effective reports whether the proxy apps read points at hostport. On
+// macOS that is the setting of the primary network service, which is not
+// always one Enable changed: a proxy app's virtual interface keeps settings
+// of its own, and apps then never reach the proxy. Windows and Linux have a
+// single setting apps read, the one Enable writes, so they report true. It
+// reads and changes nothing.
+func Effective(hostport string) (bool, error) { return effective(hostport) }
+
 // parseHostPort splits a proxy address and checks the port a listener could
 // bind. The system accepts a host without a port in some places; this
 // package does not, because the proxy always listens on one.

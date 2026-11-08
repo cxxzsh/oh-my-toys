@@ -33,6 +33,11 @@ type fakeSystem struct {
 	pointingAddr string
 	pointingErr  error
 
+	// What apps would use, and whether reading it fails. A capture takes
+	// the system proxy for apps unless a test says it does not.
+	noEffect     bool
+	effectiveErr error
+
 	trusted    bool
 	trustErr   error
 	untrustErr error
@@ -129,6 +134,10 @@ func (f *fakeSystem) system() system {
 				f.pointingAddr = hostport
 				f.mu.Unlock()
 				return f.pointingErr
+			},
+			effective: func(string) (bool, error) {
+				f.record("effective")
+				return !f.noEffect, f.effectiveErr
 			},
 		},
 		trust: trustStore{

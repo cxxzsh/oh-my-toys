@@ -631,3 +631,71 @@ func TestRestorePointingWritesEmptyEndpoint(t *testing.T) {
 		t.Fatalf("restorePointingServices ran:\n%v\nwant:\n%v", fake.calls, want)
 	}
 }
+
+// scutilProxy is what scutil prints while both schemes point at a capture.
+const scutilProxy = `<dictionary> {
+  ExceptionsList : <array> {
+    0 : *.local
+    1 : 169.254/16
+  }
+  FTPPassive : 1
+  HTTPEnable : 1
+  HTTPPort : 9099
+  HTTPProxy : 127.0.0.1
+  HTTPSEnable : 1
+  HTTPSPort : 9099
+  HTTPSProxy : 127.0.0.1
+}
+`
+
+func TestEffectiveReadsWhatAppsUse(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		out  string
+		want bool
+	}{
+		{name: "both schemes point at the capture", out: scutilProxy, want: true},
+		{name: "only the secure scheme does", want: true, out: `<dictionary> {
+  HTTPEnable : 0
+  HTTPPort : 9099
+  HTTPProxy : 127.0.0.1
+  HTTPSEnable : 1
+  HTTPSPort : 9099
+  HTTPSProxy : 127.0.0.1
+}
+`},
+		{name: "no proxy at all", out: "<dictionary> {\n  FTPPassive : 1\n}\n"},
+		{name: "another port", out: "<dictionary> {\n  HTTPEnable : 1\n  HTTPPort : 7890\n  HTTPProxy : 127.0.0.1\n}\n"},
+		{
+			name: "another host",
+			out:  "<dictionary> {\n  HTTPSEnable : 1\n  HTTPSPort : 9099\n  HTTPSProxy : 10.0.0.9\n}\n",
+		},
+		{name: "the last one was switched off", out: "<dictionary> {\n  HTTPEnable : 0\n  HTTPPort : 9099\n  HTTPProxy : 127.0.0.1\n}\n"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			fake := newFake(map[string]string{"--proxy": tt.out})
+			got, err := effectiveWith(fake.run, "127.0.0.1:9099")
+			if err != nil {
+				t.Fatalf("effectiveWith: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("effectiveWith = %v, want %v", got, tt.want)
+			}
+			if want := []string{"--proxy"}; !reflect.DeepEqual(fake.calls, want) {
+				t.Errorf("ran %v, want %v", fake.calls, want)
+			}
+		})
+	}
+}
+
+func TestEffectiveReportsAFailedRead(t *testing.T) {
+	t.Parallel()
+	fake := newFake(nil)
+	fake.failures["--proxy"] = errors.New("no scutil")
+	if ok, err := effectiveWith(fake.run, "127.0.0.1:9099"); err == nil {
+		t.Fatalf("effectiveWith = %v, want an error", ok)
+	}
+}

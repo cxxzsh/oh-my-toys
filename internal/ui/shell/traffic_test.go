@@ -40,6 +40,7 @@ type testTraffic struct {
 	rules     []tool.Rule
 	rulesErr  error
 	ruleBooks [][]tool.Rule
+	note      string
 }
 
 func newTestTraffic() *testTraffic {
@@ -83,9 +84,9 @@ func (f *testTraffic) Status() tool.Status {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if f.on {
-		return tool.Status{On: true, Text: i18n.StatusOn()}
+		return tool.Status{On: true, Text: i18n.StatusOn(), Note: f.note}
 	}
-	return tool.Status{Text: i18n.StatusOff()}
+	return tool.Status{Text: i18n.StatusOff(), Note: f.note}
 }
 
 func (f *testTraffic) Config() tool.CaptureConfig {
@@ -569,4 +570,15 @@ func hasUpstreamError(tt *ui.Tester) bool {
 		}
 	}
 	return false
+}
+
+// TestTrafficPageShowsTheStatusNote: what the tool says beside its state,
+// as a system proxy that apps do not read, is on the page.
+func TestTrafficPageShowsTheStatusNote(t *testing.T) {
+	f := newTestTraffic()
+	f.note = "apps read another service's proxy"
+	tt := openTraffic(t, f)
+	if !tt.HasText(f.note) {
+		t.Errorf("the page does not show %q", f.note)
+	}
 }

@@ -1577,6 +1577,15 @@
   "@trafficSystemProxy": {
     "description": "Switch label: point the system proxy at the capture proxy."
   },
+  "trafficProxyIneffective": "The system proxy is set, but apps will not use it: the primary network service has proxy settings of its own, as a proxy app's virtual interface does. Send the client to {addr} itself, or turn off that app's system proxy.",
+  "@trafficProxyIneffective": {
+    "description": "Note while capturing, when the system proxy points at the capture but apps read another service's setting.",
+    "placeholders": {
+      "addr": {
+        "type": "String"
+      }
+    }
+  },
   "trafficDecrypt": "Decrypt HTTPS",
   "@trafficDecrypt": {
     "description": "Switch label: open HTTPS with the app's certificate."

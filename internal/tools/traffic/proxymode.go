@@ -89,7 +89,7 @@ func (t *Tool) startProxy(ctx context.Context, cfg tool.CaptureConfig, policy ro
 	// being changed must still put it back.
 	t.publish(run)
 	if before != nil {
-		if err := t.takeSystemProxy(want, *before); err != nil {
+		if err := t.takeSystemProxy(run, *before); err != nil {
 			t.unpublish(run)
 			_ = srv.Stop()
 			cancel()
@@ -124,7 +124,8 @@ func (t *Tool) unpublish(run *proxyRun) {
 // would really hurt. Once the change is made, the file is written again
 // from the settings Enable actually replaced, so that a service that came
 // up in between is restored too.
-func (t *Tool) takeSystemProxy(addr string, before sysproxy.Snapshot) error {
+func (t *Tool) takeSystemProxy(run *proxyRun, before sysproxy.Snapshot) error {
+	addr := run.addr
 	if err := t.saveState(addr, before); err != nil {
 		return err
 	}
@@ -136,6 +137,15 @@ func (t *Tool) takeSystemProxy(addr string, before sysproxy.Snapshot) error {
 		// The file of the first write is still on disk and still safe: a
 		// failure to rewrite it must not undo a working capture.
 		log.Printf("traffic: %v; the system proxy is restored from the first snapshot", err)
+	}
+	// Every service points at the capture now, but apps read the one of
+	// the primary service, and a proxy app's virtual interface keeps its
+	// own. The capture runs either way; the person is told that this
+	// setting does not reach it, so that they can point a client at it.
+	if effective, err := t.sys.sysproxy.effective(addr); err == nil && !effective {
+		t.mu.Lock()
+		run.ineffective = true
+		t.mu.Unlock()
 	}
 	return nil
 }

@@ -20,6 +20,10 @@ func restore(Snapshot) error {
 
 func points(Snapshot, string) bool { return false }
 
+func effective(string) (bool, error) {
+	return false, fmt.Errorf("read the system proxy: %w", ErrUnsupported)
+}
+
 func restorePointing(Snapshot, string) error {
 	return fmt.Errorf("restore the system proxy: %w", ErrUnsupported)
 }

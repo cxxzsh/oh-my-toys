@@ -4360,6 +4360,24 @@ func (msgs Messages) TrafficSystemProxy() string {
 	return Catalog.Format(msgs.locale, "trafficSystemProxy", nil)
 }
 
+// TrafficProxyIneffective says "The system proxy is set, but apps will not use it: the primary network service has proxy settings of its own, as a pr…"
+// in the language the app shows.
+//
+// Note while capturing, when the system proxy points at the capture but
+// apps read another service's setting.
+func TrafficProxyIneffective(addr string) string {
+	return In(i18n.Locale()).TrafficProxyIneffective(addr)
+}
+
+// TrafficProxyIneffective says "The system proxy is set, but apps will not use it: the primary network service has proxy settings of its own, as a pr…"
+// in the language of msgs.
+//
+// Note while capturing, when the system proxy points at the capture but
+// apps read another service's setting.
+func (msgs Messages) TrafficProxyIneffective(addr string) string {
+	return Catalog.Format(msgs.locale, "trafficProxyIneffective", map[string]any{"addr": addr})
+}
+
 // TrafficDecrypt says "Decrypt HTTPS"
 // in the language the app shows.
 //

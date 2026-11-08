@@ -306,6 +306,7 @@
   "trafficPort": "端口",
   "trafficPortBad": "“{input}”不是端口。请输入 1024 到 65535 之间的数字，例如 9099。",
   "trafficSystemProxy": "设为系统代理",
+  "trafficProxyIneffective": "系统代理已经设置，但应用不会用到它：主网络服务有自己的代理设置，例如代理软件的虚拟网卡。请让客户端直接连接 {addr}，或者关掉那个代理的系统代理。",
   "trafficDecrypt": "解密 HTTPS",
   "trafficBypass": "不拦截",
   "trafficBypassHint": "不解密的域名，例如 *.local，用逗号分隔",

@@ -71,6 +71,63 @@ func restorePointing(s Snapshot, hostport string) error {
 
 func points(s Snapshot, hostport string) bool { return pointsAt(s, hostport) }
 
+func effective(hostport string) (bool, error) { return effectiveWith(execRunner, hostport) }
+
+// scutilPath is the absolute path of the tool that reports the proxy the
+// system hands to apps, which is the setting of the primary service.
+const scutilPath = "/usr/sbin/scutil"
+
+// The names scutil gives the manual proxy of each scheme, and the word it
+// prints for an enabled one.
+const (
+	scutilHTTP  = "HTTP"
+	scutilHTTPS = "HTTPS"
+	scutilOn    = "1"
+)
+
+// effectiveWith asks scutil what apps would use and compares it with the
+// proxy. A proxy auto-configuration file counts as not pointing at it: it
+// may send a request anywhere, so the caller is told rather than promised.
+func effectiveWith(r runner, hostport string) (bool, error) {
+	out, err := r(scutilPath, "--proxy")
+	if err != nil {
+		return false, commandFailed(scutilPath, out, err)
+	}
+	host, port, err := parseHostPort(hostport)
+	if err != nil {
+		return false, err
+	}
+	settings := parseScutil(out)
+	for _, scheme := range []string{scutilHTTP, scutilHTTPS} {
+		if proxyPoints(dictionaryProxy(settings, scheme), host, port) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// dictionaryProxy is one scheme's manual proxy in what scutil printed.
+func dictionaryProxy(settings map[string]string, scheme string) Proxy {
+	port, _ := strconv.Atoi(settings[scheme+"Port"])
+	return Proxy{Enabled: settings[scheme+"Enable"] == scutilOn, Host: settings[scheme+"Proxy"], Port: port}
+}
+
+// parseScutil reads the flat key/value lines of scutil's dictionary. The
+// nested lists it prints for exceptions and PAC addresses have values with
+// braces or no value word, and they are skipped: only the proxy itself is
+// asked for.
+func parseScutil(out string) map[string]string {
+	settings := make(map[string]string, 8)
+	for _, line := range strings.Split(out, "\n") {
+		key, value, found := strings.Cut(strings.TrimSpace(line), " : ")
+		if !found || strings.ContainsAny(value, "{}<>") {
+			continue
+		}
+		settings[key] = value
+	}
+	return settings
+}
+
 // readServices snapshots every network service that is up. A disabled
 // service is left alone by Enable, so its settings need no saving.
 func readServices(r runner) (Snapshot, error) {

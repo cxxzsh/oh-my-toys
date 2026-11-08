@@ -453,3 +453,79 @@ func TestStartRefusesAPacOnlySystemProxy(t *testing.T) {
 		t.Fatalf("Stop: %v", err)
 	}
 }
+
+// TestStartWarnsWhenAppsReadAnotherService: every service points at the
+// capture but the primary one keeps a setting of its own, so the status
+// says that apps go elsewhere while the capture runs, and forgets it
+// once it stops.
+func TestStartWarnsWhenAppsReadAnotherService(t *testing.T) {
+	tl, fake := testTool(t)
+	fake.snap = priorSettings()
+	fake.noEffect = true
+	if err := tl.SetConfig(proxyConfig(t, true)); err != nil {
+		t.Fatalf("SetConfig: %v", err)
+	}
+	if err := tl.Start(context.Background()); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	if !fake.seen("effective") {
+		t.Error("the capture never asked what apps would use")
+	}
+	if note := tl.Status().Note; note == "" {
+		t.Error("status has no note, want the one about the system proxy apps do not read")
+	}
+	if err := tl.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	if note := tl.Status().Note; note != "" {
+		t.Errorf("note after Stop = %q, want none", note)
+	}
+}
+
+// TestStartIsQuietWhenAppsReadTheCapture: the usual case has no note, and
+// a system whose answer cannot be read leaves the capture running.
+func TestStartIsQuietWhenAppsReadTheCapture(t *testing.T) {
+	tests := []struct {
+		name    string
+		readErr error
+	}{{name: "apps read the capture"}, {name: "the answer cannot be read", readErr: errors.New("no scutil")}}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tl, fake := testTool(t)
+			fake.snap = priorSettings()
+			fake.effectiveErr = tt.readErr
+			if err := tl.SetConfig(proxyConfig(t, true)); err != nil {
+				t.Fatalf("SetConfig: %v", err)
+			}
+			if err := tl.Start(context.Background()); err != nil {
+				t.Fatalf("Start: %v", err)
+			}
+			t.Cleanup(func() { _ = tl.Stop() })
+			if note := tl.Status().Note; note != "" {
+				t.Errorf("note = %q, want none", note)
+			}
+			if st := tl.Status(); !st.On {
+				t.Errorf("status %+v, want the capture on", st)
+			}
+		})
+	}
+}
+
+// TestTheSystemProxyIsLeftAloneWhenItIsOff: a capture that does not take
+// the system proxy neither asks what apps would use nor writes a state.
+func TestTheSystemProxyIsLeftAloneWhenItIsOff(t *testing.T) {
+	tl, fake := testTool(t)
+	if err := tl.SetConfig(proxyConfig(t, false)); err != nil {
+		t.Fatalf("SetConfig: %v", err)
+	}
+	if err := tl.Start(context.Background()); err != nil {
+		t.Fatalf("Start: %v", err)
+	}
+	t.Cleanup(func() { _ = tl.Stop() })
+	if fake.seen("effective") {
+		t.Error("the capture asked what apps would use without touching the system proxy")
+	}
+	if note := tl.Status().Note; note != "" {
+		t.Errorf("note = %q, want none", note)
+	}
+}

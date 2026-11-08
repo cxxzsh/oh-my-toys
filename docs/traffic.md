@@ -15,7 +15,7 @@ The Traffic tool (`traffic`, category network) records network traffic and lets 
 
 Decisions that bound the work: loopback only; bodies are cut at `tool.MaxBody` (4 MiB); the proxy log keeps at most 5000 flows and 256 MiB of bodies, the packet log 50000 packets, and the oldest go first; the tool exists in the desktop app only (like Screenshot, it is registered in `cmd/oh-my-toys` and not in `omt`), so neither the command line nor MCP can start a capture or read one: a flow can hold secrets and a capture changes the system proxy.
 
-Known limit (macOS): the system proxy is set on every network service, but apps read the settings of the primary service. When a proxy app's virtual interface is primary (observed with Surge's `utun`: `scutil --proxy` showed no proxy while Traffic was capturing), system-proxy-aware apps do not reach the listener. The client has to be pointed at `127.0.0.1:<port>` directly, or the other proxy app's system proxy turned off.
+Known limit (macOS): the system proxy is set on every network service, but apps read the settings of the primary service. When a proxy app's virtual interface is primary (observed with Surge's `utun`: `scutil --proxy` showed no proxy while Traffic was capturing), system-proxy-aware apps do not reach the listener. The client has to be pointed at `127.0.0.1:<port>` directly, or the other proxy app's system proxy turned off. The tool asks `sysproxy.Effective` when it takes the system proxy and says so in its note while that run lasts.
 
 ## 2. Safety rules (every slice follows these)
 
@@ -71,6 +71,11 @@ func Points(s Snapshot, hostport string) bool
 // service that is gone is skipped) and returns the errors joined. It is what
 // crash recovery uses.
 func RestorePointing(s Snapshot, hostport string) error
+// Effective reports whether the proxy apps read points at hostport: on
+// macOS the setting of the primary network service, which is not always
+// one Enable changed. Windows and Linux have one setting apps read, the
+// one Enable writes, so they report true.
+func Effective(hostport string) (bool, error)
 
 var ErrPermission, ErrUnsupported error
 ```
@@ -254,4 +259,4 @@ func Decode(p pcap.Packet) tool.Flow
 
 ## 6. The inspector page
 
-`internal/ui/shell` draws it for any tool that is a `tool.Traffic` (type assertion in `toolBody`, as `Timed` and `Screened` are used); the UI never names the tool. It holds: a toolbar (start / stop, mode, clear, export, certificate status), a filter bar, a virtualised list, a detail pane, a rules editor and the permission, certificate and driver guidance.
+`internal/ui/shell` draws it for any tool that is a `tool.Traffic` (type assertion in `toolBody`, as `Timed` and `Screened` are used); the UI never names the tool. It holds: a toolbar (start / stop, mode, clear, export, certificate status), the status note when the tool has one, a filter bar, a virtualised list, a detail pane, a rules editor and the permission, certificate and driver guidance.

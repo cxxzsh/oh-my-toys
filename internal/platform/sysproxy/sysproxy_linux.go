@@ -34,6 +34,10 @@ func restore(s Snapshot) error { return restoreGNOME(execRunner, s) }
 
 func points(s Snapshot, hostport string) bool { return gnomePoints(s, hostport) }
 
+// effective reports true: the GNOME proxy is the one setting apps of this
+// desktop read, and it is the one Enable writes.
+func effective(string) (bool, error) { return true, nil }
+
 // readGNOME reads the mode and the two schemes of the GNOME proxy.
 func readGNOME(r runner) (Snapshot, error) {
 	if err := checkGSettings(); err != nil {
