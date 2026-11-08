@@ -1,0 +1,41 @@
+name: PR title
+
+# A pull request's title becomes its squash-merge commit message, so it must
+# follow Conventional Commits. It is a workflow of its own: editing the title,
+# or the body, re-runs only this check, not the whole of CI.
+on:
+  pull_request:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  title:
+    name: PR title
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          # CONTRIBUTING.md section 13.
+          types: |
+            feat
+            fix
+            docs
+            refactor
+            perf
+            test
+            build
+            ci
+            chore
+            revert
+          # Starts with a lowercase letter, no trailing period, at most 72
+          # characters; this is the part after "type(scope): ". Proper nouns
+          # may keep their capitals, as in "back on macOS".
+          subjectPattern: ^[a-z0-9](.{0,70}[^.])?$
+          subjectPatternError: >
+            The summary "{subject}" must start with a lowercase letter, have
+            no trailing period and be at most 72 characters.
