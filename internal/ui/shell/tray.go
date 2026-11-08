@@ -106,7 +106,18 @@ func (a *App) toggleTray() {
 	}
 	a.metrics.trayClicked()
 	a.trayChosen = 0
+	a.placeTray()
 	a.panel.Show()
+}
+
+// placeTray puts the panel against the icon as it is now. The panel was
+// placed when it last changed size, and showing it does not place it again,
+// but the icon moves as the other items of the menu bar change width, and
+// with a second display the click may be on that display's copy of it.
+// Setting the anchor places a tray's flyout again, though the anchor itself
+// does not apply to it.
+func (a *App) placeTray() {
+	a.panel.SetAnchor(mygo.Rectangle{})
 }
 
 func (a *App) hideTray() {
