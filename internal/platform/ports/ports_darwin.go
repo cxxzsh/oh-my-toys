@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -15,7 +16,12 @@ import (
 func listening(ctx context.Context) ([]Listener, error) {
 	out, err := exec.CommandContext(ctx, "lsof", "-nP", "-iTCP", "-sTCP:LISTEN", "-Fpcun").Output()
 	if err != nil && len(out) == 0 {
-		return nil, fmt.Errorf("run lsof: %w", err)
+		// lsof exits 1 when no file matches: a machine that listens on
+		// nothing has no ports, not an error.
+		var exit *exec.ExitError
+		if !errors.As(err, &exit) || exit.ExitCode() != 1 {
+			return nil, fmt.Errorf("run lsof: %w", err)
+		}
 	}
 	ls := parseLsof(out)
 	paths := textPaths(ctx, ls)
