@@ -18,6 +18,7 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/mcp"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/power"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/awake"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/color"
@@ -27,15 +28,19 @@ import (
 )
 
 func main() {
+	os.Exit(power.Host(execute))
+}
+
+// execute runs the command line and returns its exit code.
+func execute() int {
 	args := os.Args[1:]
 	if len(args) > 0 && args[0] == "mcp" {
 		mygoi18n.SetLocaleFunc(func() string { return "" })
-		os.Exit(runMCP())
+		return runMCP()
 	}
 	locale := core.OutputLocale(slices.Contains(args, "--json"), systemLocale())
 	mygoi18n.SetLocaleFunc(func() string { return locale })
-	code := run(args, locale)
-	os.Exit(code)
+	return run(args, locale)
 }
 
 func run(args []string, locale string) int {
