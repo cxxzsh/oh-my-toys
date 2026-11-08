@@ -19,6 +19,7 @@ type Palette struct {
 	FillControlHover    ui.Color // fill-control-hover
 	FillControlPressed  ui.Color // fill-control-pressed
 	Scrim               ui.Color // scrim
+	SnapScrim           ui.Color // snap-scrim
 	Selection           ui.Color // selection
 	Line                ui.Color // line
 	LineControl         ui.Color // line-control
@@ -93,6 +94,7 @@ var Light = Palette{
 	FillControlHover:    ui.RGBA(0, 0, 0, 0.1),
 	FillControlPressed:  ui.RGBA(0, 0, 0, 0.15),
 	Scrim:               ui.RGBA(0, 0, 0, 0.2),
+	SnapScrim:           ui.RGBA(0, 0, 0, 0.5),
 	Selection:           ui.RGBA(122, 162, 247, 0.2),
 	Line:                ui.Hex("#e5e5ea"),
 	LineControl:         ui.RGBA(0, 0, 0, 0.1),
@@ -167,6 +169,7 @@ var Dark = Palette{
 	FillControlHover:    ui.RGBA(255, 255, 255, 0.1),
 	FillControlPressed:  ui.RGBA(255, 255, 255, 0.15),
 	Scrim:               ui.RGBA(0, 0, 0, 0.5),
+	SnapScrim:           ui.RGBA(0, 0, 0, 0.5),
 	Selection:           ui.RGBA(122, 162, 247, 0.2),
 	Line:                ui.RGBA(255, 255, 255, 0.1),
 	LineControl:         ui.RGBA(255, 255, 255, 0.1),

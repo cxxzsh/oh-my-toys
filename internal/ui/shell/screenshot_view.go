@@ -295,7 +295,7 @@ func (a *App) snapPaint(p *ui.Painter, r ui.Rect, ov *snapOverlay, s *snapSessio
 		a.snapAim(p, r, ov, s, pal)
 		return
 	}
-	a.snapDim(p, r, local, pal.Scrim)
+	a.snapDim(p, r, local, pal.SnapScrim)
 	a.snapPaintMarks(p, ov, s)
 	a.snapSelection(p, local, s, pal)
 	a.snapLoupeIf(p, ov, s, pal)
@@ -515,12 +515,12 @@ func (a *App) snapAim(p *ui.Painter, r ui.Rect, ov *snapOverlay, s *snapSession,
 		win = snapWindowAt(s.wins, s.hover)
 	}
 	if win.Empty() {
-		p.Fill(r, pal.Scrim, 0)
+		p.Fill(r, pal.SnapScrim, 0)
 		a.snapLoupeIf(p, ov, s, pal)
 		return
 	}
 	local := snapLocal(win, ov.shot.Bounds)
-	a.snapDim(p, r, local, pal.Scrim)
+	a.snapDim(p, r, local, pal.SnapScrim)
 	p.Stroke(local, pal.Accent, 0, ds.LineWidth*2)
 	a.snapTag(p, local, snapSizeText(win.Dx(), win.Dy()), pal)
 	a.snapLoupeIf(p, ov, s, pal)
