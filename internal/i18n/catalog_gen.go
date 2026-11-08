@@ -1734,6 +1734,20 @@ func (msgs Messages) SnapMosaic() string {
 	return Catalog.Format(msgs.locale, "snapMosaic", nil)
 }
 
+// SnapErase says "Eraser"
+// in the language the app shows.
+//
+// Screenshot annotation tool that rubs marks out.
+func SnapErase() string { return In(i18n.Locale()).SnapErase() }
+
+// SnapErase says "Eraser"
+// in the language of msgs.
+//
+// Screenshot annotation tool that rubs marks out.
+func (msgs Messages) SnapErase() string {
+	return Catalog.Format(msgs.locale, "snapErase", nil)
+}
+
 // SnapRedo says "Redo"
 // in the language the app shows.
 //

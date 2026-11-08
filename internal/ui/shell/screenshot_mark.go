@@ -26,6 +26,7 @@ const (
 	snapToolArrow
 	snapToolMosaic
 	snapToolText
+	snapToolErase
 )
 
 // snapMark is one annotation of the session, in global points. A text mark
@@ -43,6 +44,8 @@ const (
 	snapMarkText   = 16.0 // points, the size of a label
 	snapMosaicCell = 8    // points, one square of a mosaic
 	snapMarkMin    = 6.0  // points, a mark smaller than this is dropped
+	snapTextCharW  = 0.55 // average glyph width of a label, in ems
+	snapTextLineH  = 1.4  // a label's line height, over its size
 )
 
 // snapMarkColor is the red annotations are drawn in, on screen and in the
@@ -76,7 +79,7 @@ func (a *App) snapPaintMark(p *ui.Painter, ov *snapOverlay, m snapMark, c ui.Col
 		return float32(pt.X - o.X), float32(pt.Y - o.Y)
 	}
 	switch m.tool {
-	case snapToolNone:
+	case snapToolNone, snapToolErase:
 	case snapToolArrow:
 		for _, ln := range snapArrowLines(m.a, m.b) {
 			x0, y0 := at(ln[0])
@@ -139,37 +142,151 @@ func snapArrowLines(a, b image.Point) [3][2]image.Point {
 	}
 }
 
-// dropMark takes back the mark being drawn, or the last one kept, which
-// redo can put back. It reports whether there was one.
-func (s *snapSession) dropMark() bool {
+// snapAction is one change to the marks: undo reverses it, redo makes it
+// again.
+type snapAction struct {
+	mark  snapMark
+	erase bool // the action took the mark away
+	at    int  // where the mark sat in the list
+}
+
+// addMark keeps a mark, remembering how it went in.
+func (s *snapSession) addMark(m snapMark) {
+	s.marks = append(s.marks, m)
+	s.history = append(s.history, snapAction{mark: m, at: len(s.marks) - 1})
+	s.redone = nil
+}
+
+// eraseAt takes the mark at an index away, remembering how it came out.
+func (s *snapSession) eraseAt(i int) {
+	if i < 0 || i >= len(s.marks) {
+		return
+	}
+	m := s.marks[i]
+	s.marks = append(s.marks[:i], s.marks[i+1:]...)
+	s.history = append(s.history, snapAction{mark: m, erase: true, at: i})
+	s.redone = nil
+}
+
+// eraseMarks rubs out every mark the eraser touches at p. It reports
+// whether any went.
+func (s *snapSession) eraseMarks(p image.Point) bool {
+	gone := false
+	for i := len(s.marks) - 1; i >= 0; i-- {
+		if snapMarkHit(s.marks[i], p) {
+			s.eraseAt(i)
+			gone = true
+		}
+	}
+	return gone
+}
+
+// snapMarkHit reports whether p touches a mark: its box for a mosaic, its
+// line for an arrow, the space its words take for a label.
+func snapMarkHit(m snapMark, p image.Point) bool {
+	switch m.tool {
+	case snapToolMosaic:
+		return p.In(snapMarkRect(m))
+	case snapToolArrow:
+		return snapNearLine(m.a, m.b, p, snapEraseReach)
+	case snapToolText:
+		return p.In(snapTextBounds(m))
+	case snapToolNone, snapToolErase:
+	}
+	return false
+}
+
+// snapTextBounds is the space a label's words take, estimated from their
+// count, which is all the mark keeps.
+func snapTextBounds(m snapMark) image.Rectangle {
+	w := int(float64(len([]rune(m.text))) * snapMarkText * snapTextCharW)
+	h := int(math.Round(snapMarkText * snapTextLineH))
+	return image.Rect(m.a.X, m.a.Y, m.a.X+w, m.a.Y+h)
+}
+
+// snapNearLine reports whether p is within reach of the line from a to b.
+func snapNearLine(a, b, p image.Point, reach float64) bool {
+	ax, ay := float64(a.X), float64(a.Y)
+	bx, by := float64(b.X), float64(b.Y)
+	px, py := float64(p.X), float64(p.Y)
+	dx, dy := bx-ax, by-ay
+	d := dx*dx + dy*dy
+	t := 0.0
+	if d > 0 {
+		t = ((px-ax)*dx + (py-ay)*dy) / d
+		t = math.Max(0, math.Min(1, t))
+	}
+	cx, cy := ax+t*dx, ay+t*dy
+	return math.Hypot(px-cx, py-cy) <= reach
+}
+
+// undo reverses the last change, or lets go of the mark being drawn. It
+// reports whether there was one.
+func (s *snapSession) undo() bool {
 	if s.pending != nil {
 		s.pending, s.dragging, s.mode = nil, false, snapGripNone
 		return true
 	}
-	if len(s.marks) == 0 {
+	if len(s.history) == 0 {
 		return false
 	}
-	s.undone = append(s.undone, s.marks[len(s.marks)-1])
-	s.marks = s.marks[:len(s.marks)-1]
+	a := s.history[len(s.history)-1]
+	s.history = s.history[:len(s.history)-1]
+	a.revert(s)
+	s.redone = append(s.redone, a)
 	return true
 }
 
-// restoreMark puts back the mark undone last. It reports whether there was
-// one.
-func (s *snapSession) restoreMark() bool {
-	if len(s.undone) == 0 {
+// redo makes the last change again. It reports whether there was one.
+func (s *snapSession) redo() bool {
+	if len(s.redone) == 0 {
 		return false
 	}
-	s.marks = append(s.marks, s.undone[len(s.undone)-1])
-	s.undone = s.undone[:len(s.undone)-1]
+	a := s.redone[len(s.redone)-1]
+	s.redone = s.redone[:len(s.redone)-1]
+	a.apply(s)
+	s.history = append(s.history, a)
 	return true
 }
 
-// canUndo reports whether there is a mark to take back.
-func (s *snapSession) canUndo() bool { return s.pending != nil || len(s.marks) > 0 }
+// apply makes the change again, revert takes it back.
+func (a snapAction) apply(s *snapSession) {
+	if a.erase {
+		s.takeAt(a.at)
+		return
+	}
+	s.putAt(a.at, a.mark)
+}
 
-// canRedo reports whether undo took back a mark that can come again.
-func (s *snapSession) canRedo() bool { return len(s.undone) > 0 }
+func (a snapAction) revert(s *snapSession) {
+	if a.erase {
+		s.putAt(a.at, a.mark)
+		return
+	}
+	s.takeAt(a.at)
+}
+
+// putAt is a mark at an index.
+func (s *snapSession) putAt(at int, m snapMark) {
+	at = clamp(at, 0, len(s.marks))
+	s.marks = append(s.marks, snapMark{})
+	copy(s.marks[at+1:], s.marks[at:])
+	s.marks[at] = m
+}
+
+// takeAt takes the mark at an index away without remembering it.
+func (s *snapSession) takeAt(at int) {
+	if at < 0 || at >= len(s.marks) {
+		return
+	}
+	s.marks = append(s.marks[:at], s.marks[at+1:]...)
+}
+
+// canUndo reports whether there is a change to take back.
+func (s *snapSession) canUndo() bool { return s.pending != nil || len(s.history) > 0 }
+
+// canRedo reports whether undo took back a change that can come again.
+func (s *snapSession) canRedo() bool { return len(s.redone) > 0 }
 
 // commitMark keeps the mark just drawn, unless it is too small to mean
 // anything.
@@ -180,7 +297,7 @@ func (s *snapSession) commitMark() {
 		return
 	}
 	switch m.tool {
-	case snapToolNone, snapToolText:
+	case snapToolNone, snapToolText, snapToolErase:
 	case snapToolArrow:
 		dx, dy := float64(m.b.X-m.a.X), float64(m.b.Y-m.a.Y)
 		if math.Hypot(dx, dy) < snapMarkMin {
@@ -193,8 +310,7 @@ func (s *snapSession) commitMark() {
 		}
 		m.a, m.b = r.Min, r.Max
 	}
-	s.marks = append(s.marks, *m)
-	s.undone = nil
+	s.addMark(*m)
 }
 
 // snapDrawMarks draws the session's marks into the exported image, whose
@@ -212,7 +328,7 @@ func snapDrawMark(img *image.RGBA, m snapMark, sel image.Rectangle, scale float6
 			int(math.Round(float64(p.Y-sel.Min.Y)*scale)))
 	}
 	switch m.tool {
-	case snapToolNone:
+	case snapToolNone, snapToolErase:
 	case snapToolArrow:
 		width := int(math.Round(snapMarkWidth * scale))
 		for _, ln := range snapArrowLines(m.a, m.b) {

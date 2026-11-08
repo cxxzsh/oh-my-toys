@@ -155,16 +155,13 @@ func TestSnapPathLabel(t *testing.T) {
 }
 
 func TestSnapWindowAt(t *testing.T) {
-	outer := image.Rect(0, 0, 100, 100)
-	inner := image.Rect(10, 10, 40, 40)
-	frames := []image.Rectangle{outer, inner}
-	if got := snapWindowAt(frames, image.Pt(20, 20)); got != inner {
-		t.Fatalf("smallest window = %v", got)
+	front := image.Rect(0, 0, 100, 100)
+	back := image.Rect(10, 10, 40, 40)
+	frames := []image.Rectangle{front, back}
+	if got := snapWindowAt(frames, image.Pt(20, 20)); got != front {
+		t.Fatalf("front window = %v", got)
 	}
-	if got := snapWindowAt(frames, image.Pt(90, 90)); got != outer {
-		t.Fatalf("outer window = %v", got)
-	}
-	if got := snapWindowAt(frames, image.Pt(200, 200)); !got.Empty() {
+	if got := snapWindowAt(frames[:0], image.Pt(20, 20)); !got.Empty() {
 		t.Fatalf("no window = %v", got)
 	}
 }
@@ -210,24 +207,52 @@ func TestSnapDrawMark(t *testing.T) {
 	}
 }
 
-func TestSnapDropMark(t *testing.T) {
+func TestSnapUndo(t *testing.T) {
 	s := &snapSession{}
-	if s.canUndo() || s.dropMark() {
+	if s.canUndo() || s.undo() {
 		t.Fatal("an empty session has nothing to undo")
 	}
-	s.marks = []snapMark{{tool: snapToolArrow}}
-	if !s.canUndo() || !s.dropMark() || len(s.marks) != 0 {
-		t.Fatalf("marks = %v", s.marks)
+	s.addMark(snapMark{tool: snapToolArrow, a: image.Pt(1, 1), b: image.Pt(9, 9)})
+	s.addMark(snapMark{tool: snapToolMosaic, a: image.Pt(0, 0), b: image.Pt(9, 9)})
+	if !s.canUndo() || !s.undo() || len(s.marks) != 1 || s.marks[0].tool != snapToolArrow {
+		t.Fatalf("undo left %v", s.marks)
 	}
-	if !s.canRedo() || !s.restoreMark() || len(s.marks) != 1 || s.canRedo() {
-		t.Fatalf("redo left marks = %v, undone %v", s.marks, s.undone)
+	if !s.canRedo() || !s.redo() || len(s.marks) != 2 {
+		t.Fatalf("redo left %v", s.marks)
 	}
-	s.marks = nil
-	if s.restoreMark() {
-		t.Fatal("redid without an undo")
+}
+
+func TestSnapUndoErase(t *testing.T) {
+	s := &snapSession{}
+	s.addMark(snapMark{tool: snapToolArrow})
+	s.addMark(snapMark{tool: snapToolMosaic})
+	s.eraseAt(0)
+	if s.canRedo() {
+		t.Fatal("a new change kept the redo stack")
+	}
+	if !s.undo() || len(s.marks) != 2 || s.marks[0].tool != snapToolArrow {
+		t.Fatalf("undo of an erase left %v", s.marks)
 	}
 	s.pending, s.dragging, s.mode = &snapMark{tool: snapToolMosaic}, true, snapGripMark
-	if !s.dropMark() || s.pending != nil || s.dragging || s.mode != snapGripNone {
+	if !s.undo() || s.pending != nil || s.dragging || s.mode != snapGripNone {
 		t.Fatalf("pending = %v dragging %v mode %v", s.pending, s.dragging, s.mode)
+	}
+}
+
+func TestSnapMarkHit(t *testing.T) {
+	arrow := snapMark{tool: snapToolArrow, a: image.Pt(0, 0), b: image.Pt(100, 0)}
+	if !snapMarkHit(arrow, image.Pt(50, 3)) {
+		t.Fatal("the eraser missed an arrow it touches")
+	}
+	if snapMarkHit(arrow, image.Pt(50, 20)) {
+		t.Fatal("the eraser took an arrow it does not touch")
+	}
+	mosaic := snapMark{tool: snapToolMosaic, a: image.Pt(10, 10), b: image.Pt(60, 60)}
+	if !snapMarkHit(mosaic, image.Pt(30, 30)) || snapMarkHit(mosaic, image.Pt(70, 70)) {
+		t.Fatal("mosaic hit test")
+	}
+	text := snapMark{tool: snapToolText, a: image.Pt(10, 10), text: "hello"}
+	if !snapMarkHit(text, image.Pt(15, 20)) || snapMarkHit(text, image.Pt(200, 20)) {
+		t.Fatal("text hit test")
 	}
 }

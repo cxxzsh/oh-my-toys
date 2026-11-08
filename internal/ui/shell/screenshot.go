@@ -66,7 +66,8 @@ type snapSession struct {
 
 	tool     snapTool          // the annotation tool in hand; none moves the selection
 	marks    []snapMark        // annotations, in global points
-	undone   []snapMark        // annotations undo took back, for redo
+	history  []snapAction      // changes to the marks, oldest first
+	redone   []snapAction      // changes undo took back
 	pending  *snapMark         // the one being dragged
 	text     *snapText         // the label being typed
 	wins     []image.Rectangle // window frames a click can take as the selection
@@ -257,7 +258,7 @@ func (a *App) snapCancel() {
 // snapUndo takes back the annotation being drawn, or the last one kept.
 func (a *App) snapUndo() {
 	s := a.snap
-	if s == nil || !s.dropMark() {
+	if s == nil || !s.undo() {
 		return
 	}
 	a.snapInvalidate()
@@ -266,7 +267,7 @@ func (a *App) snapUndo() {
 // snapRedo puts back the annotation undo took back last.
 func (a *App) snapRedo() {
 	s := a.snap
-	if s == nil || !s.restoreMark() {
+	if s == nil || !s.redo() {
 		return
 	}
 	a.snapInvalidate()

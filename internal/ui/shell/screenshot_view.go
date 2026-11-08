@@ -87,6 +87,8 @@ func (a *App) snapToolKeys(c *ui.Context, s *snapSession) {
 		a.chooseSnapTool(s, snapToolMosaic)
 	case c.Shortcut(0, ui.KeyT):
 		a.chooseSnapTool(s, snapToolText)
+	case c.Shortcut(0, ui.KeyE):
+		a.chooseSnapTool(s, snapToolErase)
 	}
 }
 
@@ -194,6 +196,11 @@ func (a *App) snapPress(s *snapSession, pos image.Point) bool {
 			a.registerSnapKeys()
 			return true
 		}
+		if s.tool == snapToolErase {
+			gone := s.eraseMarks(pos)
+			s.mode, s.dragging = snapGripErase, true
+			return gone
+		}
 		s.pending = &snapMark{tool: s.tool, a: pos, b: pos}
 		s.mode, s.dragging = snapGripMark, true
 		return true
@@ -217,6 +224,8 @@ func (a *App) snapDrag(s *snapSession, pos image.Point) bool {
 		}
 		s.pending.b = pos
 		return true
+	case snapGripErase:
+		return s.eraseMarks(pos)
 	case snapGripN, snapGripS, snapGripE, snapGripW, snapGripNE, snapGripNW, snapGripSE, snapGripSW:
 		next = snapResize(s.origin, s.mode, pos)
 	default:
@@ -267,6 +276,8 @@ func snapCursor(s *snapSession, p image.Point) ui.Cursor {
 	case snapGripNE, snapGripSW:
 		return ui.CursorResizeNESW
 	case snapGripBar:
+		return ui.CursorDefault
+	case snapGripErase:
 		return ui.CursorDefault
 	default:
 		return ui.CursorCrosshair
@@ -422,6 +433,7 @@ func (a *App) snapToolButtons(c *ui.Context, s *snapSession) {
 		{"snap-tool-arrow", "north_east", snapToolArrow, i18n.SnapArrow()},
 		{"snap-tool-mosaic", "blur_on", snapToolMosaic, i18n.SnapMosaic()},
 		{"snap-tool-text", "text_fields", snapToolText, i18n.SnapText()},
+		{"snap-tool-erase", "ink_eraser", snapToolErase, i18n.SnapErase()},
 	}
 	for _, t := range tools {
 		kind := comp.Ghost

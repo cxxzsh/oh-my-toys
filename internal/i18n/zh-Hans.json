@@ -121,6 +121,7 @@
   "snapHint": "拖动选择 · 回车复制 · ⌘S 保存 · Esc 取消",
   "snapArrow": "箭头",
   "snapMosaic": "马赛克",
+  "snapErase": "橡皮擦",
   "snapRedo": "重做",
   "snapUndo": "撤销",
   "snapText": "文字",

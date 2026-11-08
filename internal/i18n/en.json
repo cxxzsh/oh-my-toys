@@ -614,6 +614,10 @@
   "@snapMosaic": {
     "description": "Screenshot annotation tool."
   },
+  "snapErase": "Eraser",
+  "@snapErase": {
+    "description": "Screenshot annotation tool that rubs marks out."
+  },
   "snapRedo": "Redo",
   "@snapRedo": {
     "description": "Screenshot toolbar button that puts back the last annotation undone."
