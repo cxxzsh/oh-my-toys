@@ -18,8 +18,9 @@ both into the release PR.
 Runs on every pull request and on every push to `main`. A newer push cancels
 the run of an older one on the same branch. The pull request's title, which
 becomes the squash-merge commit message, is checked by `pr-title.yml` instead,
-a workflow of its own so that editing the title or the body re-runs only that
-check: the title must follow Conventional Commits with the types of
+a workflow of its own so that a push, or an edit of the title or the body,
+re-runs that check alone rather than the whole of CI: the title must follow
+Conventional Commits with the types of
 CONTRIBUTING.md section 13, with an English, imperative summary that starts
 with a lowercase letter, has no trailing period and is at most 72 characters.
 
