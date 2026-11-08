@@ -1706,6 +1706,48 @@ func (msgs Messages) SnapHint() string {
 	return Catalog.Format(msgs.locale, "snapHint", nil)
 }
 
+// SnapArrow says "Arrow"
+// in the language the app shows.
+//
+// Screenshot annotation tool.
+func SnapArrow() string { return In(i18n.Locale()).SnapArrow() }
+
+// SnapArrow says "Arrow"
+// in the language of msgs.
+//
+// Screenshot annotation tool.
+func (msgs Messages) SnapArrow() string {
+	return Catalog.Format(msgs.locale, "snapArrow", nil)
+}
+
+// SnapMosaic says "Mosaic"
+// in the language the app shows.
+//
+// Screenshot annotation tool.
+func SnapMosaic() string { return In(i18n.Locale()).SnapMosaic() }
+
+// SnapMosaic says "Mosaic"
+// in the language of msgs.
+//
+// Screenshot annotation tool.
+func (msgs Messages) SnapMosaic() string {
+	return Catalog.Format(msgs.locale, "snapMosaic", nil)
+}
+
+// SnapText says "Text"
+// in the language the app shows.
+//
+// Screenshot annotation tool.
+func SnapText() string { return In(i18n.Locale()).SnapText() }
+
+// SnapText says "Text"
+// in the language of msgs.
+//
+// Screenshot annotation tool.
+func (msgs Messages) SnapText() string {
+	return Catalog.Format(msgs.locale, "snapText", nil)
+}
+
 // SnapPermBody says "oh-my-toys needs Screen Recording permission to take screenshots. macOS may ask you to restart the app after you gran…"
 // in the language the app shows.
 //

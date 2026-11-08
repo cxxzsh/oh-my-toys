@@ -22,18 +22,21 @@ const (
 	snapGripNW
 	snapGripSE
 	snapGripSW
-	snapGripBar // the toolbar; a press there is not a selection
+	snapGripBar  // the toolbar; a press there is not a selection
+	snapGripMark // drawing an annotation inside the selection
 )
 
 const (
 	snapHandle     = 8 // how close to an edge counts as a resize, in points
-	snapBarW       = 248
+	snapBarW       = 340
 	snapBarH       = 40
 	snapBarGap     = 8
 	snapLoupeN     = 11 // source pixels on a side
 	snapLoupeCell  = 10 // points per source pixel in the loupe
 	snapLoupeGap   = 20
 	snapLoupeLabel = 18
+
+	snapTextWidth = 220 // points, the field a label is typed in
 
 	snapNudge    = 1  // points an arrow key moves the selection
 	snapNudgeBig = 10 // points with Shift, to cross a gap quickly
@@ -151,6 +154,21 @@ func snapBarPlace(sel, limit image.Rectangle, w, h int) image.Rectangle {
 		x = limit.Max.X - w
 	}
 	return image.Rect(x, y, x+w, y+h)
+}
+
+// snapWindowAt is the smallest window frame under p, which a click takes as
+// the selection, or the empty rectangle when no window is there.
+func snapWindowAt(frames []image.Rectangle, p image.Point) image.Rectangle {
+	var best image.Rectangle
+	for _, f := range frames {
+		if !p.In(f) {
+			continue
+		}
+		if best.Empty() || f.Dx()*f.Dy() < best.Dx()*best.Dy() {
+			best = f
+		}
+	}
+	return best
 }
 
 // snapLoupeBox is the magnified square near at, flipped so it stays

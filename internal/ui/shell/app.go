@@ -6,6 +6,7 @@ package shell
 
 import (
 	"context"
+	"image"
 	"log"
 	"time"
 
@@ -50,14 +51,15 @@ type Options struct {
 
 	// The screenshot tool; Snapshots nil disables it.
 	Snapshots     func() ([]SnapShot, error)
-	ScreenAllowed func() bool          // Screen Recording permission
-	OverlayWindow func(handle uintptr) // style an overlay window: level and chrome
-	Frontmost     func() int           // pid of the frontmost app, 0 if none
-	IsFrontmost   func() bool          // this app is frontmost
-	Activate      func(pid int)        // bring an app to the front
-	ActivateSelf  func()               // bring this app to the front
-	SaveDir       string               // empty saves to the Desktop
-	SnapShortcut  string               // empty disables the hotkey
+	ScreenAllowed func() bool              // Screen Recording permission
+	OverlayWindow func(handle uintptr)     // style an overlay window: level and chrome
+	Frontmost     func() int               // pid of the frontmost app, 0 if none
+	IsFrontmost   func() bool              // this app is frontmost
+	Activate      func(pid int)            // bring an app to the front
+	ActivateSelf  func()                   // bring this app to the front
+	Windows       func() []image.Rectangle // the windows on screen, for snapping
+	SaveDir       string                   // empty saves to the Desktop
+	SnapShortcut  string                   // empty disables the hotkey
 }
 
 // App is the state of every window. Views read and change it on the main

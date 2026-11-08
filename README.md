@@ -8,7 +8,7 @@ A box of small, handy tools for your desktop. Each tool does one thing, and they
 
 The app and `omt` are in this repository. Run the desktop app with `go run ./cmd/oh-my-toys` and the command line with `go run ./cmd/omt`. macOS has been tried. Windows and Linux packages can be built, but have not been run on those systems. There is no signed release yet.
 
-On macOS, Cmd+Shift+A takes a screenshot. A magnifier follows the pointer while you drag; after you release, Copy, Save and Cancel sit on the selection. Enter copies, Cmd+S saves a PNG under ~/Pictures/oh-my-toys, Esc cancels. Screenshot is one of the tools: open its page to start a capture or change the folder. The same command is in the Tools menu.
+On macOS, Cmd+Shift+A takes a screenshot. A magnifier follows the pointer while you drag, and hovering a window outlines it, so a click takes the whole window. After you release, the toolbar sits on the selection’s bottom right: draw arrows, mosaics and text, then Copy, Save or Cancel. Enter copies, Cmd+S saves a PNG under ~/Pictures/oh-my-toys, Esc and a right click step back. Screenshot is one of the tools: open its page to start a capture or change the folder. The same command is in the Tools menu.
 
 ## Planned tools
 

@@ -606,6 +606,18 @@
   "@snapHint": {
     "description": "Screenshot overlay hint line."
   },
+  "snapArrow": "Arrow",
+  "@snapArrow": {
+    "description": "Screenshot annotation tool."
+  },
+  "snapMosaic": "Mosaic",
+  "@snapMosaic": {
+    "description": "Screenshot annotation tool."
+  },
+  "snapText": "Text",
+  "@snapText": {
+    "description": "Screenshot annotation tool."
+  },
   "snapPermBody": "oh-my-toys needs Screen Recording permission to take screenshots. macOS may ask you to restart the app after you grant it.",
   "@snapPermBody": {
     "description": "Screenshot permission dialog body."

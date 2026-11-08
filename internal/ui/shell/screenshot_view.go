@@ -20,12 +20,19 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 	if s == nil {
 		return
 	}
+	if s.text != nil && s.text.commit {
+		s.text.commit = false
+		a.snapCommitText()
+	}
 	a.theme(c)
 	pal := ds.P(c)
-	c.OnShortcut(0, ui.KeyEscape, a.endSnap)
+	c.OnShortcut(0, ui.KeyEscape, a.snapCancel)
 	c.OnShortcut(ui.Cmd, ui.KeyS, a.snapSave)
-	c.OnShortcut(0, ui.KeyEnter, a.snapCopy)
+	if s.text == nil {
+		c.OnShortcut(0, ui.KeyEnter, a.snapReturn)
+	}
 
+	a.snapToolKeys(c, s)
 	if !s.dragging && !s.sel.Empty() {
 		a.snapNudge(c)
 		s.bar = snapBarPlace(s.sel, s.barLimit(), snapBarW, snapBarH)
@@ -33,7 +40,14 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 		s.bar = image.Rectangle{}
 	}
 
-	surface := ui.Box(c).FillWidth().FillHeight().Cursor(ui.CursorCrosshair)
+	surface := ui.Box(c).FillWidth().FillHeight().Cursor(ui.CursorCrosshair).
+		HandleInput(func(ev ui.InputEvent) bool {
+			if ev.Kind != ui.InputPointerDown || ev.Button != 1 {
+				return false
+			}
+			a.snapCancel()
+			return true
+		})
 	pressed := surface.Pressed()
 	x, y, over := surface.PointerPosition()
 	idx := slices.IndexFunc(s.overlays, func(o *snapOverlay) bool { return o == ov })
@@ -54,7 +68,24 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 		Children(func() {
 			a.snapBar(c, ov, s, pal)
 			a.snapHud(c, ov, s, pal)
+			a.snapTextEditor(c, ov, s, pal)
 		})
+}
+
+// snapToolKeys puts an annotation tool in hand from the keyboard: a, m or
+// t, and the same key again puts it away.
+func (a *App) snapToolKeys(c *ui.Context, s *snapSession) {
+	if s.text != nil || s.dragging {
+		return
+	}
+	switch {
+	case c.Shortcut(0, ui.KeyA):
+		a.chooseSnapTool(s, snapToolArrow)
+	case c.Shortcut(0, ui.KeyM):
+		a.chooseSnapTool(s, snapToolMosaic)
+	case c.Shortcut(0, ui.KeyT):
+		a.chooseSnapTool(s, snapToolText)
+	}
 }
 
 // snapNudge moves the selection with the arrow keys, a point at a time, or
@@ -113,9 +144,13 @@ func (a *App) snapTrack(s *snapSession, ov *snapOverlay, pressed bool, x, y floa
 	}
 	if !anyDown && s.wasDown {
 		s.dragging = false
-		if s.mode == snapGripNew && (s.sel.Dx() < snapMinDrag || s.sel.Dy() < snapMinDrag) {
-			s.sel = image.Rectangle{}
+		switch {
+		case s.mode == snapGripMark:
+			s.commitMark()
+		case s.mode == snapGripNew && (s.sel.Dx() < snapMinDrag || s.sel.Dy() < snapMinDrag):
+			s.sel = s.pressWin
 		}
+		s.pressWin = image.Rectangle{}
 		s.mode = snapGripNone
 		changed = true
 	}
@@ -126,18 +161,33 @@ func (a *App) snapTrack(s *snapSession, ov *snapOverlay, pressed bool, x, y floa
 }
 
 func (a *App) snapPress(s *snapSession, pos image.Point) bool {
-	switch hit := snapHit(s.sel, s.bar, pos); hit {
-	case snapGripBar:
+	if s.text != nil {
+		a.snapCommitText()
+	}
+	hit := snapHit(s.sel, s.bar, pos)
+	if hit == snapGripBar {
 		s.mode = snapGripBar
 		return false
-	case snapGripNone:
+	}
+	if hit == snapGripNone {
 		s.mode, s.anchor, s.dragging = snapGripNew, pos, true
 		s.sel = image.Rect(pos.X, pos.Y, pos.X, pos.Y)
-		return true
-	default:
-		s.mode, s.origin, s.anchor, s.dragging = hit, s.sel, pos, true
+		s.pressWin = snapWindowAt(s.wins, pos)
 		return true
 	}
+	if s.tool != snapToolNone && pos.In(s.sel) {
+		if s.tool == snapToolText {
+			s.text = &snapText{at: pos}
+			s.mode = snapGripNone
+			a.registerSnapKeys()
+			return true
+		}
+		s.pending = &snapMark{tool: s.tool, a: pos, b: pos}
+		s.mode, s.dragging = snapGripMark, true
+		return true
+	}
+	s.mode, s.origin, s.anchor, s.dragging = hit, s.sel, pos, true
+	return true
 }
 
 // snapDrag applies the drag in progress. It reports whether the
@@ -149,6 +199,12 @@ func (a *App) snapDrag(s *snapSession, pos image.Point) bool {
 		next = image.Rect(s.anchor.X, s.anchor.Y, pos.X, pos.Y).Canon()
 	case snapGripMove:
 		next = snapMove(s.origin, s.anchor, pos, s.limit())
+	case snapGripMark:
+		if s.pending == nil {
+			return false
+		}
+		s.pending.b = pos
+		return true
 	case snapGripN, snapGripS, snapGripE, snapGripW, snapGripNE, snapGripNW, snapGripSE, snapGripSW:
 		next = snapResize(s.origin, s.mode, pos)
 	default:
@@ -214,10 +270,12 @@ func (a *App) snapPaint(p *ui.Painter, r ui.Rect, ov *snapOverlay, s *snapSessio
 	local := snapLocal(s.sel, b)
 	if local.W <= 0 || local.H <= 0 {
 		p.Fill(r, pal.Scrim, 0)
+		a.snapHoverWindow(p, ov, s, pal)
 		a.snapLoupeIf(p, ov, s, pal)
 		return
 	}
 	a.snapDim(p, r, local, pal.Scrim)
+	a.snapPaintMarks(p, ov, s)
 	a.snapSelection(p, local, s, pal)
 	a.snapLoupeIf(p, ov, s, pal)
 }
@@ -227,7 +285,7 @@ func (a *App) snapSelection(p *ui.Painter, local ui.Rect, s *snapSession, pal *d
 		return
 	}
 	p.Stroke(local, pal.Accent, 0, ds.LineWidth*2)
-	a.snapTag(p, local, s.sel, pal)
+	a.snapTag(p, local, snapSizeText(s.sel.Dx(), s.sel.Dy()), pal)
 	if !s.dragging || s.mode != snapGripNew {
 		snapHandles(p, local, pal)
 	}
@@ -317,6 +375,7 @@ func (a *App) snapBar(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Pa
 		Right(float32(ov.shot.Bounds.Max.X - s.bar.Max.X)).
 		Top(float32(s.bar.Min.Y - ov.shot.Bounds.Min.Y)).
 		Children(func() {
+			a.snapToolButtons(c, s)
 			if a.kit.Button(c.Key("snap-copy"), i18n.CopyValue(), comp.ButtonOpts{Kind: comp.Primary, Small: true}).Clicked() {
 				a.snapCopy()
 			}
@@ -326,6 +385,66 @@ func (a *App) snapBar(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Pa
 			if a.kit.Button(c.Key("snap-cancel"), i18n.Cancel(), comp.ButtonOpts{Kind: comp.Ghost, Small: true}).Clicked() {
 				a.endSnap()
 			}
+		})
+}
+
+// snapToolButtons are the annotation tools, each a glyph that stays lit
+// while its tool is in hand.
+func (a *App) snapToolButtons(c *ui.Context, s *snapSession) {
+	tools := []struct {
+		key   string
+		glyph string
+		tool  snapTool
+		label string
+	}{
+		{"snap-tool-arrow", "north_east", snapToolArrow, i18n.SnapArrow()},
+		{"snap-tool-mosaic", "blur_on", snapToolMosaic, i18n.SnapMosaic()},
+		{"snap-tool-text", "text_fields", snapToolText, i18n.SnapText()},
+	}
+	for _, t := range tools {
+		kind := comp.Ghost
+		if s.tool == t.tool {
+			kind = comp.Primary
+		}
+		if a.kit.Button(c.Key(t.key), "", comp.ButtonOpts{Kind: kind, Small: true, Glyph: t.glyph, Tooltip: t.label}).Clicked() {
+			a.chooseSnapTool(s, t.tool)
+		}
+	}
+}
+
+// chooseSnapTool puts a tool in hand, or puts it away when it is already
+// the one in hand.
+func (a *App) chooseSnapTool(s *snapSession, tool snapTool) {
+	s.text = nil
+	if s.tool == tool {
+		s.tool = snapToolNone
+	} else {
+		s.tool = tool
+	}
+	a.snapInvalidate()
+}
+
+// snapTextEditor is the field a label is typed in, on the spot it will
+// stay.
+func (a *App) snapTextEditor(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Palette) {
+	t := s.text
+	if t == nil || !pIn(t.at, ov.shot.Bounds) {
+		return
+	}
+	ui.Row(c).Absolute().
+		Left(float32(t.at.X-ov.shot.Bounds.Min.X)).
+		Top(float32(t.at.Y-ov.shot.Bounds.Min.Y)).
+		Padding(ds.Space4).Radius(ds.RadiusSm).
+		Background(pal.BgPopover).Border(ds.LineWidth, pal.Accent).
+		Children(func() {
+			ui.TextInputBase(c, &t.value).Width(snapTextWidth).Focus().
+				HandleInput(func(ev ui.InputEvent) bool {
+					if ev.Kind == ui.InputKeyDown && ev.Key == ui.KeyEnter {
+						t.commit = true
+						return true
+					}
+					return false
+				})
 		})
 }
 
@@ -339,19 +458,37 @@ func (a *App) snapDim(p *ui.Painter, r, sel ui.Rect, c ui.Color) {
 	p.Fill(ui.Rect{X: selRight, Y: sel.Y, W: right - selRight, H: sel.H}, c, 0)
 }
 
-// snapTag draws the selection's size just above its top-left corner.
-func (a *App) snapTag(p *ui.Painter, local ui.Rect, sel image.Rectangle, pal *ds.Palette) {
-	text := snapSizeText(sel.Dx(), sel.Dy())
-	tw := float32(len(text))*ds.Caption.Size*snapTagCharW + ds.Space16
+// snapTag draws a size in a box at the top left of what it measures, just
+// above it, with the text centered in the box; it sits inside when there
+// is no room above.
+func (a *App) snapTag(p *ui.Painter, local ui.Rect, text string, pal *ds.Palette) {
+	txtW, _ := p.MeasureText(0, ui.Span{Text: text, Size: ds.Caption.Size})
+	tagW := txtW + ds.Space16
 	th := float32(ds.Space20)
 	y := local.Y - th - ds.Space4
 	if y < ds.Space4 {
 		y = local.Y + ds.Space4
 	}
-	tag := ui.Rect{X: local.X, Y: y, W: tw, H: th}
+	tag := ui.Rect{X: local.X, Y: y, W: tagW, H: th}
 	p.Fill(tag, pal.BgPopover, ds.RadiusSm)
 	p.Stroke(tag, pal.LineControl, ds.RadiusSm, ds.LineWidth)
-	p.Text(tag.X+ds.Space8, tag.Y+(th-ds.Caption.Size)/2, text, ds.Caption.Size, pal.TextPrimary)
+	p.Text(tag.X+(tag.W-txtW)/2, tag.Y+(th-ds.Caption.Size)/2, text, ds.Caption.Size, pal.TextPrimary)
+}
+
+// snapHoverWindow outlines the window a click would take as the
+// selection.
+func (a *App) snapHoverWindow(p *ui.Painter, ov *snapOverlay, s *snapSession, pal *ds.Palette) {
+	if s.dragging || !s.hoverOn || !pIn(s.hover, ov.shot.Bounds) {
+		return
+	}
+	win := snapWindowAt(s.wins, s.hover)
+	if win.Empty() {
+		return
+	}
+	local := snapLocal(win, ov.shot.Bounds)
+	p.Fill(local, pal.AccentSoft, 0)
+	p.Stroke(local, pal.Accent, 0, ds.LineWidth*2)
+	a.snapTag(p, local, snapSizeText(win.Dx(), win.Dy()), pal)
 }
 
 // snapHud draws the hint while aiming, or a flash after a save.
@@ -390,7 +527,6 @@ func snapSizeText(w, h int) string {
 }
 
 const (
-	snapMinDrag  = 3   // smaller releases of a new drag count as a click
-	snapTagCharW = 0.6 // average glyph width of the size tag, in ems
+	snapMinDrag  = 3 // smaller releases of a new drag count as a click
 	snapFlashFor = 2500 * time.Millisecond
 )

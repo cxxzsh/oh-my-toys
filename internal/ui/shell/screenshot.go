@@ -64,9 +64,23 @@ type snapSession struct {
 	wasDown  bool
 	bar      image.Rectangle // toolbar, in global points; empty when hidden
 
+	tool     snapTool          // the annotation tool in hand; none moves the selection
+	marks    []snapMark        // annotations, in global points
+	pending  *snapMark         // the one being dragged
+	text     *snapText         // the label being typed
+	wins     []image.Rectangle // window frames a click can take as the selection
+	pressWin image.Rectangle   // the window under the press that began a drag
+
 	flash     string
 	flashTil  time.Time
 	returnPID int // the app that was frontmost, to give the keyboard back
+}
+
+// snapText is a label being typed.
+type snapText struct {
+	at     image.Point
+	value  string
+	commit bool // Return was taken: the label is kept next frame, once an input method's text has landed
 }
 
 // startSnap is the screenshot hotkey: take the pictures and cover every
@@ -111,18 +125,29 @@ func (a *App) registerSnapShortcut() {
 
 // snapKeyBinds are the keys that work while the overlay shows, even
 // when another app is frontmost: Carbon hot keys, not the window.
-var snapKeyBinds = []struct {
-	acc string
-	fn  func(*App)
-}{
-	{"Escape", (*App).endSnap},
-	{"Return", (*App).snapCopy},
-	{"CmdOrCtrl+S", (*App).snapSave},
+func snapKeyBinds() []struct {
+	acc    string
+	fn     func(*App)
+	typing bool // unbound while a label is typed: the field takes Return
+} {
+	return []struct {
+		acc    string
+		fn     func(*App)
+		typing bool
+	}{
+		{"Escape", (*App).snapCancel, false},
+		{"Return", (*App).snapReturn, true},
+		{"CmdOrCtrl+S", (*App).snapSave, false},
+	}
 }
 
 func (a *App) registerSnapKeys() {
 	a.unregisterSnapKeys()
-	for _, b := range snapKeyBinds {
+	typing := a.snap != nil && a.snap.text != nil
+	for _, b := range snapKeyBinds() {
+		if b.typing && typing {
+			continue
+		}
 		fn := b.fn
 		if err := mygo.GlobalShortcut.Register(b.acc, func() { fn(a) }); err != nil {
 			log.Printf("screenshot key %s: %v", b.acc, err)
@@ -162,6 +187,9 @@ func (a *App) showSnap(shots []SnapShot) {
 	}
 	s := &snapSession{pressed: make([]bool, len(shots)), returnPID: a.snapPrev}
 	a.snapPrev = 0
+	if a.opt.Windows != nil {
+		s.wins = a.opt.Windows()
+	}
 	a.snap = s
 	for _, shot := range shots {
 		ov := &snapOverlay{shot: shot, bmp: ui.NewBitmap(shot.Image)}
@@ -198,6 +226,58 @@ func (a *App) newSnapWindow(ov *snapOverlay) {
 		a.opt.OverlayWindow(ov.win.NativeHandle())
 	}
 	ov.win.SetBounds(mygo.Rectangle{X: b.Min.X, Y: b.Min.Y, Width: b.Dx(), Height: b.Dy()})
+}
+
+// snapCancel steps back from what is in hand: a label being typed, the
+// annotation tool, or the selection, and closes the overlay when nothing
+// is left to step back from.
+func (a *App) snapCancel() {
+	s := a.snap
+	if s == nil {
+		return
+	}
+	switch {
+	case s.text != nil:
+		s.text = nil
+		a.registerSnapKeys()
+	case s.pending != nil:
+		s.pending, s.dragging, s.mode = nil, false, snapGripNone
+	case s.tool != snapToolNone:
+		s.tool = snapToolNone
+	default:
+		a.endSnap()
+		return
+	}
+	a.snapInvalidate()
+}
+
+// snapReturn commits the label being typed, if any, or copies the
+// selection.
+func (a *App) snapReturn() {
+	s := a.snap
+	if s == nil {
+		return
+	}
+	if s.text != nil {
+		a.snapCommitText()
+		return
+	}
+	a.snapCopy()
+}
+
+// snapCommitText adds the label being typed to the marks.
+func (a *App) snapCommitText() {
+	s := a.snap
+	if s == nil || s.text == nil {
+		return
+	}
+	t := s.text
+	s.text = nil
+	a.registerSnapKeys()
+	if strings.TrimSpace(t.value) != "" {
+		s.marks = append(s.marks, snapMark{tool: snapToolText, a: t.at, text: t.value})
+	}
+	a.snapInvalidate()
 }
 
 // endSnap closes every overlay and forgets the session.
@@ -246,6 +326,9 @@ func (a *App) snapFlash(text string) {
 // snapCopy puts the selection on the clipboard as a PNG. The encode
 // runs off the main thread; the clipboard write returns to it.
 func (a *App) snapCopy() {
+	if s := a.snap; s != nil && s.text != nil {
+		a.snapCommitText()
+	}
 	img, err := a.snapImage()
 	if err != nil {
 		a.snapFlash(err.Error())
@@ -270,6 +353,9 @@ func (a *App) snapCopy() {
 // snapSave writes the selection as a PNG file and flashes its path.
 // Like snapCopy, the encode runs off the main thread.
 func (a *App) snapSave() {
+	if s := a.snap; s != nil && s.text != nil {
+		a.snapCommitText()
+	}
 	img, err := a.snapImage()
 	if err != nil {
 		a.snapFlash(err.Error())
@@ -398,6 +484,7 @@ func (a *App) snapImage() (*image.RGBA, error) {
 		src := pixelRect(part, ov.shot.Bounds, ov.pixelsPerPoint())
 		drawScaled(out, dst, ov.shot.Image, src, k)
 	}
+	snapDrawMarks(out, s.marks, s.sel, scale)
 	return out, nil
 }
 

@@ -3,6 +3,7 @@ package shell
 import (
 	"image"
 	"image/color"
+	"image/draw"
 	"os"
 	"path/filepath"
 	"testing"
@@ -150,5 +151,61 @@ func TestSnapPathLabel(t *testing.T) {
 	}
 	if got := snapPathLabel("/tmp/shots", "/Users/return"); got != "/tmp/shots" {
 		t.Fatalf("outside home = %q", got)
+	}
+}
+
+func TestSnapWindowAt(t *testing.T) {
+	outer := image.Rect(0, 0, 100, 100)
+	inner := image.Rect(10, 10, 40, 40)
+	frames := []image.Rectangle{outer, inner}
+	if got := snapWindowAt(frames, image.Pt(20, 20)); got != inner {
+		t.Fatalf("smallest window = %v", got)
+	}
+	if got := snapWindowAt(frames, image.Pt(90, 90)); got != outer {
+		t.Fatalf("outer window = %v", got)
+	}
+	if got := snapWindowAt(frames, image.Pt(200, 200)); !got.Empty() {
+		t.Fatalf("no window = %v", got)
+	}
+}
+
+// snapHasMarkPixels reports whether any pixel of img is the mark color.
+func snapHasMarkPixels(img *image.RGBA) bool {
+	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			if img.RGBAAt(x, y) == snapMarkColor {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func TestSnapDrawMark(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 40, 40))
+	draw.Draw(img, img.Rect, image.NewUniform(color.White), image.Point{}, draw.Src)
+	sel := image.Rect(0, 0, 40, 40)
+
+	snapDrawMark(img, snapMark{tool: snapToolArrow, a: image.Pt(2, 2), b: image.Pt(30, 30)}, sel, 1)
+	if got := img.RGBAAt(15, 15); got != snapMarkColor {
+		t.Fatalf("arrow shaft = %v", got)
+	}
+
+	img = image.NewRGBA(image.Rect(0, 0, 40, 40))
+	for y := 0; y < 40; y++ {
+		for x := 0; x < 40; x++ {
+			img.SetRGBA(x, y, color.RGBA{R: uint8(x * 6), A: 0xFF})
+		}
+	}
+	snapDrawMark(img, snapMark{tool: snapToolMosaic, a: image.Pt(0, 0), b: image.Pt(20, 20)}, sel, 1)
+	if a, b := img.RGBAAt(0, 0), img.RGBAAt(snapMosaicCell-1, snapMosaicCell-1); a != b {
+		t.Fatalf("mosaic block %v, %v", a, b)
+	}
+
+	img = image.NewRGBA(image.Rect(0, 0, 120, 40))
+	draw.Draw(img, img.Rect, image.NewUniform(color.White), image.Point{}, draw.Src)
+	snapDrawMark(img, snapMark{tool: snapToolText, a: image.Pt(2, 2), text: "Hi"}, sel, 1)
+	if !snapHasMarkPixels(img) {
+		t.Fatal("text drew nothing")
 	}
 }

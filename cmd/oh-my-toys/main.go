@@ -8,6 +8,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"image"
 	"log"
 	"os"
 	"path/filepath"
@@ -21,6 +22,7 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/platform/activate"
 	"github.com/cxxzsh/oh-my-toys/internal/platform/capture"
 	"github.com/cxxzsh/oh-my-toys/internal/platform/topmost"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/windows"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/awake"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/color"
@@ -114,6 +116,7 @@ func main() {
 		opt.Activate = activate.Activate
 		opt.ActivateSelf = activate.Self
 		opt.SnapShortcut = "CmdOrCtrl+Shift+A"
+		opt.Windows = screenWindows
 	}
 	app := shell.New(opt)
 	mygo.App.OnSecondInstance(func([]string, string) { app.Post(app.ShowMain) })
@@ -175,6 +178,17 @@ func dataDir() string {
 		return os.TempDir()
 	}
 	return dir
+}
+
+// screenWindows lists the windows a screenshot can snap to; a failure
+// leaves the tool with no frames, and is not worth stopping for.
+func screenWindows() []image.Rectangle {
+	frames, err := windows.List()
+	if err != nil {
+		log.Printf("screenshot windows: %v", err)
+		return nil
+	}
+	return frames
 }
 
 // snapshots captures every display for the screenshot tool.
