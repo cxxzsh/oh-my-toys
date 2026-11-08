@@ -18,6 +18,9 @@ import (
 	"github.com/egoist/mygo"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/activate"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/capture"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/topmost"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/awake"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/color"
@@ -86,7 +89,7 @@ func main() {
 		log.Print(err) // the system's fonts stand in
 	}
 	mygo.App.SetName("oh-my-toys")
-	app := shell.New(shell.Options{
+	opt := shell.Options{
 		Registry:      reg,
 		Runner:        core.NewRunner(events.Changed),
 		Events:        events,
@@ -100,7 +103,18 @@ func main() {
 		StartedAt:     started,
 		ScreenshotDir: f.screenshots,
 		OnFirstFrame:  firstFrame(f.exitAfterFirstFrame),
-	})
+	}
+	if runtime.GOOS == "darwin" {
+		opt.Snapshots = snapshots
+		opt.ScreenAllowed = func() bool { return capture.Preflight() || capture.Request() }
+		opt.OverlayWindow = topmost.Overlay
+		opt.Frontmost = activate.Frontmost
+		opt.IsFrontmost = activate.IsFrontmost
+		opt.Activate = activate.Activate
+		opt.ActivateSelf = activate.Self
+		opt.SnapShortcut = "CmdOrCtrl+Shift+A"
+	}
+	app := shell.New(opt)
 	mygo.App.OnSecondInstance(func([]string, string) { app.Post(app.ShowMain) })
 	ipcCtx, stopIPC := context.WithCancel(context.Background())
 	go serveIPC(ipcCtx, reg)
@@ -160,6 +174,19 @@ func dataDir() string {
 		return os.TempDir()
 	}
 	return dir
+}
+
+// snapshots captures every display for the screenshot tool.
+func snapshots() ([]shell.SnapShot, error) {
+	shots, err := capture.Snapshot()
+	if err != nil {
+		return nil, err
+	}
+	out := make([]shell.SnapShot, len(shots))
+	for i, s := range shots {
+		out[i] = shell.SnapShot{ID: s.Display.ID, Bounds: s.Display.Bounds, Image: s.Image}
+	}
+	return out, nil
 }
 
 func serveIPC(ctx context.Context, reg *core.Registry) {

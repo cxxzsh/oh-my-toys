@@ -582,9 +582,42 @@
       }
     }
   },
+  "snapMenu": "Take Screenshot",
+  "@snapMenu": {
+    "description": "Tools menu item that starts the screenshot tool."
+  },
   "sidebar": "Sidebar",
   "@sidebar": {
     "description": "Accessible name."
+  },
+  "snapCopied": "Copied to clipboard",
+  "@snapCopied": {
+    "description": "Screenshot overlay flash after copying."
+  },
+  "snapHint": "Drag to select · Enter copies · ⌘S saves · Esc cancels",
+  "@snapHint": {
+    "description": "Screenshot overlay hint line."
+  },
+  "snapPermBody": "oh-my-toys needs Screen Recording permission to take screenshots. macOS may ask you to restart the app after you grant it.",
+  "@snapPermBody": {
+    "description": "Screenshot permission dialog body."
+  },
+  "snapPermOpen": "Open System Settings",
+  "@snapPermOpen": {
+    "description": "Screenshot permission dialog button."
+  },
+  "snapPermTitle": "Screen Recording permission",
+  "@snapPermTitle": {
+    "description": "Screenshot permission dialog title."
+  },
+  "snapSaved": "Saved {path}",
+  "@snapSaved": {
+    "description": "Screenshot overlay flash after saving; path is the file.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
   },
   "sizeBytes": "{count, plural, one {# byte} other {# bytes}}",
   "@sizeBytes": {

@@ -1622,6 +1622,20 @@ func (msgs Messages) ShortcutTaken(keys string) string {
 	return Catalog.Format(msgs.locale, "shortcutTaken", map[string]any{"keys": keys})
 }
 
+// SnapMenu says "Take Screenshot"
+// in the language the app shows.
+//
+// Tools menu item that starts the screenshot tool.
+func SnapMenu() string { return In(i18n.Locale()).SnapMenu() }
+
+// SnapMenu says "Take Screenshot"
+// in the language of msgs.
+//
+// Tools menu item that starts the screenshot tool.
+func (msgs Messages) SnapMenu() string {
+	return Catalog.Format(msgs.locale, "snapMenu", nil)
+}
+
 // Sidebar says "Sidebar"
 // in the language the app shows.
 //
@@ -1634,6 +1648,90 @@ func Sidebar() string { return In(i18n.Locale()).Sidebar() }
 // Accessible name.
 func (msgs Messages) Sidebar() string {
 	return Catalog.Format(msgs.locale, "sidebar", nil)
+}
+
+// SnapCopied says "Copied to clipboard"
+// in the language the app shows.
+//
+// Screenshot overlay flash after copying.
+func SnapCopied() string { return In(i18n.Locale()).SnapCopied() }
+
+// SnapCopied says "Copied to clipboard"
+// in the language of msgs.
+//
+// Screenshot overlay flash after copying.
+func (msgs Messages) SnapCopied() string {
+	return Catalog.Format(msgs.locale, "snapCopied", nil)
+}
+
+// SnapHint says "Drag to select · Enter copies · ⌘S saves · Esc cancels"
+// in the language the app shows.
+//
+// Screenshot overlay hint line.
+func SnapHint() string { return In(i18n.Locale()).SnapHint() }
+
+// SnapHint says "Drag to select · Enter copies · ⌘S saves · Esc cancels"
+// in the language of msgs.
+//
+// Screenshot overlay hint line.
+func (msgs Messages) SnapHint() string {
+	return Catalog.Format(msgs.locale, "snapHint", nil)
+}
+
+// SnapPermBody says "oh-my-toys needs Screen Recording permission to take screenshots. macOS may ask you to restart the app after you gran…"
+// in the language the app shows.
+//
+// Screenshot permission dialog body.
+func SnapPermBody() string { return In(i18n.Locale()).SnapPermBody() }
+
+// SnapPermBody says "oh-my-toys needs Screen Recording permission to take screenshots. macOS may ask you to restart the app after you gran…"
+// in the language of msgs.
+//
+// Screenshot permission dialog body.
+func (msgs Messages) SnapPermBody() string {
+	return Catalog.Format(msgs.locale, "snapPermBody", nil)
+}
+
+// SnapPermOpen says "Open System Settings"
+// in the language the app shows.
+//
+// Screenshot permission dialog button.
+func SnapPermOpen() string { return In(i18n.Locale()).SnapPermOpen() }
+
+// SnapPermOpen says "Open System Settings"
+// in the language of msgs.
+//
+// Screenshot permission dialog button.
+func (msgs Messages) SnapPermOpen() string {
+	return Catalog.Format(msgs.locale, "snapPermOpen", nil)
+}
+
+// SnapPermTitle says "Screen Recording permission"
+// in the language the app shows.
+//
+// Screenshot permission dialog title.
+func SnapPermTitle() string { return In(i18n.Locale()).SnapPermTitle() }
+
+// SnapPermTitle says "Screen Recording permission"
+// in the language of msgs.
+//
+// Screenshot permission dialog title.
+func (msgs Messages) SnapPermTitle() string {
+	return Catalog.Format(msgs.locale, "snapPermTitle", nil)
+}
+
+// SnapSaved says "Saved {path}"
+// in the language the app shows.
+//
+// Screenshot overlay flash after saving; path is the file.
+func SnapSaved(path string) string { return In(i18n.Locale()).SnapSaved(path) }
+
+// SnapSaved says "Saved {path}"
+// in the language of msgs.
+//
+// Screenshot overlay flash after saving; path is the file.
+func (msgs Messages) SnapSaved(path string) string {
+	return Catalog.Format(msgs.locale, "snapSaved", map[string]any{"path": path})
 }
 
 // SizeBytes says "{count, plural, one {# byte} other {# bytes}}"

@@ -47,6 +47,17 @@ type Options struct {
 	StartedAt     time.Time
 	OnFirstFrame  func(time.Duration)
 	ScreenshotDir string
+
+	// The screenshot tool; Snapshots nil disables it.
+	Snapshots     func() ([]SnapShot, error)
+	ScreenAllowed func() bool          // Screen Recording permission
+	OverlayWindow func(handle uintptr) // style an overlay window: level and chrome
+	Frontmost     func() int           // pid of the frontmost app, 0 if none
+	IsFrontmost   func() bool          // this app is frontmost
+	Activate      func(pid int)        // bring an app to the front
+	ActivateSelf  func()               // bring this app to the front
+	SaveDir       string               // empty saves to the Desktop
+	SnapShortcut  string               // empty disables the hotkey
 }
 
 // App is the state of every window. Views read and change it on the main
@@ -87,6 +98,10 @@ type App struct {
 	metrics   *Metrics
 	quitting  bool
 	forceDark *bool // tests run without the app
+	snap      *snapSession
+	snapping  bool     // a capture is in flight
+	snapPrev  int      // frontmost app before the overlay took the keyboard
+	snapKeys  []string // global keys bound while the overlay shows
 }
 
 // New makes the app; Start creates its windows once MyGo is ready.
@@ -171,6 +186,7 @@ func (a *App) Start() {
 	a.setUpTray()
 	a.setUpPalette()
 	a.registerShortcut()
+	a.registerSnapShortcut()
 	go a.tickWhileRunning()
 	if a.opt.ScreenshotDir != "" {
 		go a.screenshots(a.opt.ScreenshotDir)

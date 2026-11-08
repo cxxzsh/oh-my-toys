@@ -42,10 +42,15 @@ func (a *App) setUpMenu() {
 func (a *App) toolsMenu(item func(string, string, func()) *mygo.MenuItem) []*mygo.MenuItem {
 	items := []*mygo.MenuItem{
 		item(i18n.PaletteTitle(), "CmdOrCtrl+K", a.showPalette),
+	}
+	if a.opt.Snapshots != nil {
+		items = append(items, item(i18n.SnapMenu(), "CmdOrCtrl+Shift+A", a.startSnap))
+	}
+	items = append(items,
 		item(i18n.TrayTitle(), "", a.toggleTray),
 		item(i18n.AllTools(), "", func() { a.openMain(pageHome) }),
 		item(i18n.SettingsEllipsis(), "CmdOrCtrl+,", func() { a.openMain(pageSettings) }),
-	}
+	)
 	all := a.reg.All()
 	if len(all) == 0 {
 		return items
