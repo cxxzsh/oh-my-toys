@@ -8,7 +8,7 @@
 
 应用和命令行 `omt` 已在本仓库。桌面应用：`go run ./cmd/oh-my-toys`。命令行：`go run ./cmd/omt`。macOS 上试用过。Windows 和 Linux 可以打包，但还没有在对应系统上跑过。还没有签名的发布版。
 
-在 macOS 上，Cmd+Shift+A 截图。拖动时放大镜跟着指针；松开后，复制、保存和取消贴在选区上。回车复制，Cmd+S 把 PNG 存到桌面，Esc 取消。工具菜单里也有同一项。
+在 macOS 上，Cmd+Shift+A 截图。拖动时放大镜跟着指针；松开后，复制、保存和取消贴在选区上。回车复制，Cmd+S 把 PNG 存到 ~/Pictures/oh-my-toys，Esc 取消。文件夹在设置里改。工具菜单里也有同一项。
 
 ## 计划中的工具
 

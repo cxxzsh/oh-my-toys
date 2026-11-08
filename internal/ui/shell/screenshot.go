@@ -10,6 +10,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -274,16 +275,8 @@ func (a *App) snapSave() {
 		a.snapFlash(err.Error())
 		return
 	}
-	dir := a.opt.SaveDir
-	if dir == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			a.snapFlash(err.Error())
-			return
-		}
-		dir = filepath.Join(home, "Desktop")
-	}
-	if err := os.MkdirAll(dir, 0o700); err != nil {
+	dir, fellBack, err := a.snapSaveDir()
+	if err != nil {
 		a.snapFlash(err.Error())
 		return
 	}
@@ -299,8 +292,71 @@ func (a *App) snapSave() {
 			a.Post(func() { a.snapFlash(err.Error()) })
 			return
 		}
-		a.Post(func() { a.snapFlash(i18n.SnapSaved(path)) })
+		a.Post(func() {
+			if fellBack {
+				a.snapFlash(i18n.SnapSaveFellBack(path))
+				return
+			}
+			a.snapFlash(i18n.SnapSaved(path))
+		})
 	}()
+}
+
+// snapDir is where the next screenshot is saved: an override, the
+// chosen folder, or ~/Pictures/oh-my-toys.
+func (a *App) snapDir() string {
+	if a.opt.SaveDir != "" {
+		return a.opt.SaveDir
+	}
+	if dir := strings.TrimSpace(a.settings.ScreenshotDir); dir != "" {
+		return dir
+	}
+	dir, err := snapDefaultDir()
+	if err != nil {
+		return ""
+	}
+	return dir
+}
+
+// snapSaveDir creates the save folder. When the chosen one cannot be
+// made, it uses the default and reports that it fell back.
+func (a *App) snapSaveDir() (dir string, fellBack bool, err error) {
+	dir = a.snapDir()
+	if dir == "" {
+		return "", false, fmt.Errorf("no save folder")
+	}
+	if os.MkdirAll(dir, 0o700) == nil {
+		return dir, false, nil
+	}
+	def, derr := snapDefaultDir()
+	if derr != nil || def == dir || os.MkdirAll(def, 0o700) != nil {
+		return "", false, fmt.Errorf("save folder: %s", dir)
+	}
+	return def, true, nil
+}
+
+func snapDefaultDir() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(home, "Pictures", "oh-my-toys"), nil
+}
+
+func homeDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return home
+}
+
+// snapPathLabel shortens a path under home to a ~/… form.
+func snapPathLabel(dir, home string) string {
+	if home != "" && (dir == home || strings.HasPrefix(dir, home+string(os.PathSeparator))) {
+		return "~" + dir[len(home):]
+	}
+	return dir
 }
 
 // snapFileName is a timestamped name, with -1, -2… when it is taken.

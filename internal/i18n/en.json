@@ -614,6 +614,27 @@
   "@snapSave": {
     "description": "Screenshot toolbar button that writes a PNG."
   },
+  "snapSaveChange": "Change",
+  "@snapSaveChange": {
+    "description": "Settings button that picks the screenshot folder."
+  },
+  "snapSaveDefault": "Default",
+  "@snapSaveDefault": {
+    "description": "Settings button that restores the default screenshot folder."
+  },
+  "snapSaveFellBack": "The chosen folder could not be used. Saved {path}",
+  "@snapSaveFellBack": {
+    "description": "Screenshot overlay flash when the chosen folder failed.",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "snapSaveTo": "Save to",
+  "@snapSaveTo": {
+    "description": "Settings row for the screenshot folder."
+  },
   "snapSaved": "Saved {path}",
   "@snapSaved": {
     "description": "Screenshot overlay flash after saving; path is the file.",

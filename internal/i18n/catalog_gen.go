@@ -1734,6 +1734,62 @@ func (msgs Messages) SnapSave() string {
 	return Catalog.Format(msgs.locale, "snapSave", nil)
 }
 
+// SnapSaveChange says "Change"
+// in the language the app shows.
+//
+// Settings button that picks the screenshot folder.
+func SnapSaveChange() string { return In(i18n.Locale()).SnapSaveChange() }
+
+// SnapSaveChange says "Change"
+// in the language of msgs.
+//
+// Settings button that picks the screenshot folder.
+func (msgs Messages) SnapSaveChange() string {
+	return Catalog.Format(msgs.locale, "snapSaveChange", nil)
+}
+
+// SnapSaveDefault says "Default"
+// in the language the app shows.
+//
+// Settings button that restores the default screenshot folder.
+func SnapSaveDefault() string { return In(i18n.Locale()).SnapSaveDefault() }
+
+// SnapSaveDefault says "Default"
+// in the language of msgs.
+//
+// Settings button that restores the default screenshot folder.
+func (msgs Messages) SnapSaveDefault() string {
+	return Catalog.Format(msgs.locale, "snapSaveDefault", nil)
+}
+
+// SnapSaveFellBack says "The chosen folder could not be used. Saved {path}"
+// in the language the app shows.
+//
+// Screenshot overlay flash when the chosen folder failed.
+func SnapSaveFellBack(path string) string { return In(i18n.Locale()).SnapSaveFellBack(path) }
+
+// SnapSaveFellBack says "The chosen folder could not be used. Saved {path}"
+// in the language of msgs.
+//
+// Screenshot overlay flash when the chosen folder failed.
+func (msgs Messages) SnapSaveFellBack(path string) string {
+	return Catalog.Format(msgs.locale, "snapSaveFellBack", map[string]any{"path": path})
+}
+
+// SnapSaveTo says "Save to"
+// in the language the app shows.
+//
+// Settings row for the screenshot folder.
+func SnapSaveTo() string { return In(i18n.Locale()).SnapSaveTo() }
+
+// SnapSaveTo says "Save to"
+// in the language of msgs.
+//
+// Settings row for the screenshot folder.
+func (msgs Messages) SnapSaveTo() string {
+	return Catalog.Format(msgs.locale, "snapSaveTo", nil)
+}
+
 // SnapSaved says "Saved {path}"
 // in the language the app shows.
 //

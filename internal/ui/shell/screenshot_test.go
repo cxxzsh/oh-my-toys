@@ -143,3 +143,12 @@ func TestSnapBarAndLoupe(t *testing.T) {
 		t.Fatal(snapHex(color.RGBA{R: 1, G: 2, B: 255}))
 	}
 }
+
+func TestSnapPathLabel(t *testing.T) {
+	if got := snapPathLabel("/Users/return/Pictures/oh-my-toys", "/Users/return"); got != "~/Pictures/oh-my-toys" {
+		t.Fatalf("under home = %q", got)
+	}
+	if got := snapPathLabel("/tmp/shots", "/Users/return"); got != "/tmp/shots" {
+		t.Fatalf("outside home = %q", got)
+	}
+}
