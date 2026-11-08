@@ -113,42 +113,18 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
-      - name: Probe the root prompt
-        if: matrix.os == 'windows'
-        continue-on-error: true
-        run: |
-          go test -c -o trust.test.exe ./internal/platform/trust
-          Add-Type @'
-          using System; using System.Text; using System.Runtime.InteropServices;
-          public class W {
-            public delegate bool EnumProc(IntPtr h, IntPtr l);
-            [DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc p, IntPtr l);
-            [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr h, EnumProc p, IntPtr l);
-            [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr h, StringBuilder s, int n);
-            [DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr h, StringBuilder s, int n);
-            [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
-            [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
-            public static string Describe(IntPtr h) {
-              var t = new StringBuilder(256); var c = new StringBuilder(256); uint pid;
-              GetWindowText(h, t, 256); GetClassName(h, c, 256); GetWindowThreadProcessId(h, out pid);
-              return h + " pid=" + pid + " vis=" + IsWindowVisible(h) + " class=" + c + " title=" + t;
-            }
-            public static void Dump() {
-              EnumWindows((h, l) => { Console.WriteLine("TOP " + Describe(h));
-                EnumChildWindows(h, (ch, l2) => { Console.WriteLine("   CHILD " + Describe(ch)); return true; }, IntPtr.Zero);
-                return true; }, IntPtr.Zero);
-            }
-          }
-          '@
-          $p = Start-Process -PassThru -FilePath ./trust.test.exe -ArgumentList '-test.run','TestLiveWindowsInstallRemove','-test.v','-test.timeout','75s' -RedirectStandardOutput probe.out -RedirectStandardError probe.err
-          Start-Sleep -Seconds 15
-          "== windows at 15s"; [W]::Dump()
-          "== processes"; Get-Process | Where-Object { $_.ProcessName -match 'certutil|trust' } | Format-Table Id,ProcessName,SessionId -AutoSize
-          $p.WaitForExit(80000) | Out-Null
-          "== test output"; Get-Content probe.out, probe.err
+      # Windows asks the person to confirm a root certificate added to their
+      # own store. The runner has a desktop and nobody at it, so a script
+      # answers Yes, as a person would, while the tests run.
       - name: System proxy and trust store (current user)
         if: matrix.os == 'windows'
-        run: go test -v -count=1 -timeout 90s -run TestLiveWindowsEnableRestore ./internal/platform/sysproxy/
+        run: |
+          $approver = Start-Process -PassThru -WindowStyle Hidden -FilePath pwsh -ArgumentList '-NoProfile', '-File', '.github/scripts/approve-root-prompt.ps1' -RedirectStandardOutput approver.log
+          go test -v -count=1 -timeout 5m -run TestLive ./internal/platform/sysproxy/ ./internal/platform/trust/
+          $status = $LASTEXITCODE
+          Stop-Process -Id $approver.Id -Force
+          Get-Content approver.log
+          exit $status
       # Root is needed to write the system trust store and to open a raw
       # socket, so these two tests are compiled first and the binary alone
       # runs under sudo.
