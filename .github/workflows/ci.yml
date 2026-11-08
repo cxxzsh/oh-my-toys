@@ -2,8 +2,9 @@ name: CI
 
 on:
   pull_request:
-  push:
-    branches: [main]
+    # A draft runs nothing, so a work in progress costs no runner. A newer
+    # push cancels the run of the older one below.
+    types: [opened, synchronize, reopened, ready_for_review]
 
 permissions:
   contents: read
@@ -27,6 +28,7 @@ env:
 jobs:
   lint:
     name: Lint (${{ matrix.goos }})
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -67,6 +69,7 @@ jobs:
 
   test:
     name: Test (${{ matrix.os }})
+    if: github.event.pull_request.draft == false
     runs-on: ${{ matrix.os }}-latest
     timeout-minutes: 30
     strategy:
@@ -90,6 +93,7 @@ jobs:
 
   build:
     name: Build
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -112,6 +116,7 @@ jobs:
 
   i18n:
     name: i18n
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -136,6 +141,7 @@ jobs:
 
   licences:
     name: Licences
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
