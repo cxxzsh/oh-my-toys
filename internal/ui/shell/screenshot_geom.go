@@ -34,6 +34,9 @@ const (
 	snapLoupeCell  = 10 // points per source pixel in the loupe
 	snapLoupeGap   = 20
 	snapLoupeLabel = 18
+
+	snapNudge    = 1  // points an arrow key moves the selection
+	snapNudgeBig = 10 // points with Shift, to cross a gap quickly
 )
 
 // snapHit reports what a press at p would do. The toolbar wins, then
@@ -129,10 +132,11 @@ func snapMove(origin image.Rectangle, from, to image.Point, limit image.Rectangl
 	return r
 }
 
-// snapBarPlace puts a w×h toolbar just under the selection, or above it
-// when the bottom edge has no room, and clamps it to limit.
+// snapBarPlace puts a w×h toolbar just under the selection, its right edge
+// on the selection's, or above it when the bottom edge has no room, and
+// clamps it to limit.
 func snapBarPlace(sel, limit image.Rectangle, w, h int) image.Rectangle {
-	x := sel.Min.X
+	x := sel.Max.X - w
 	y := sel.Max.Y + snapBarGap
 	if y+h > limit.Max.Y {
 		y = sel.Min.Y - snapBarGap - h
@@ -140,11 +144,11 @@ func snapBarPlace(sel, limit image.Rectangle, w, h int) image.Rectangle {
 	if y < limit.Min.Y {
 		y = limit.Min.Y
 	}
-	if x+w > limit.Max.X {
-		x = limit.Max.X - w
-	}
 	if x < limit.Min.X {
 		x = limit.Min.X
+	}
+	if x+w > limit.Max.X {
+		x = limit.Max.X - w
 	}
 	return image.Rect(x, y, x+w, y+h)
 }

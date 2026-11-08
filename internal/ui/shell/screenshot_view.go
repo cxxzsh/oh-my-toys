@@ -27,6 +27,7 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 	c.OnShortcut(0, ui.KeyEnter, a.snapCopy)
 
 	if !s.dragging && !s.sel.Empty() {
+		a.snapNudge(c)
 		s.bar = snapBarPlace(s.sel, s.barLimit(), snapBarW, snapBarH)
 	} else if s.dragging {
 		s.bar = image.Rectangle{}
@@ -54,6 +55,35 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 			a.snapBar(c, ov, s, pal)
 			a.snapHud(c, ov, s, pal)
 		})
+}
+
+// snapNudge moves the selection with the arrow keys, a point at a time, or
+// ten with Shift, so it can line up with a pixel. Each combination is asked
+// for once: asking consumes the key.
+func (a *App) snapNudge(c *ui.Context) {
+	s := a.snap
+	var d image.Point
+	switch {
+	case c.Shortcut(0, ui.KeyLeft):
+		d.X = -snapNudge
+	case c.Shortcut(0, ui.KeyRight):
+		d.X = snapNudge
+	case c.Shortcut(0, ui.KeyUp):
+		d.Y = -snapNudge
+	case c.Shortcut(0, ui.KeyDown):
+		d.Y = snapNudge
+	case c.Shortcut(ui.Shift, ui.KeyLeft):
+		d.X = -snapNudgeBig
+	case c.Shortcut(ui.Shift, ui.KeyRight):
+		d.X = snapNudgeBig
+	case c.Shortcut(ui.Shift, ui.KeyUp):
+		d.Y = -snapNudgeBig
+	case c.Shortcut(ui.Shift, ui.KeyDown):
+		d.Y = snapNudgeBig
+	default:
+		return
+	}
+	s.sel = snapMove(s.sel, image.Point{}, d, s.barLimit())
 }
 
 func (a *App) snapInside(ov *snapOverlay, x, y float32) bool {
@@ -273,7 +303,9 @@ func clamp(v, lo, hi int) int {
 	return v
 }
 
-// snapBar is the toolbar under a committed selection.
+// snapBar is the toolbar under a committed selection, its right edge on the
+// selection's, as Snipaste puts it. It hangs on that edge by its own width,
+// so it stays snug in every language.
 func (a *App) snapBar(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Palette) {
 	if s.dragging || s.sel.Empty() || s.bar.Empty() || !pIn(s.bar.Min, ov.shot.Bounds) {
 		return
@@ -282,7 +314,7 @@ func (a *App) snapBar(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Pa
 		Background(pal.BgPopover).Radius(ds.RadiusMd).
 		Border(ds.LineWidth, pal.LineControl).
 		Absolute().
-		Left(float32(s.bar.Min.X - ov.shot.Bounds.Min.X)).
+		Right(float32(ov.shot.Bounds.Max.X - s.bar.Max.X)).
 		Top(float32(s.bar.Min.Y - ov.shot.Bounds.Min.Y)).
 		Children(func() {
 			if a.kit.Button(c.Key("snap-copy"), i18n.CopyValue(), comp.ButtonOpts{Kind: comp.Primary, Small: true}).Clicked() {

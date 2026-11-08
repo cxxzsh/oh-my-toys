@@ -125,8 +125,8 @@ func TestSnapBarAndLoupe(t *testing.T) {
 	sel := image.Rect(10, 10, 80, 40)
 	limit := image.Rect(0, 0, 200, 100)
 	bar := snapBarPlace(sel, limit, 50, 20)
-	if bar.Min.Y != 48 {
-		t.Fatalf("bar below = %v", bar)
+	if bar.Min.Y != 48 || bar.Max.X != sel.Max.X {
+		t.Fatalf("bar below and right-aligned = %v", bar)
 	}
 	// No room below: the bar goes above the selection.
 	low := image.Rect(10, 70, 80, 95)
