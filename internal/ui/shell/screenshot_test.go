@@ -146,10 +146,14 @@ func TestSnapBarAndLoupe(t *testing.T) {
 }
 
 func TestSnapPathLabel(t *testing.T) {
-	if got := snapPathLabel("/Users/return/Pictures/oh-my-toys", "/Users/return"); got != "~/Pictures/oh-my-toys" {
-		t.Fatalf("under home = %q", got)
+	home := filepath.FromSlash("/Users/return")
+	under := filepath.Join(home, "Pictures", "oh-my-toys")
+	want := "~" + string(os.PathSeparator) + filepath.Join("Pictures", "oh-my-toys")
+	if got := snapPathLabel(under, home); got != want {
+		t.Fatalf("under home = %q, want %q", got, want)
 	}
-	if got := snapPathLabel("/tmp/shots", "/Users/return"); got != "/tmp/shots" {
+	elsewhere := filepath.FromSlash("/tmp/shots")
+	if got := snapPathLabel(elsewhere, home); got != elsewhere {
 		t.Fatalf("outside home = %q", got)
 	}
 }
