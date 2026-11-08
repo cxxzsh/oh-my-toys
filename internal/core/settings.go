@@ -32,6 +32,9 @@ type Settings struct {
 	Sections []string `json:"sections,omitempty"`
 	// Schedules are the plans of the tools that run by a plan, by tool ID.
 	Schedules map[string]tool.Schedule `json:"schedules,omitempty"`
+	// Displays is whether the tools that can keep the display on do, by tool
+	// ID. A tool not in it keeps its own default.
+	Displays map[string]bool `json:"displays,omitempty"`
 	// Language is the language chosen in the settings; empty follows the
 	// system.
 	Language string `json:"language,omitempty"`
@@ -44,6 +47,14 @@ func (v *Settings) SetSchedule(id string, s tool.Schedule) {
 	}
 	s.Segments = slices.Clone(s.Segments)
 	v.Schedules[id] = s
+}
+
+// SetDisplay remembers whether a tool keeps the display on.
+func (v *Settings) SetDisplay(id string, on bool) {
+	if v.Displays == nil {
+		v.Displays = map[string]bool{}
+	}
+	v.Displays[id] = on
 }
 
 // Store keeps settings in a JSON file.

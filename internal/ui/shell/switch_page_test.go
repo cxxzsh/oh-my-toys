@@ -31,6 +31,7 @@ type modeSwitch struct {
 	ran     []string
 	lengths []time.Duration // what StartFor was asked
 	sched   tool.Schedule   // the plan; SetSchedule keeps what it is given
+	display bool            // keep the display on; SetDisplay keeps what it is given
 }
 
 func titled(s string) tool.Message { return func(i18n.Messages) string { return s } }
@@ -61,6 +62,8 @@ func (m *modeSwitch) Specs() []tool.Spec {
 	return tool.TimedSwitchSpecs(s, s, s)
 }
 
+func (m *modeSwitch) Display() bool               { return m.display }
+func (m *modeSwitch) SetDisplay(on bool)          { m.display = on }
 func (m *modeSwitch) Schedule() tool.Schedule     { return m.sched }
 func (m *modeSwitch) SetSchedule(s tool.Schedule) { m.sched = s.Clean() }
 
@@ -405,5 +408,32 @@ func TestSavedPlansGoBackToTheirTools(t *testing.T) {
 	a.applySchedules()
 	if !m.sched.Enabled || !slices.Equal(m.sched.Segments, []tool.Segment{workSpan()}) {
 		t.Errorf("the tool's plan is %+v", m.sched)
+	}
+}
+
+// TestSwitchDisplayIsChosenApartFromTheModes: the display is a switch of its
+// own above the modes; it reaches the tool and the settings, which keep a
+// choice to let the display sleep for the next launch.
+func TestSwitchDisplayIsChosenApartFromTheModes(t *testing.T) {
+	m := &modeSwitch{display: true}
+	a, tt := modeSwitchPage(t, m)
+	if err := tt.Click(i18n.SwitchDisplay()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if m.display {
+		t.Error("the display is still kept on after the switch was turned off")
+	}
+	if on, kept := a.settings.Displays[modeToolID]; !kept || on {
+		t.Errorf("settings keep %v (kept %v), want a kept choice to let it sleep", on, kept)
+	}
+	if len(m.ran) != 0 || len(m.lengths) != 0 {
+		t.Errorf("changing the display started a run: %v %v", m.ran, m.lengths)
+	}
+
+	m.display = true
+	a.applyDisplays()
+	if m.display {
+		t.Error("the kept choice was not given back to the tool at start")
 	}
 }

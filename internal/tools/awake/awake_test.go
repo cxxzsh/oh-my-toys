@@ -68,19 +68,47 @@ func TestStatusNamesTheModeAndItsEnd(t *testing.T) {
 // TestStartResumesTheLastMode is what the tray switch and the page's
 // switch do: turn on with the settings used last, not with the defaults.
 func TestStartResumesTheLastMode(t *testing.T) {
-	tl, _, displays := newTestTool(t)
-	runAction(t, tl, idSystemOnly)
+	tl, _, _ := newTestTool(t)
+	runAction(t, tl, idTwoHours)
 	if err := tl.Stop(); err != nil {
 		t.Fatal(err)
 	}
 	if err := tl.Start(t.Context()); err != nil {
 		t.Fatal(err)
 	}
-	if st := tl.Status(); st.Active != idSystemOnly {
-		t.Errorf("resumed %q, want %q", st.Active, idSystemOnly)
+	if st := tl.Status(); st.Active != idTwoHours || st.Until.Sub(st.Since) != 2*time.Hour {
+		t.Errorf("resumed %+v, want the 2 hours", st)
+	}
+}
+
+// TestDisplayIsChosenApartFromTheMode: every mode, typed lengths too, keeps
+// the display on as the choice says, and a change reaches the run in
+// progress without ending it or moving its end.
+func TestDisplayIsChosenApartFromTheMode(t *testing.T) {
+	tl, held, displays := newTestTool(t)
+	tl.SetDisplay(false)
+	runAction(t, tl, idHour)
+	if err := tl.StartFor(t.Context(), time.Hour); err != nil {
+		t.Fatal(err)
 	}
 	if got := *displays; len(got) != 2 || got[0] || got[1] {
-		t.Errorf("display asked %v: the display may sleep in both runs", got)
+		t.Fatalf("display asked %v: the choice was to let it sleep, in both runs", got)
+	}
+
+	before := tl.Status()
+	tl.SetDisplay(true)
+	after := tl.Status()
+	if *held != 1 {
+		t.Errorf("%d requests held after the change, want the one run", *held)
+	}
+	if got := *displays; !got[len(got)-1] {
+		t.Errorf("display asked %v: the change did not reach the run", got)
+	}
+	if !after.Until.Equal(before.Until) || !after.Since.Equal(before.Since) || after.Active != before.Active {
+		t.Errorf("the run changed from %+v to %+v", before, after)
+	}
+	if after.Detail != displayDetail(true) || before.Detail != displayDetail(false) {
+		t.Errorf("details %q then %q do not follow the choice", before.Detail, after.Detail)
 	}
 }
 

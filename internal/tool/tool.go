@@ -118,6 +118,15 @@ type Timed interface {
 	StartFor(ctx context.Context, d time.Duration) error
 }
 
+// Screened is a switch tool that can keep the display on too, which a
+// person chooses apart from how long it runs: a mode keeps the display on or
+// not as that choice says. A change reaches the run in progress.
+type Screened interface {
+	Switch
+	Display() bool
+	SetDisplay(on bool)
+}
+
 // Scheduled is a switch tool that turns itself on and off by a plan. A
 // tool turned off by hand stays off for the stretch of the plan it was
 // turned off in.

@@ -96,3 +96,23 @@ func TestSchedulesSurviveResetAndRestart(t *testing.T) {
 		t.Errorf("plan after reset and reload: %+v, want %+v", got.Schedules["awake"], want)
 	}
 }
+
+// TestDisplayChoiceSurvivesResetAndRestart: whether a tool keeps the display
+// on is not part of the sidebar, and a choice to let it sleep is kept as
+// firmly as one to keep it on.
+func TestDisplayChoiceSurvivesResetAndRestart(t *testing.T) {
+	var s Settings
+	s.SetDisplay("awake", false)
+	s.Reset(Settings{})
+	store := NewStore(t.TempDir())
+	if err := store.Save(s); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load(Settings{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if on, kept := got.Displays["awake"]; !kept || on {
+		t.Errorf("display choice after reset and reload: %v, kept %v, want false, kept", on, kept)
+	}
+}

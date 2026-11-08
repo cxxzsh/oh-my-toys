@@ -44,10 +44,6 @@
   "@awakeUntilOff": {
     "description": "Quick action."
   },
-  "awakeSystemOnly": "Keep awake, let the display sleep",
-  "@awakeSystemOnly": {
-    "description": "Quick action: the system stays awake, the display may turn off."
-  },
   "awakeTurnOff": "Turn off",
   "@awakeTurnOff": {
     "description": "Quick action."
@@ -1282,6 +1278,10 @@
   "switchPlanDisplay": "Keep the display on",
   "@switchPlanDisplay": {
     "description": "Switch: the plan keeps the display on too."
+  },
+  "switchDisplay": "Keep the display on",
+  "@switchDisplay": {
+    "description": "Switch: a run a person starts keeps the display on too; off lets the display turn off."
   },
   "switchAddSpan": "Add a time span",
   "@switchAddSpan": {

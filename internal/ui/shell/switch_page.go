@@ -158,6 +158,9 @@ func (a *App) switchModes(c *ui.Context, t tool.Switch, st tool.Status) {
 			a.planTab(c, sched, f)
 			return
 		}
+		if scr, ok := t.(tool.Screened); ok {
+			a.displayOption(c, scr)
+		}
 		a.presetTiles(c, t, st)
 		if timed, ok := t.(tool.Timed); ok {
 			a.customForm(c, timed, f)

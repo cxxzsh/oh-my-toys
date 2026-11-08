@@ -17,12 +17,11 @@ const ID = "awake"
 
 // The IDs of the quick actions.
 const (
-	idHour       = "1h"
-	idTwoHours   = "2h"
-	idUntilOff   = "on"
-	idSystemOnly = "system"
-	idOff        = "off"
-	idCustom     = "custom" // a length or time of day the person typed, which has no quick action
+	idHour     = "1h"
+	idTwoHours = "2h"
+	idUntilOff = "on"
+	idOff      = "off"
+	idCustom   = "custom" // a length or time of day the person typed, which has no quick action
 )
 
 // reason is what the system lists as keeping the computer awake.
@@ -73,10 +72,9 @@ func (t *Tool) Manifest() tool.Manifest {
 		Keywords:  []string{"caffeinate", "keep awake", "amphetamine", "sleep", "不睡眠", "咖啡因"},
 		Platforms: []string{"macos", "windows", "linux"},
 		Actions: []tool.QuickAction{
-			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Short: i18n.Messages.Awake1hShort, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour, true)},
-			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Short: i18n.Messages.Awake2hShort, Run: t.runFor(idTwoHours, 2*time.Hour, true)},
-			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Short: i18n.Messages.AwakeForeverShort, Run: t.runFor(idUntilOff, 0, true)},
-			{ID: idSystemOnly, Title: i18n.Messages.AwakeSystemOnly, Run: t.runFor(idSystemOnly, 0, false)},
+			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Short: i18n.Messages.Awake1hShort, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour)},
+			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Short: i18n.Messages.Awake2hShort, Run: t.runFor(idTwoHours, 2*time.Hour)},
+			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Short: i18n.Messages.AwakeForeverShort, Run: t.runFor(idUntilOff, 0)},
 			{ID: idOff, Title: i18n.Messages.AwakeTurnOff, Stops: true, Run: func(context.Context) error { return t.Stop() }},
 		},
 	}
@@ -88,9 +86,9 @@ func (t *Tool) Specs() []tool.Spec {
 	return tool.TimedSwitchSpecs(i18n.Messages.AwakeStartSummary, i18n.Messages.AwakeStopSummary, i18n.Messages.AwakeStatusSummary)
 }
 
-func (t *Tool) runFor(id string, d time.Duration, display bool) func(context.Context) error {
+func (t *Tool) runFor(id string, d time.Duration) func(context.Context) error {
 	return func(context.Context) error {
-		t.start(id, d, display)
+		t.start(id, d)
 		return nil
 	}
 }
@@ -98,27 +96,44 @@ func (t *Tool) runFor(id string, d time.Duration, display bool) func(context.Con
 // Start keeps the computer awake with the settings used last.
 func (t *Tool) Start(context.Context) error {
 	t.mu.Lock()
-	id, d, display := t.id, t.last, t.display
+	id, d := t.id, t.last
 	t.mu.Unlock()
-	t.start(id, d, display)
+	t.start(id, d)
 	return nil
 }
 
-// StartFor keeps the computer awake for d, with the display setting used
-// last.
+// StartFor keeps the computer awake for d.
 func (t *Tool) StartFor(_ context.Context, d time.Duration) error {
-	t.mu.Lock()
-	display := t.display
-	t.mu.Unlock()
-	t.start(idCustom, d, display)
+	t.start(idCustom, d)
 	return nil
 }
 
-func (t *Tool) start(id string, d time.Duration, display bool) {
+// Display says whether a person's hold keeps the display on too.
+func (t *Tool) Display() bool {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.display
+}
+
+// SetDisplay chooses whether a person's hold keeps the display on too. It
+// is the choice of the next hold, and of the one in progress, which keeps
+// its length.
+func (t *Tool) SetDisplay(on bool) {
+	t.mu.Lock()
+	t.display = on
+	if old := t.release; old != nil {
+		t.release = keepAwake(reason, on)
+		old()
+	}
+	t.mu.Unlock()
+	t.changed()
+}
+
+func (t *Tool) start(id string, d time.Duration) {
 	t.mu.Lock()
 	t.stopHoldLocked()
-	t.release = keepAwake(reason, display)
-	t.id, t.last, t.display = id, d, display
+	t.release = keepAwake(reason, t.display)
+	t.id, t.last = id, d
 	t.since, t.until = t.now(), time.Time{}
 	if d > 0 {
 		t.until = t.since.Add(d)

@@ -188,20 +188,6 @@ func (msgs Messages) AwakeUntilOff() string {
 	return Catalog.Format(msgs.locale, "awakeUntilOff", nil)
 }
 
-// AwakeSystemOnly says "Keep awake, let the display sleep"
-// in the language the app shows.
-//
-// Quick action: the system stays awake, the display may turn off.
-func AwakeSystemOnly() string { return In(i18n.Locale()).AwakeSystemOnly() }
-
-// AwakeSystemOnly says "Keep awake, let the display sleep"
-// in the language of msgs.
-//
-// Quick action: the system stays awake, the display may turn off.
-func (msgs Messages) AwakeSystemOnly() string {
-	return Catalog.Format(msgs.locale, "awakeSystemOnly", nil)
-}
-
 // AwakeTurnOff says "Turn off"
 // in the language the app shows.
 //
@@ -3470,6 +3456,22 @@ func SwitchPlanDisplay() string { return In(i18n.Locale()).SwitchPlanDisplay() }
 // Switch: the plan keeps the display on too.
 func (msgs Messages) SwitchPlanDisplay() string {
 	return Catalog.Format(msgs.locale, "switchPlanDisplay", nil)
+}
+
+// SwitchDisplay says "Keep the display on"
+// in the language the app shows.
+//
+// Switch: a run a person starts keeps the display on too; off lets the
+// display turn off.
+func SwitchDisplay() string { return In(i18n.Locale()).SwitchDisplay() }
+
+// SwitchDisplay says "Keep the display on"
+// in the language of msgs.
+//
+// Switch: a run a person starts keeps the display on too; off lets the
+// display turn off.
+func (msgs Messages) SwitchDisplay() string {
+	return Catalog.Format(msgs.locale, "switchDisplay", nil)
 }
 
 // SwitchAddSpan says "Add a time span"
