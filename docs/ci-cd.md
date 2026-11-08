@@ -15,8 +15,10 @@ both into the release PR.
 
 ## 1. CI (`.github/workflows/ci.yml`)
 
-Runs on every pull request and on every push to `main`. A newer push cancels
-the run of an older one on the same branch. The pull request's title, which
+Runs on pull requests that are ready for review: a draft runs nothing until
+it is marked ready, and a newer push cancels the run of the older one. It does
+not run on `main`, which receives squash merges of the pull requests whose last
+run checked the tree that lands there. The pull request's title, which
 becomes the squash-merge commit message, is checked by `pr-title.yml` instead,
 a workflow of its own so that a push, or an edit of the title or the body,
 re-runs that check alone rather than the whole of CI: the title must follow
