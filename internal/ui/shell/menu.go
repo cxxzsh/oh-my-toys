@@ -29,9 +29,9 @@ func (a *App) setUpMenu() {
 			item(sideLabel, "CmdOrCtrl+Shift+S", a.toggleSidebar),
 			mygo.Separator(),
 			{Label: i18n.Appearance(), Submenu: []*mygo.MenuItem{
-				item(i18n.ThemeAuto(), "", func() { mygo.Theme.SetSource(mygo.ThemeSystem) }),
-				item(i18n.ThemeDark(), "", func() { mygo.Theme.SetSource(mygo.ThemeDark) }),
-				item(i18n.ThemeLight(), "", func() { mygo.Theme.SetSource(mygo.ThemeLight) }),
+				item(i18n.ThemeAuto(), "", func() { a.setTheme(mygo.ThemeSystem) }),
+				item(i18n.ThemeDark(), "", func() { a.setTheme(mygo.ThemeDark) }),
+				item(i18n.ThemeLight(), "", func() { a.setTheme(mygo.ThemeLight) }),
 			}},
 		}},
 		{Label: i18n.MenuTools(), Submenu: a.toolsMenu(item)},

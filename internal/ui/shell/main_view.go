@@ -158,7 +158,7 @@ func (a *App) themeSegment(c *ui.Context) {
 	opts := []string{i18n.ThemeAuto(), i18n.ThemeDark(), i18n.ThemeLight()}
 	if comp.Segmented(c.Key("bar-theme"), &sel, opts, i18n.Appearance()).Changed() {
 		sources := []mygo.ThemeSource{mygo.ThemeSystem, mygo.ThemeDark, mygo.ThemeLight}
-		mygo.Theme.SetSource(sources[sel])
+		a.setTheme(sources[sel])
 	}
 }
 

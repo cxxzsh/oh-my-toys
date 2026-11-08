@@ -42,6 +42,9 @@ type Settings struct {
 	// Language is the language chosen in the settings; empty follows the
 	// system.
 	Language string `json:"language,omitempty"`
+	// Theme is the appearance chosen in the settings; empty follows the
+	// system.
+	Theme string `json:"theme,omitempty"`
 	// ScreenshotDir is where screenshots are saved. Empty means
 	// ~/Pictures/oh-my-toys.
 	ScreenshotDir string `json:"screenshotDir,omitempty"`

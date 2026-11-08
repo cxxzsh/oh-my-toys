@@ -171,6 +171,7 @@ func (a *App) Start() {
 	} else {
 		a.settings = s
 	}
+	mygo.Theme.SetSource(mygo.ThemeSource(a.settings.Theme))
 	a.applySchedules()
 	a.applyDisplays()
 	a.opt.Events.OnChanged(func() { a.Post(a.syncDisplays) })
@@ -254,6 +255,13 @@ func (a *App) localeChanged() {
 	a.setUpMenu()
 	a.setTrayMenu()
 	a.redraw()
+}
+
+// setTheme sets the appearance and keeps the choice for the next launch.
+func (a *App) setTheme(src mygo.ThemeSource) {
+	a.settings.Theme = string(src)
+	mygo.Theme.SetSource(src)
+	a.save()
 }
 
 // save writes the settings, logging a failure: losing a pin is no reason
