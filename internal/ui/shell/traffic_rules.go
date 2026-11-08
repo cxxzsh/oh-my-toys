@@ -424,16 +424,17 @@ func (a *App) ruleRow(c *ui.Context, st *trafficState, i int) {
 	if b.Clicked() {
 		st.rules.sel = i
 	}
-	b.FillWidth().Height(ds.SettingsRow).Padding(ds.Space6, ds.TableCellPad).Gap(ds.Space8).AlignItems(ui.Center)
-	switch {
-	case chosen:
-		// An opaque fill, because the list marks the chosen row in the
-		// accent colour behind this one; the bar says which row it is.
-		b.Background(p.FillControl).BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(p.AccentStrong)
-	case b.Hovered():
+	b.FillWidth().Height(ds.SettingsRow).Padding(ds.Space6, ds.TableCellPad).Gap(ds.Space8).Background(p.BgCard).
+		AlignItems(ui.Center)
+	if chosen {
+		b.BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(p.AccentStrong)
+	} else if b.Hovered() {
 		b.Background(p.FillControl)
 	}
 	b.Children(func() {
+		if chosen {
+			listSelection(c)
+		}
 		if comp.SwitchCompact(c.Key("rule-on"), &st.rules.book[i].Enabled, ruleName(r)).Changed() {
 			st.rules.dirty, st.rules.due = true, time.Now()
 		}

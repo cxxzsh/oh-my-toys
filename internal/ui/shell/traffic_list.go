@@ -137,14 +137,17 @@ func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols [
 		st.sel = i
 	}
 	b.ContextMenu(func(m *ui.Menu) { a.trafficRowMenu(m, c, t, st, r) })
-	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Gap(ds.Space4).AlignItems(ui.Center)
-	switch {
-	case chosen:
-		b.Background(p.FillControl).BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(p.AccentStrong)
-	case b.Hovered():
+	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Gap(ds.Space4).Background(p.BgCard).
+		AlignItems(ui.Center)
+	if chosen {
+		b.BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(p.AccentStrong)
+	} else if b.Hovered() {
 		b.Background(p.FillControl)
 	}
 	b.Children(func() {
+		if chosen {
+			listSelection(c)
+		}
 		for j, col := range cols {
 			cell := ui.Row(c.Key(j)).Grow(col.share).Basis(0).MinWidth(0).AlignItems(ui.Center)
 			if col.end {

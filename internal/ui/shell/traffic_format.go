@@ -5,9 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/egoist/mygo/ui"
+
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
 // Size units, by powers of 1024.
@@ -94,6 +97,15 @@ func trafficRowText(r tool.FlowRow) string {
 		fmt.Sprint(r.ID), r.Started.Format(time.TimeOnly), r.Method, r.Host, r.Path,
 		status, r.Type, trafficSize(r.Size), trafficTook(r.Duration),
 	}, "\t")
+}
+
+// listSelection is the fill of a chosen row: the design system's
+// selection token over the card, so that a row reads as chosen in either
+// theme while the list's own accent mark, and the text it would pale, are
+// covered. PassThrough lets the pointer reach the row itself.
+func listSelection(c *ui.Context) {
+	ui.Box(c).Absolute().Top(0).Left(0).Right(0).Bottom(0).
+		Background(ds.P(c).Selection).PassThrough()
 }
 
 // statusTone is the colour of a response status: a success, a redirect, a

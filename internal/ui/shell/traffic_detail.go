@@ -48,6 +48,10 @@ func detailTabLabel(tab int) string {
 	return ""
 }
 
+// headersShare is the most of the detail pane the header lines of a
+// message take before they scroll: the body keeps the rest.
+const headersShare = 40
+
 // trafficDetailPane is what the chosen flow carried.
 func (a *App) trafficDetailPane(c *ui.Context, t tool.Traffic, st *trafficState) {
 	p := ds.P(c)
@@ -187,8 +191,9 @@ func (a *App) trafficHeaders(c *ui.Context, headers []tool.Header) {
 		return
 	}
 	p := ds.P(c)
-	height := min(float32(len(headers))*ds.TableRow, ds.TrafficHeaders)
-	ui.ScrollBoth(c).FillWidth().Height(height).Padding(ds.Space4).Radius(ds.RadiusXs).
+	_, windowH := c.Size()
+	height := min(float32(len(headers))*ds.TableRow+2*ds.Space4, windowH*headersShare/100)
+	ui.ScrollBoth(c).FillWidth().Height(height).Shrink(0).Padding(ds.Space4).Radius(ds.RadiusXs).
 		Background(p.FillControl).Selectable().Children(func() {
 		ui.Column(c).FillWidth().Children(func() {
 			for i, h := range headers {

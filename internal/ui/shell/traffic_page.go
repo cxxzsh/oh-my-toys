@@ -41,6 +41,15 @@ const (
 // glyphPower is the glyph of the button that starts and stops a capture.
 const glyphPower = "power_settings_new"
 
+// listSplitPercent is the flow list's share of the width when the window
+// is large: the list carries more columns than the detail does. Below
+// wideWindow it keeps the points of TrafficSplit, which the window has
+// room for; below TrafficWide it sits above the detail instead.
+const (
+	listSplitPercent = 55
+	wideWindow       = 1400
+)
+
 // trafficKey names the inspector's state on its page element.
 type trafficKey struct{}
 
@@ -69,10 +78,12 @@ type trafficState struct {
 	view       int // the flows, or the rule book
 	rules      ruleView
 	sel        int // the chosen row, -1 for none
+	selSeen    int // the choice of the last frame, to tell a new one
 	list       ui.ListState
 	search     ui.Handle
 	follow     bool
-	splitW     float32 // the list's width beside the detail
+	splitP     float32 // the list's share of the width beside the detail, percent
+	splitW     float32 // the list's width beside the detail, when the window is not large
 	rulesSplit float32 // the rule list's width beside its form
 	splitH     float32 // the list's height above the detail
 	detailTab  int
@@ -176,8 +187,8 @@ func (st *trafficState) apply(o trafficOutcome) {
 // end, no row chosen, and the split at the design system's sizes.
 func newTrafficState() trafficState {
 	return trafficState{
-		sel: -1, follow: true,
-		splitW: ds.TrafficSplit, splitH: ds.TrafficSplitH,
+		sel: -1, selSeen: -1, follow: true,
+		splitP: listSplitPercent, splitW: ds.TrafficSplit, splitH: ds.TrafficSplitH,
 		rulesSplit: ds.TrafficRulesList,
 	}
 }
@@ -389,6 +400,10 @@ func trafficFileName(now time.Time) string {
 func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
 	list := func() { a.trafficListPane(c, t, st) }
 	detail := func() { a.trafficDetailPane(c, t, st) }
+	if w, _ := c.Size(); w >= wideWindow {
+		comp.SplitPercent(c, &st.splitP, list, detail).Grow(1).FillWidth()
+		return
+	}
 	if w, _ := c.Size(); w >= ds.TrafficWide {
 		comp.Split(c, &st.splitW, list, detail).Grow(1).FillWidth()
 		return
@@ -417,6 +432,12 @@ func (st *trafficState) sync() {
 // while it is still arriving, so that a filter or a new arrival does not
 // quietly show another flow's detail.
 func (st *trafficState) keepChoice() {
+	// A new choice wins over the flow the detail still shows: keeping the
+	// old flow by id is for rows moving under it, not for a click.
+	if st.sel != st.selSeen {
+		st.selSeen = st.sel
+		st.detailID, st.hasDetail = 0, false
+	}
 	if st.detailID != 0 {
 		if i := st.indexOf(st.detailID); i >= 0 {
 			st.sel = i

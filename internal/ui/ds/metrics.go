@@ -88,11 +88,10 @@ const (
 	HexDumpBytes     = 4 << 10   // hex dump of a binary body
 	HexRow           = 16        // bytes a hex dump row shows
 	HexGroup         = 8         // bytes before the gap in a hex dump row
-	TrafficSplit     = 560       // the flow list's width beside the detail
+	TrafficSplit     = 560       // the flow list's width beside the detail, in a window of a usual size
 	TrafficSplitH    = 300       // the flow list's height above the detail
 	TrafficRulesList = 360       // the rule list's width beside its form
 	TrafficWide      = 900       // window width at which list and detail sit side by side
-	TrafficHeaders   = 168       // the header lines of a message, before they scroll
 )
 
 // Motion, from the design system's Motion section.
