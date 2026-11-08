@@ -10,10 +10,20 @@ import (
 // caller in the user's key names (⌘K, Ctrl+K): bg-button, line-control,
 // radius-xs.
 func Kbd(c *ui.Context, keys string) ui.Element {
+	return kbd(c, keys, ds.Kbd, ds.Space4)
+}
+
+// KbdLarge is a shortcut beside the button that does the same thing: a size
+// up, so it reads with the button rather than as a footnote.
+func KbdLarge(c *ui.Context, keys string) ui.Element {
+	return kbd(c, keys, ds.KbdLg, ds.Space6)
+}
+
+func kbd(c *ui.Context, keys string, st ds.TypeStyle, pad float32) ui.Element {
 	p := ds.P(c)
-	return ds.ApplyShadow(ui.Row(c).Padding(0, ds.Space4).Radius(ds.RadiusXs).Background(p.BgButton).
+	return ds.ApplyShadow(ui.Row(c).Padding(ds.Space2, pad).Radius(ds.RadiusXs).Background(p.BgButton).
 		Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center).Children(func() {
-		Text(c, keys, ds.Kbd, p.TextSecondary).SingleLine()
+		Text(c, keys, st, p.TextSecondary).SingleLine()
 	}), ds.S(c).ShadowXs)
 }
 

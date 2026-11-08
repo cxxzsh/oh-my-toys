@@ -247,6 +247,7 @@ var (
 	Meta         = TypeStyle{Size: 12, LineHeight: 16, Weight: 400, Mono: true, Tracking: 0}
 	Badge        = TypeStyle{Size: 11, LineHeight: 16, Weight: 600, Mono: true, Tracking: 0}
 	Kbd          = TypeStyle{Size: 11, LineHeight: 16, Weight: 400, Mono: true, Tracking: 0}
+	KbdLg        = TypeStyle{Size: 14, LineHeight: 20, Weight: 500, Mono: true, Tracking: 0}
 	Numeric      = TypeStyle{Size: 13, LineHeight: 18, Weight: 600, Mono: true, Tracking: 0}
 )
 

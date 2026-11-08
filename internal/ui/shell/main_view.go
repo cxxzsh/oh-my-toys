@@ -221,6 +221,10 @@ func (a *App) toolBody(c *ui.Context, t tool.Tool) {
 		a.scrollWorkbench(c, func() { a.soonPage(c, m) })
 		return
 	}
+	if m.Kind == tool.KindCapture {
+		a.capturePage(c, t)
+		return
+	}
 	switch t := t.(type) {
 	case tool.Switch:
 		a.switchPage(c, t)

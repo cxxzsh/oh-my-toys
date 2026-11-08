@@ -28,6 +28,7 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/tools/dupes"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/ports"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/rename"
+	"github.com/cxxzsh/oh-my-toys/internal/tools/screenshot"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/shell"
 )
@@ -65,7 +66,7 @@ func defaultMaterial() string {
 
 // tools is the one list of the app's tools, in the order they are shown.
 func tools(events *core.Events, dev bool) []tool.Tool {
-	list := []tool.Tool{awake.New(events.Changed), rename.New(), dupes.New(), ports.New(), color.New()}
+	list := []tool.Tool{awake.New(events.Changed), rename.New(), dupes.New(), ports.New(), color.New(), screenshot.New()}
 	if dev {
 		list = append(list, devtools.Crash{})
 		list = append(list, devtools.Fakes(fakeTools, events.Changed)...)
@@ -94,7 +95,7 @@ func main() {
 		Runner:        core.NewRunner(events.Changed),
 		Events:        events,
 		Store:         core.NewStore(dataDir()),
-		Defaults:      core.Settings{Pinned: []string{awake.ID, rename.ID, dupes.ID, ports.ID, color.ID}},
+		Defaults:      core.Settings{Pinned: []string{awake.ID, rename.ID, dupes.ID, ports.ID, color.ID, screenshot.ID}},
 		Dev:           f.dev,
 		Portable:      portable,
 		Material:      f.material,

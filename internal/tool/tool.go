@@ -16,13 +16,19 @@ import (
 // same manifest reads in every language.
 type Message = func(i18n.Messages) string
 
-// Kind tells switch tools, which keep running, from action tools.
+// Kind tells switch tools, which keep running, from action tools and
+// from capture tools, which the desktop app runs itself.
 type Kind int
 
-// The two kinds of tools.
+// The kinds of tools.
 const (
 	KindSwitch Kind = iota
 	KindAction
+	// KindCapture is a tool the desktop app runs itself, because it needs
+	// the screen and the person in front of it. It declares no actions, so
+	// the command line and MCP leave it alone; the app draws its page from
+	// the manifest, as for every other tool.
+	KindCapture
 )
 
 // Category groups tools; the UI colors tools by category, never by tool.

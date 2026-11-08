@@ -1636,6 +1636,34 @@ func (msgs Messages) SnapMenu() string {
 	return Catalog.Format(msgs.locale, "snapMenu", nil)
 }
 
+// SnapName says "Screenshot"
+// in the language the app shows.
+//
+// Tool name.
+func SnapName() string { return In(i18n.Locale()).SnapName() }
+
+// SnapName says "Screenshot"
+// in the language of msgs.
+//
+// Tool name.
+func (msgs Messages) SnapName() string {
+	return Catalog.Format(msgs.locale, "snapName", nil)
+}
+
+// SnapSummary says "Captures a region of the screen, to copy or save"
+// in the language the app shows.
+//
+// Tool summary.
+func SnapSummary() string { return In(i18n.Locale()).SnapSummary() }
+
+// SnapSummary says "Captures a region of the screen, to copy or save"
+// in the language of msgs.
+//
+// Tool summary.
+func (msgs Messages) SnapSummary() string {
+	return Catalog.Format(msgs.locale, "snapSummary", nil)
+}
+
 // Sidebar says "Sidebar"
 // in the language the app shows.
 //

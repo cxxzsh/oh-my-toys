@@ -298,8 +298,13 @@ func (a *App) askDialog(d comp.DialogOpts) {
 }
 
 // activate is a click on a tool in the tray or the palette: a switch tool
-// turns on or off, any other tool opens.
+// turns on or off, a capture tool starts at once, any other tool opens.
 func (a *App) activate(t tool.Tool) {
+	if t.Manifest().Kind == tool.KindCapture && a.opt.Snapshots != nil {
+		a.hideTray()
+		a.startSnap()
+		return
+	}
 	s, ok := t.(tool.Switch)
 	if !ok {
 		a.openMain(t.Manifest().ID)

@@ -586,6 +586,14 @@
   "@snapMenu": {
     "description": "Tools menu item that starts the screenshot tool."
   },
+  "snapName": "Screenshot",
+  "@snapName": {
+    "description": "Tool name."
+  },
+  "snapSummary": "Captures a region of the screen, to copy or save",
+  "@snapSummary": {
+    "description": "Tool summary."
+  },
   "sidebar": "Sidebar",
   "@sidebar": {
     "description": "Accessible name."

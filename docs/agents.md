@@ -12,6 +12,8 @@ An Agent Skill, generated from the same tool descriptions, teaches agents to use
 
 The rule that makes this work: **a tool is described once, and every front end is generated from that description.** No action exists only in the UI, only in the CLI or only in MCP.
 
+A capture tool (Screenshot) has no actions: it needs the screen and the person in front of it, so it exists in the desktop app only. Every front end lists it as a tool, and `omt` and MCP leave it out.
+
 ## 1. What a tool declares
 
 On top of the manifest in CONTRIBUTING.md (id, names, category, kind, icon, keywords, platforms), every action declares:

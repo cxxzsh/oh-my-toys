@@ -114,6 +114,8 @@
   "settings": "设置",
   "shortcutTaken": "快捷键被占用：{keys}",
   "snapMenu": "截图",
+  "snapName": "截图",
+  "snapSummary": "截取屏幕的一块区域，复制或保存",
   "sidebar": "侧边栏",
   "snapCopied": "已复制到剪贴板",
   "snapHint": "拖动选择 · 回车复制 · ⌘S 保存 · Esc 取消",

@@ -8,7 +8,7 @@ A box of small, handy tools for your desktop. Each tool does one thing, and they
 
 The app and `omt` are in this repository. Run the desktop app with `go run ./cmd/oh-my-toys` and the command line with `go run ./cmd/omt`. macOS has been tried. Windows and Linux packages can be built, but have not been run on those systems. There is no signed release yet.
 
-On macOS, Cmd+Shift+A takes a screenshot. A magnifier follows the pointer while you drag; after you release, Copy, Save and Cancel sit on the selection. Enter copies, Cmd+S saves a PNG under ~/Pictures/oh-my-toys, Esc cancels. The folder is in Settings. The same command is in the Tools menu.
+On macOS, Cmd+Shift+A takes a screenshot. A magnifier follows the pointer while you drag; after you release, Copy, Save and Cancel sit on the selection. Enter copies, Cmd+S saves a PNG under ~/Pictures/oh-my-toys, Esc cancels. Screenshot is one of the tools: open its page to start a capture or change the folder. The same command is in the Tools menu.
 
 ## Planned tools
 
@@ -26,7 +26,7 @@ The app and its documentation come in English and Simplified Chinese.
 
 ## For scripts and AI agents
 
-Every tool is also available from the command line (`omt`, with `--json` output) and as an MCP server (`omt mcp`) for AI agents. `omt mcp` exposes read actions and switch tools. Actions that change files or end processes are not exposed yet. See [docs/agents.md](docs/agents.md).
+Every tool that works without a screen is also available from the command line (`omt`, with `--json` output) and as an MCP server (`omt mcp`) for AI agents. `omt mcp` exposes read actions and switch tools. Actions that change files or end processes are not exposed yet. Screenshot stays in the desktop app, which needs the screen and the person in front of it. See [docs/agents.md](docs/agents.md).
 
 ## Contributing
 

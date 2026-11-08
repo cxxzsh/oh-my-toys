@@ -50,59 +50,10 @@ func (a *App) settingsPage(c *ui.Context) {
 			},
 		},
 	})
-	a.screenshotSection(c)
 	a.aboutSection(c)
 	if a.opt.Dev {
 		a.section(c, i18n.Measurements(), func() { a.measurements(c) })
 	}
-}
-
-// screenshotSection is where screenshots are saved. Hidden when the
-// tool is off.
-func (a *App) screenshotSection(c *ui.Context) {
-	if a.opt.Snapshots == nil {
-		return
-	}
-	a.section(c, i18n.SnapMenu(), func() { a.screenshotSaveRow(c) })
-}
-
-func (a *App) screenshotSaveRow(c *ui.Context) {
-	p := ds.P(c)
-	ui.Row(c).FillWidth().Gap(ds.Space12).AlignItems(ui.Center).Children(func() {
-		ui.Column(c).Grow(1).Shrink(1).MinWidth(0).Children(func() {
-			comp.Text(c, i18n.SnapSaveTo(), ds.Body, p.TextPrimary)
-			comp.Text(c, snapPathLabel(a.snapDir(), homeDir()), ds.Caption, p.TextInactive).SingleLine().Ellipsis("…")
-		})
-		if a.settings.ScreenshotDir != "" {
-			if a.kit.Button(c.Key("snap-dir-default"), i18n.SnapSaveDefault(), comp.ButtonOpts{Kind: comp.Ghost, Small: true}).Clicked() {
-				a.setScreenshotDir("")
-			}
-		}
-		if a.kit.Button(c.Key("snap-dir-change"), i18n.SnapSaveChange(), comp.ButtonOpts{Kind: comp.Secondary, Small: true}).Clicked() {
-			a.pickScreenshotDir()
-		}
-	})
-}
-
-func (a *App) pickScreenshotDir() {
-	paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{
-		Parent:            a.main,
-		Title:             i18n.SnapSaveTo(),
-		DefaultPath:       a.snapDir(),
-		Directory:         true,
-		CreateDirectories: true,
-		ButtonLabel:       i18n.SnapSaveChange(),
-	})
-	if err != nil || len(paths) == 0 {
-		return
-	}
-	a.setScreenshotDir(paths[0])
-}
-
-func (a *App) setScreenshotDir(dir string) {
-	a.settings.ScreenshotDir = dir
-	a.save()
-	a.redraw()
 }
 
 // resetSidebar puts the sidebar back to the first-launch order, pins and
