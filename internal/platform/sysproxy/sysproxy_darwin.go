@@ -231,20 +231,29 @@ func restoreSteps(svc Service) [][]string {
 }
 
 // restoreProxySteps writes the old endpoint before the old state, because a
-// set command also turns the proxy on.
+// set command also turns the proxy on. An empty endpoint is written too, as
+// "" and 0: leaving it out would keep our own endpoint in the service's
+// disabled slot, where it shows in System Settings and comes back when a
+// person ticks the box. networksetup accepts that form and returns the
+// service to Server empty, Port 0.
 func restoreProxySteps(setCmd, stateCmd, name string, p Proxy) [][]string {
-	var steps [][]string
-	if p.Host != "" && p.Port > 0 {
-		steps = append(steps, []string{setCmd, name, p.Host, strconv.Itoa(p.Port)})
+	host, port := p.Host, p.Port
+	if host == "" || port <= 0 {
+		host, port = "", 0
 	}
-	return append(steps, []string{stateCmd, name, stateWord(p.Enabled)})
+	return [][]string{
+		{setCmd, name, host, strconv.Itoa(port)},
+		{stateCmd, name, stateWord(p.Enabled)},
+	}
 }
 
-// restoreAutoSteps puts the PAC URL and its state back. A service without a
-// URL has nothing to enable, so there is nothing to restore.
+// restoreAutoSteps puts the PAC URL and its state back. An empty URL cannot
+// be written, because networksetup rejects the empty string, and needs no
+// writing: only the state can have moved while we ran, so it goes back to
+// off and no PAC URL of ours is left behind.
 func restoreAutoSteps(name string, a AutoProxy) [][]string {
 	if a.URL == "" {
-		return nil
+		return [][]string{{setAutoState, name, stateOff}}
 	}
 	return [][]string{
 		{setAutoURL, name, a.URL},

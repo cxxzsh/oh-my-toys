@@ -268,12 +268,8 @@ func TestRestoreServicesWithoutConfiguredProxy(t *testing.T) {
 	if err := restoreServices(fake.run, Snapshot{Services: []Service{{Name: "Wi-Fi"}}}); err != nil {
 		t.Fatalf("restoreServices: %v", err)
 	}
-	wantCalls := []string{
-		"-setwebproxystate Wi-Fi off",
-		"-setsecurewebproxystate Wi-Fi off",
-	}
-	if !reflect.DeepEqual(fake.calls, wantCalls) {
-		t.Fatalf("restoreServices ran %v, want %v", fake.calls, wantCalls)
+	if want := emptyRestoreCalls("Wi-Fi"); !reflect.DeepEqual(fake.calls, want) {
+		t.Fatalf("restoreServices ran %v, want %v", fake.calls, want)
 	}
 }
 
@@ -300,14 +296,7 @@ func TestEnableServicesRollsBack(t *testing.T) {
 	if len(snap.Services) != 2 {
 		t.Fatalf("enableServices returned %+v on failure, want the snapshot", snap)
 	}
-	wantTail := []string{
-		"-setwebproxystate Ethernet off",
-		"-setsecurewebproxystate Ethernet off",
-		"-setwebproxy Wi-Fi proxy.old 3128",
-		"-setwebproxystate Wi-Fi on",
-		"-setsecurewebproxy Wi-Fi proxy.old 3128",
-		"-setsecurewebproxystate Wi-Fi on",
-	}
+	wantTail := append(emptyRestoreCalls("Ethernet"), endpointRestoreCalls("Wi-Fi")...)
 	if len(fake.calls) < len(wantTail) {
 		t.Fatalf("enableServices ran %v, want a rollback after the failure", fake.calls)
 	}
@@ -427,17 +416,8 @@ func TestRestoreServicesSkipsGoneService(t *testing.T) {
 	if err := restoreServices(fake.run, snap); err != nil {
 		t.Fatalf("restoreServices failed because one service is gone: %v", err)
 	}
-	wantCalls := []string{
-		"-setwebproxy Ethernet proxy.old 3128",
-		"-setwebproxystate Ethernet on",
-		"-setsecurewebproxy Ethernet proxy.old 3128",
-		"-setsecurewebproxystate Ethernet on",
-		"-setwebproxy USB LAN proxy.old 3128",
-		"-setwebproxy Wi-Fi proxy.old 3128",
-		"-setwebproxystate Wi-Fi on",
-		"-setsecurewebproxy Wi-Fi proxy.old 3128",
-		"-setsecurewebproxystate Wi-Fi on",
-	}
+	wantCalls := append(endpointRestoreCalls("Ethernet"), "-setwebproxy USB LAN proxy.old 3128")
+	wantCalls = append(wantCalls, endpointRestoreCalls("Wi-Fi")...)
 	if !reflect.DeepEqual(fake.calls, wantCalls) {
 		t.Fatalf("restoreServices ran:\n%v\nwant:\n%v", fake.calls, wantCalls)
 	}
@@ -459,6 +439,7 @@ func TestRestorePointingOnlyRestoresWhatPointsHere(t *testing.T) {
 		"-setwebproxystate Ethernet on",
 		"-setsecurewebproxy Ethernet proxy.old 3128",
 		"-setsecurewebproxystate Ethernet on",
+		"-setautoproxystate Ethernet off",
 		"-getwebproxy Wi-Fi", "-getsecurewebproxy Wi-Fi", "-getautoproxyurl Wi-Fi",
 	}
 	if !reflect.DeepEqual(fake.calls, wantCalls) {
@@ -480,12 +461,7 @@ func TestRestorePointingKeepsGoingAfterFailure(t *testing.T) {
 	if !errors.Is(err, failure) {
 		t.Fatalf("restorePointingServices error = %v, want it to wrap %v", err, failure)
 	}
-	wantTail := []string{
-		"-setwebproxy Wi-Fi proxy.old 3128",
-		"-setwebproxystate Wi-Fi on",
-		"-setsecurewebproxy Wi-Fi proxy.old 3128",
-		"-setsecurewebproxystate Wi-Fi on",
-	}
+	wantTail := endpointRestoreCalls("Wi-Fi")
 	if len(fake.calls) < len(wantTail) {
 		t.Fatalf("restorePointingServices ran %v, want the second service restored", fake.calls)
 	}
@@ -506,9 +482,9 @@ func TestRestorePointingSkipsGoneService(t *testing.T) {
 	if err := restorePointingServices(fake.run, snap, "127.0.0.1:8080"); err != nil {
 		t.Fatalf("restorePointingServices failed because one service is gone: %v", err)
 	}
-	last := fake.calls[len(fake.calls)-1]
-	if last != "-setsecurewebproxystate Wi-Fi on" {
-		t.Fatalf("restorePointingServices stopped at %q, want the last service restored", last)
+	tail := fake.calls[len(fake.calls)-len(endpointRestoreCalls("Wi-Fi")):]
+	if !reflect.DeepEqual(tail, endpointRestoreCalls("Wi-Fi")) {
+		t.Fatalf("restorePointingServices ran %v, want the last service restored", tail)
 	}
 }
 
@@ -585,5 +561,73 @@ func TestRestorePointingLeavesServiceWhenNoPartPoints(t *testing.T) {
 		if strings.HasPrefix(call, "-set") {
 			t.Fatalf("restorePointingServices changed a service the person owns: %v", fake.calls)
 		}
+	}
+}
+
+// call is the key the fake records for one networksetup call, which keeps
+// the expected sequences readable when an argument is empty.
+func call(parts ...string) string { return strings.Join(parts, " ") }
+
+// emptyRestoreCalls is what Restore must run for a service whose saved
+// proxies and PAC URL were all empty, so no endpoint of ours is left in the
+// disabled slot.
+func emptyRestoreCalls(name string) []string {
+	return []string{
+		call("-setwebproxy", name, "", "0"),
+		call("-setwebproxystate", name, "off"),
+		call("-setsecurewebproxy", name, "", "0"),
+		call("-setsecurewebproxystate", name, "off"),
+		call("-setautoproxystate", name, "off"),
+	}
+}
+
+// endpointRestoreCalls is what Restore runs for a service with saved
+// proxies but no PAC URL.
+func endpointRestoreCalls(name string) []string {
+	return []string{
+		call("-setwebproxy", name, "proxy.old", "3128"),
+		call("-setwebproxystate", name, "on"),
+		call("-setsecurewebproxy", name, "proxy.old", "3128"),
+		call("-setsecurewebproxystate", name, "on"),
+		call("-setautoproxystate", name, "off"),
+	}
+}
+
+func TestRestoreServicesWritesEmptyEndpoint(t *testing.T) {
+	t.Parallel()
+	fake := newFake(nil)
+	if err := restoreServices(fake.run, Snapshot{Services: []Service{{Name: "Wi-Fi"}}}); err != nil {
+		t.Fatalf("restoreServices: %v", err)
+	}
+	if want := emptyRestoreCalls("Wi-Fi"); !reflect.DeepEqual(fake.calls, want) {
+		t.Fatalf("restoreServices ran:\n%v\nwant the empty endpoint written back:\n%v", fake.calls, want)
+	}
+}
+
+func TestRestoreServicesMixedEndpoints(t *testing.T) {
+	t.Parallel()
+	fake := newFake(nil)
+	snap := Snapshot{Services: []Service{savedService("Ethernet"), {Name: "Wi-Fi"}}}
+	if err := restoreServices(fake.run, snap); err != nil {
+		t.Fatalf("restoreServices: %v", err)
+	}
+	want := append(restoreCalls("Ethernet"), emptyRestoreCalls("Wi-Fi")...)
+	if !reflect.DeepEqual(fake.calls, want) {
+		t.Fatalf("restoreServices ran:\n%v\nwant:\n%v", fake.calls, want)
+	}
+}
+
+func TestRestorePointingWritesEmptyEndpoint(t *testing.T) {
+	t.Parallel()
+	fake := newFake(nil)
+	serviceOutputsSplit(fake, "Wi-Fi", Proxy{Enabled: true, Host: "127.0.0.1", Port: 8080}, Proxy{})
+	if err := restorePointingServices(fake.run, Snapshot{Services: []Service{{Name: "Wi-Fi"}}}, "127.0.0.1:8080"); err != nil {
+		t.Fatalf("restorePointingServices: %v", err)
+	}
+	want := append([]string{
+		"-getwebproxy Wi-Fi", "-getsecurewebproxy Wi-Fi", "-getautoproxyurl Wi-Fi",
+	}, emptyRestoreCalls("Wi-Fi")...)
+	if !reflect.DeepEqual(fake.calls, want) {
+		t.Fatalf("restorePointingServices ran:\n%v\nwant:\n%v", fake.calls, want)
 	}
 }
