@@ -32,7 +32,9 @@ const (
 	ClockFieldWidth  = 128 // a time of day
 	SpanFieldWidth   = 84  // a time in a span of a plan
 	DayToggleWidth   = 36  // a day of the week in a span
-	PlanRowsShown    = 4   // spans a plan shows before its list scrolls
+	WeekLabelWidth   = 30  // a day's name beside its bar in the week strip
+	WeekBarHeight    = 8   // a day's bar in the week strip
+	NowMarkWidth     = 2   // the mark of the time now on a day's bar
 	StripHeight      = 10  // PaletteStrip
 	SearchGlyph      = 16  // SearchField glyph
 	SelectGlyph      = 16  // Select's unfold glyph

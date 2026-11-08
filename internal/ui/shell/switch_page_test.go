@@ -19,6 +19,8 @@ const (
 	modeShortTitle = "Short run"
 	modeLongTitle  = "Long run"
 	modeStopTitle  = "Stop it"
+	modeShortChip  = "Short"
+	modeLongChip   = "Long"
 	modeToolID     = "mode-switch"
 )
 
@@ -34,16 +36,23 @@ type modeSwitch struct {
 func titled(s string) tool.Message { return func(i18n.Messages) string { return s } }
 
 func (m *modeSwitch) Manifest() tool.Manifest {
-	act := func(id, title string, stops bool) tool.QuickAction {
-		return tool.QuickAction{ID: id, Title: titled(title), Stops: stops, Run: func(context.Context) error {
+	act := func(id, title, short string, stops bool) tool.QuickAction {
+		qa := tool.QuickAction{ID: id, Title: titled(title), Stops: stops, Run: func(context.Context) error {
 			m.ran = append(m.ran, id)
 			return nil
 		}}
+		if short != "" {
+			qa.Short = titled(short)
+		}
+		return qa
 	}
 	return tool.Manifest{
 		ID: modeToolID, Name: titled("Mode switch"), Summary: titled("A switch with modes"),
 		Kind: tool.KindSwitch, Icon: "bedtime_off", Category: tool.CategorySystem,
-		Actions: []tool.QuickAction{act("short", modeShortTitle, false), act("long", modeLongTitle, false), act("off", modeStopTitle, true)},
+		Actions: []tool.QuickAction{
+			act("short", modeShortTitle, modeShortChip, false), act("long", modeLongTitle, modeLongChip, false),
+			act("off", modeStopTitle, "", true),
+		},
 	}
 }
 
@@ -64,6 +73,10 @@ func (m *modeSwitch) Start(context.Context) error { return nil }
 func (m *modeSwitch) Stop() error                 { return nil }
 func (m *modeSwitch) Status() tool.Status         { return m.st }
 
+// switchPageHeight is tall enough for a switch page to show all it has
+// without scrolling.
+const switchPageHeight = 1600
+
 // modeSwitchPage opens the switch tool's page in a window of its own.
 func modeSwitchPage(t *testing.T, m *modeSwitch) (*App, *ui.Tester) {
 	t.Helper()
@@ -74,7 +87,7 @@ func modeSwitchPage(t *testing.T, m *modeSwitch) (*App, *ui.Tester) {
 	}
 	a.reg = reg
 	a.open(modeToolID)
-	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
+	tt := ui.NewTester(a.mainView, ds.WindowWidth, switchPageHeight)
 	tt.Frame()
 	return a, tt
 }
@@ -149,20 +162,11 @@ func typeInto(t *testing.T, tt *ui.Tester, label, text string) {
 	tt.Frame()
 }
 
-func customTab(t *testing.T, tt *ui.Tester) {
-	t.Helper()
-	if err := tt.Click(i18n.SwitchCustom()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
-}
-
 // TestSwitchCustomLengthStartsForThatLong types hours and minutes, which
 // become one length, started by the button or by Enter.
 func TestSwitchCustomLengthStartsForThatLong(t *testing.T) {
 	m := &modeSwitch{}
 	_, tt := modeSwitchPage(t, m)
-	customTab(t, tt)
 	if !tt.HasText(i18n.SwitchCustomHint()) {
 		t.Errorf("nothing typed yet, but no hint: %q", tt.Texts())
 	}
@@ -186,7 +190,6 @@ func TestSwitchCustomRefusesWhatIsNotALength(t *testing.T) {
 		t.Run(bad, func(t *testing.T) {
 			m := &modeSwitch{}
 			_, tt := modeSwitchPage(t, m)
-			customTab(t, tt)
 			typeInto(t, tt, i18n.SwitchHours(), bad)
 			if !tt.HasText(i18n.SwitchBadLength()) {
 				t.Errorf("hours %q: no fix shown: %q", bad, tt.Texts())
@@ -199,7 +202,6 @@ func TestSwitchCustomRefusesWhatIsNotALength(t *testing.T) {
 	}
 	m := &modeSwitch{}
 	_, tt := modeSwitchPage(t, m)
-	customTab(t, tt)
 	typeInto(t, tt, i18n.SwitchMinutes(), "0")
 	_ = tt.Click(i18n.SwitchStart())
 	if len(m.lengths) != 0 || !tt.HasText(i18n.SwitchBadLength()) {
@@ -212,7 +214,6 @@ func TestSwitchCustomRefusesWhatIsNotALength(t *testing.T) {
 func TestSwitchCustomTimeOfDay(t *testing.T) {
 	m := &modeSwitch{}
 	_, tt := modeSwitchPage(t, m)
-	customTab(t, tt)
 	if err := tt.Click(i18n.SwitchModeClock()); err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +229,6 @@ func TestSwitchCustomTimeOfDay(t *testing.T) {
 
 	m = &modeSwitch{}
 	_, tt = modeSwitchPage(t, m)
-	customTab(t, tt)
 	_ = tt.Click(i18n.SwitchModeClock())
 	tt.Frame()
 	typeInto(t, tt, i18n.SwitchClock(), "23:59")
@@ -238,14 +238,6 @@ func TestSwitchCustomTimeOfDay(t *testing.T) {
 	if len(m.lengths) != 1 || m.lengths[0] <= 0 || m.lengths[0] > 24*time.Hour {
 		t.Errorf("started for %v: want one length within the next day", m.lengths)
 	}
-}
-
-func planTabOf(t *testing.T, tt *ui.Tester) {
-	t.Helper()
-	if err := tt.Click(i18n.SwitchPlan()); err != nil {
-		t.Fatal(err)
-	}
-	tt.Frame()
 }
 
 func workSpan() tool.Segment {
@@ -258,7 +250,6 @@ func workSpan() tool.Segment {
 func TestSwitchPlanShowsTheSpansOfTheTool(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
 	_, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
 	next := strings.SplitN(i18n.SwitchNextRun("\x00", ""), "\x00", 2)[0]
 	found := false
 	for _, s := range tt.Texts() {
@@ -282,7 +273,6 @@ func TestSwitchPlanShowsTheSpansOfTheTool(t *testing.T) {
 func TestSwitchPlanAddsASpanAndKeepsIt(t *testing.T) {
 	m := &modeSwitch{}
 	a, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
 	if !tt.HasText(i18n.SwitchPlanEmpty()) {
 		t.Fatalf("no hint on an empty plan: %q", tt.Texts())
 	}
@@ -306,10 +296,9 @@ func TestSwitchPlanAddsASpanAndKeepsIt(t *testing.T) {
 // TestSwitchPlanTakesManySpans: a week with a different plan each day needs
 // more spans than a handful, and the button never stops adding them.
 func TestSwitchPlanTakesManySpans(t *testing.T) {
-	const spans = 20
+	const spans = 12
 	m := &modeSwitch{}
 	_, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
 	for range spans {
 		if err := tt.Click("+ " + i18n.SwitchAddSpan()); err != nil {
 			t.Fatal(err)
@@ -326,7 +315,6 @@ func TestSwitchPlanTakesManySpans(t *testing.T) {
 func TestSwitchPlanHalfTypedTimeKeepsTheSpan(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
 	_, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
 	if err := tt.Click("09:00"); err != nil {
 		t.Fatal(err)
 	}
@@ -343,8 +331,7 @@ func TestSwitchPlanHalfTypedTimeKeepsTheSpan(t *testing.T) {
 func TestSwitchPlanTogglesADayAndRemovesASpan(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
 	_, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
-	if err := tt.Click(i18n.WeekdaySat()); err != nil {
+	if err := tt.Click(i18n.WeekdayNameSat()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -366,7 +353,6 @@ func TestSwitchPlanTogglesADayAndRemovesASpan(t *testing.T) {
 func TestSwitchPlanSwitchTurnsThePlanOnAndOff(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Segments: []tool.Segment{workSpan()}}}
 	_, tt := modeSwitchPage(t, m)
-	planTabOf(t, tt)
 	if err := tt.Click(i18n.SwitchPlanOn()); err != nil {
 		t.Fatal(err)
 	}

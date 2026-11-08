@@ -25,29 +25,34 @@ func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 			a.setSwitch(t, on)
 		}
 	}
-	ui.Column(c).Grow(1).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(func() {
-		comp.PageHeader(c, comp.Header{
-			Title: m.Name(msgs()), Badge: st.Text, Description: m.Summary(msgs()), Meta: toggle,
+	ui.Column(c).Grow(1).FillWidth().Children(func() {
+		ui.Scroll(c).Grow(1).FillWidth().Children(func() {
+			ui.Column(c).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(func() {
+				comp.PageHeader(c, comp.Header{
+					Title: m.Name(msgs()), Badge: st.Text, Description: m.Summary(msgs()), Meta: toggle,
+				})
+				a.switchHero(c, t, st)
+				a.switchModes(c, t, st)
+			})
 		})
-		a.switchHero(c, st)
-		a.switchModes(c, t, st)
-		ui.Spacer(c)
-		a.kit.StatusBar(c, comp.StatusBarOpts{
-			Title:  i18n.LiveTelemetry(),
-			Counts: []comp.StatusCount{{Text: st.Text, Live: st.On}},
-			Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
+		ui.Column(c).FillWidth().Padding(0, ds.Space16, ds.Space16).Children(func() {
+			a.kit.StatusBar(c, comp.StatusBarOpts{
+				Title:  i18n.LiveTelemetry(),
+				Counts: []comp.StatusCount{{Text: st.Text, Live: st.On}},
+				Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
+			})
 		})
 	})
 }
 
 // switchHero is the state at a glance: the dot, the countdown and what is
 // left of it on the left, and when it started and ends on the right.
-func (a *App) switchHero(c *ui.Context, st tool.Status) {
+func (a *App) switchHero(c *ui.Context, t tool.Switch, st tool.Status) {
 	comp.Card(c).FillWidth().Padding(ds.Space20).Children(func() {
 		ui.Row(c).FillWidth().Gap(ds.Space20).AlignItems(ui.Stretch).Wrap().Children(func() {
 			a.heroCountdown(c, st)
 			if st.On {
-				a.heroFacts(c, st)
+				a.heroFacts(c, t, st)
 			}
 		})
 	})
@@ -109,7 +114,7 @@ func countdownCaption(st tool.Status) string {
 }
 
 // heroFacts are the clock times of the run, in mono.
-func (a *App) heroFacts(c *ui.Context, st tool.Status) {
+func (a *App) heroFacts(c *ui.Context, t tool.Switch, st tool.Status) {
 	p := ds.P(c)
 	ends := i18n.SwitchUntilOff()
 	if !st.Until.IsZero() {
@@ -120,62 +125,26 @@ func (a *App) heroFacts(c *ui.Context, st tool.Status) {
 		a.valueRow(c, i18n.SwitchStarted(), st.Since.Format(time.TimeOnly))
 		a.valueRow(c, i18n.SwitchEnds(), ends)
 		a.valueRow(c, i18n.SwitchRunning(), tool.Clock(time.Since(st.Since).Round(time.Second)))
+		a.heroActions(c, t, st)
 	})
 }
 
-// modeTab is a tab of the modes panel: which view it shows and its name.
-type modeTab struct {
-	kind int
-	name string
-}
+// extendBy is how much time the extend button adds to a run.
+const extendBy = 30 * time.Minute
 
-// modeTabs are the ways to start a tool: its presets, and a custom length
-// and a plan when it can do them.
-func modeTabs(t tool.Switch) []modeTab {
-	tabs := []modeTab{{tabPresets, i18n.SwitchPresets()}}
-	if _, ok := t.(tool.Timed); ok {
-		tabs = append(tabs, modeTab{tabCustom, i18n.SwitchCustom()})
-	}
-	if _, ok := t.(tool.Scheduled); ok {
-		tabs = append(tabs, modeTab{tabPlan, i18n.SwitchPlan()})
-	}
-	return tabs
-}
-
-// switchModes is how to start the tool, on tabs when it has more than the
-// presets. The quick action that turns it off is at the end of the head.
+// switchModes is how to start the tool: its presets and, when it can, a
+// length of the person's own; then the plan, when it has one.
 func (a *App) switchModes(c *ui.Context, t tool.Switch, st tool.Status) {
 	f := a.switchForm(t.Manifest().ID)
-	tabs := modeTabs(t)
-	f.tab = min(f.tab, len(tabs)-1)
-	opts := comp.PanelOpts{Title: i18n.SwitchModes(), Glyph: "tune"}
-	if st.On {
-		opts.Actions = func() { a.stopButton(c, t) }
-	}
-	a.kit.Panel(c, opts, func() {
-		if len(tabs) > 1 {
-			names := make([]string, len(tabs))
-			for i, tab := range tabs {
-				names[i] = tab.name
-			}
-			ui.Row(c).AlignItems(ui.Center).Children(func() {
-				comp.Segmented(c.Key("modes-tab"), &f.tab, names, i18n.SwitchModes())
-			})
+	a.kit.Panel(c, comp.PanelOpts{Title: i18n.SwitchModes(), Glyph: "tune"}, func() {
+		a.presetTiles(c, t, st)
+		if timed, ok := t.(tool.Timed); ok {
+			a.customForm(c, timed, f)
 		}
-		a.modeBody(c, t, st, f, tabs[f.tab].kind)
 	})
-}
-
-func (a *App) modeBody(c *ui.Context, t tool.Switch, st tool.Status, f *switchForm, kind int) {
-	if timed, ok := t.(tool.Timed); ok && kind == tabCustom {
-		a.customTab(c, timed, f)
-		return
+	if sched, ok := t.(tool.Scheduled); ok {
+		a.planPanel(c, sched, f)
 	}
-	if sched, ok := t.(tool.Scheduled); ok && kind == tabPlan {
-		a.planTab(c, sched, f)
-		return
-	}
-	a.presetTiles(c, t, st)
 }
 
 // presetTiles lists a tool's modes as tiles, the one in effect marked.
@@ -188,7 +157,27 @@ func (a *App) presetTiles(c *ui.Context, t tool.Switch, st tool.Status) {
 			}
 		}
 	})
-	comp.Text(c, i18n.SwitchHint(), ds.Caption, ds.P(c).TextInactive)
+}
+
+// heroActions are what a person can do to a run in progress: give it more
+// time, when it ends by itself, or end it.
+func (a *App) heroActions(c *ui.Context, t tool.Switch, st tool.Status) {
+	ui.Row(c).Gap(ds.Space8).Padding(ds.Space8, 0, 0).Children(func() {
+		if timed, ok := t.(tool.Timed); ok && !st.Until.IsZero() {
+			label := i18n.SwitchExtend(int(extendBy / time.Minute))
+			if a.kit.Button(c.Key("extend"), label, comp.ButtonOpts{Kind: comp.Secondary, Small: true}).Clicked() {
+				a.extend(timed)
+			}
+		}
+		a.stopButton(c, t)
+	})
+}
+
+// extend gives a timed run extendBy more than it has left.
+func (a *App) extend(t tool.Timed) {
+	if until := t.Status().Until; !until.IsZero() {
+		a.startFor(t, max(time.Until(until), 0)+extendBy)
+	}
 }
 
 func (a *App) stopButton(c *ui.Context, t tool.Switch) {

@@ -73,9 +73,9 @@ func (t *Tool) Manifest() tool.Manifest {
 		Keywords:  []string{"caffeinate", "keep awake", "amphetamine", "sleep", "不睡眠", "咖啡因"},
 		Platforms: []string{"macos", "windows", "linux"},
 		Actions: []tool.QuickAction{
-			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour, true)},
-			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Run: t.runFor(idTwoHours, 2*time.Hour, true)},
-			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Run: t.runFor(idUntilOff, 0, true)},
+			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Short: i18n.Messages.Awake1hShort, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour, true)},
+			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Short: i18n.Messages.Awake2hShort, Run: t.runFor(idTwoHours, 2*time.Hour, true)},
+			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Short: i18n.Messages.AwakeForeverShort, Run: t.runFor(idUntilOff, 0, true)},
 			{ID: idSystemOnly, Title: i18n.Messages.AwakeSystemOnly, Run: t.runFor(idSystemOnly, 0, false)},
 			{ID: idOff, Title: i18n.Messages.AwakeTurnOff, Stops: true, Run: func(context.Context) error { return t.Stop() }},
 		},

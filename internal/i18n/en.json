@@ -651,10 +651,6 @@
       }
     }
   },
-  "switchHint": "In the tray panel, a click on this tool turns it on or off with the last settings.",
-  "@switchHint": {
-    "description": "Hint on a switch tool's page."
-  },
   "theme": "Theme",
   "@theme": {
     "description": "Settings row."
@@ -1157,10 +1153,6 @@
   "@resetSidebarAction": {
     "description": "Button that resets the sidebar order and pins."
   },
-  "switchPresets": "Presets",
-  "@switchPresets": {
-    "description": "Panel title of a switch tool's modes."
-  },
   "switchTimeLeft": "Time left",
   "@switchTimeLeft": {
     "description": "Label above the countdown of a switch tool."
@@ -1211,7 +1203,7 @@
   },
   "switchCustom": "Custom",
   "@switchCustom": {
-    "description": "Tab: a length or time of day typed in."
+    "description": "Heading of the form for a length or time of day typed in."
   },
   "switchModeLength": "Length",
   "@switchModeLength": {
@@ -1268,7 +1260,7 @@
   },
   "switchPlan": "Plan",
   "@switchPlan": {
-    "description": "Tab: a tool that turns itself on and off by the time of day."
+    "description": "Panel title: a tool that turns itself on and off by the time of day."
   },
   "switchPlanOn": "Run by plan",
   "@switchPlanOn": {
@@ -1306,6 +1298,19 @@
       }
     }
   },
+  "switchPlanWeek": "The plan across the week",
+  "@switchPlanWeek": {
+    "description": "Name of the bars that show which times of each day a plan holds."
+  },
+  "switchExtend": "+{minutes} min",
+  "@switchExtend": {
+    "description": "Button that gives a run more time.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "weekdayMon": "Mon",
   "@weekdayMon": {
     "description": "Short name of a day of the week, on a toggle."
@@ -1333,5 +1338,33 @@
   "weekdaySun": "Sun",
   "@weekdaySun": {
     "description": "Short name of a day of the week, on a toggle."
+  },
+  "weekdayNameMon": "Monday",
+  "@weekdayNameMon": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameTue": "Tuesday",
+  "@weekdayNameTue": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameWed": "Wednesday",
+  "@weekdayNameWed": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameThu": "Thursday",
+  "@weekdayNameThu": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameFri": "Friday",
+  "@weekdayNameFri": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameSat": "Saturday",
+  "@weekdayNameSat": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
+  },
+  "weekdayNameSun": "Sunday",
+  "@weekdayNameSun": {
+    "description": "Full name of a day of the week, for what a screen reader says of a toggle."
   }
 }

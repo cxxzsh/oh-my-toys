@@ -14,13 +14,6 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// The tabs of the modes panel of a switch tool.
-const (
-	tabPresets = iota
-	tabCustom
-	tabPlan
-)
-
 // The ways to say how long a custom run lasts.
 const (
 	holdLength = iota // hours and minutes
@@ -32,9 +25,8 @@ const (
 const notALength = "?"
 
 // switchForm is what a person has typed into a switch tool's page. It
-// lives as long as the app, so a tool's page keeps its tab and its fields.
+// lives as long as the app, so a tool's page keeps its fields.
 type switchForm struct {
-	tab     int // which of the tabs the tool has, in order
 	mode    int // holdLength or holdClock
 	hours   string
 	minutes string
@@ -43,7 +35,6 @@ type switchForm struct {
 	rows   []planRow // the spans of the plan, as typed
 	loaded bool      // rows were read from the tool
 	drop   int       // the row a click asked to remove, from 1
-	list   ui.ListState
 }
 
 func (a *App) switchForm(id string) *switchForm {
@@ -116,11 +107,12 @@ func (f *switchForm) errorText(err error) string {
 	return err.Error()
 }
 
-// customTab is the form of a custom run: a length or a time of day, what
+// customForm is the form of a custom run: a length or a time of day, what
 // it comes to, and the button that starts it.
-func (a *App) customTab(c *ui.Context, t tool.Timed, f *switchForm) {
+func (a *App) customForm(c *ui.Context, t tool.Timed, f *switchForm) {
 	h := f.ask(time.Now())
 	modes := []string{i18n.SwitchModeLength(), i18n.SwitchModeClock()}
+	comp.Text(c, i18n.SwitchCustom(), ds.Label, ds.P(c).TextSecondary).Padding(ds.Space4, 0, 0)
 	ui.Row(c).AlignItems(ui.Center).Children(func() { comp.Segmented(c.Key("custom-mode"), &f.mode, modes, i18n.SwitchCustom()) })
 	submitted := false
 	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.End).Children(func() {

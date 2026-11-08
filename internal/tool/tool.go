@@ -53,8 +53,9 @@ func Categories() []Category {
 type QuickAction struct {
 	ID       string
 	Title    Message
-	Shortcut string // an accelerator to show, such as "Alt+1"
-	Stops    bool   // turns the tool off, rather than starting a mode
+	Short    Message // a name that fits a chip, such as "1 hour"; nil when the action is none
+	Shortcut string  // an accelerator to show, such as "Alt+1"
+	Stops    bool    // turns the tool off, rather than starting a mode
 	Run      func(ctx context.Context) error
 }
 

@@ -1,6 +1,7 @@
 package tool
 
 import (
+	"slices"
 	"testing"
 	"time"
 )
@@ -145,5 +146,25 @@ func TestWeekdaysWith(t *testing.T) {
 	}
 	if w = w.With(time.Monday, false); w.Has(time.Monday) {
 		t.Fatalf("Monday not taken out: %b", w)
+	}
+}
+
+func TestScheduleCoverage(t *testing.T) {
+	night := Segment{Days: Weekdays(0).With(time.Friday, true), From: clk(22, 0), To: clk(6, 0)}
+	work := Segment{Days: Workdays, From: clk(9, 0), To: clk(18, 0)}
+	lunch := Segment{Days: Workdays, From: clk(12, 0), To: clk(19, 0)}
+	s := Schedule{Segments: []Segment{night, work, lunch, {Days: 0, From: 1, To: 2}}}
+	for _, c := range []struct {
+		day  time.Weekday
+		want []Range
+	}{
+		{time.Wednesday, []Range{{clk(9, 0), clk(19, 0)}}},
+		{time.Friday, []Range{{clk(9, 0), clk(19, 0)}, {clk(22, 0), MinutesPerDay}}},
+		{time.Saturday, []Range{{0, clk(6, 0)}}},
+		{time.Sunday, nil},
+	} {
+		if got := s.Coverage(c.day); !slices.Equal(got, c.want) {
+			t.Errorf("%v: %v, want %v", c.day, got, c.want)
+		}
 	}
 }

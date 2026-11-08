@@ -1750,20 +1750,6 @@ func (msgs Messages) StopTool(name string) string {
 	return Catalog.Format(msgs.locale, "stopTool", map[string]any{"name": name})
 }
 
-// SwitchHint says "In the tray panel, a click on this tool turns it on or off with the last settings."
-// in the language the app shows.
-//
-// Hint on a switch tool's page.
-func SwitchHint() string { return In(i18n.Locale()).SwitchHint() }
-
-// SwitchHint says "In the tray panel, a click on this tool turns it on or off with the last settings."
-// in the language of msgs.
-//
-// Hint on a switch tool's page.
-func (msgs Messages) SwitchHint() string {
-	return Catalog.Format(msgs.locale, "switchHint", nil)
-}
-
 // Theme says "Theme"
 // in the language the app shows.
 //
@@ -3090,20 +3076,6 @@ func (msgs Messages) ResetSidebarAction() string {
 	return Catalog.Format(msgs.locale, "resetSidebarAction", nil)
 }
 
-// SwitchPresets says "Presets"
-// in the language the app shows.
-//
-// Panel title of a switch tool's modes.
-func SwitchPresets() string { return In(i18n.Locale()).SwitchPresets() }
-
-// SwitchPresets says "Presets"
-// in the language of msgs.
-//
-// Panel title of a switch tool's modes.
-func (msgs Messages) SwitchPresets() string {
-	return Catalog.Format(msgs.locale, "switchPresets", nil)
-}
-
 // SwitchTimeLeft says "Time left"
 // in the language the app shows.
 //
@@ -3275,13 +3247,13 @@ func (msgs Messages) SwitchModes() string {
 // SwitchCustom says "Custom"
 // in the language the app shows.
 //
-// Tab: a length or time of day typed in.
+// Heading of the form for a length or time of day typed in.
 func SwitchCustom() string { return In(i18n.Locale()).SwitchCustom() }
 
 // SwitchCustom says "Custom"
 // in the language of msgs.
 //
-// Tab: a length or time of day typed in.
+// Heading of the form for a length or time of day typed in.
 func (msgs Messages) SwitchCustom() string {
 	return Catalog.Format(msgs.locale, "switchCustom", nil)
 }
@@ -3431,13 +3403,13 @@ func (msgs Messages) AwakeRunningPlan(time_ string) string {
 // SwitchPlan says "Plan"
 // in the language the app shows.
 //
-// Tab: a tool that turns itself on and off by the time of day.
+// Panel title: a tool that turns itself on and off by the time of day.
 func SwitchPlan() string { return In(i18n.Locale()).SwitchPlan() }
 
 // SwitchPlan says "Plan"
 // in the language of msgs.
 //
-// Tab: a tool that turns itself on and off by the time of day.
+// Panel title: a tool that turns itself on and off by the time of day.
 func (msgs Messages) SwitchPlan() string {
 	return Catalog.Format(msgs.locale, "switchPlan", nil)
 }
@@ -3542,6 +3514,34 @@ func (msgs Messages) SwitchNextRun(day string, time_ string) string {
 	return Catalog.Format(msgs.locale, "switchNextRun", map[string]any{"day": day, "time": time_})
 }
 
+// SwitchPlanWeek says "The plan across the week"
+// in the language the app shows.
+//
+// Name of the bars that show which times of each day a plan holds.
+func SwitchPlanWeek() string { return In(i18n.Locale()).SwitchPlanWeek() }
+
+// SwitchPlanWeek says "The plan across the week"
+// in the language of msgs.
+//
+// Name of the bars that show which times of each day a plan holds.
+func (msgs Messages) SwitchPlanWeek() string {
+	return Catalog.Format(msgs.locale, "switchPlanWeek", nil)
+}
+
+// SwitchExtend says "+{minutes} min"
+// in the language the app shows.
+//
+// Button that gives a run more time.
+func SwitchExtend(minutes int) string { return In(i18n.Locale()).SwitchExtend(minutes) }
+
+// SwitchExtend says "+{minutes} min"
+// in the language of msgs.
+//
+// Button that gives a run more time.
+func (msgs Messages) SwitchExtend(minutes int) string {
+	return Catalog.Format(msgs.locale, "switchExtend", map[string]any{"minutes": minutes})
+}
+
 // WeekdayMon says "Mon"
 // in the language the app shows.
 //
@@ -3638,4 +3638,116 @@ func WeekdaySun() string { return In(i18n.Locale()).WeekdaySun() }
 // Short name of a day of the week, on a toggle.
 func (msgs Messages) WeekdaySun() string {
 	return Catalog.Format(msgs.locale, "weekdaySun", nil)
+}
+
+// WeekdayNameMon says "Monday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameMon() string { return In(i18n.Locale()).WeekdayNameMon() }
+
+// WeekdayNameMon says "Monday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameMon() string {
+	return Catalog.Format(msgs.locale, "weekdayNameMon", nil)
+}
+
+// WeekdayNameTue says "Tuesday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameTue() string { return In(i18n.Locale()).WeekdayNameTue() }
+
+// WeekdayNameTue says "Tuesday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameTue() string {
+	return Catalog.Format(msgs.locale, "weekdayNameTue", nil)
+}
+
+// WeekdayNameWed says "Wednesday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameWed() string { return In(i18n.Locale()).WeekdayNameWed() }
+
+// WeekdayNameWed says "Wednesday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameWed() string {
+	return Catalog.Format(msgs.locale, "weekdayNameWed", nil)
+}
+
+// WeekdayNameThu says "Thursday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameThu() string { return In(i18n.Locale()).WeekdayNameThu() }
+
+// WeekdayNameThu says "Thursday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameThu() string {
+	return Catalog.Format(msgs.locale, "weekdayNameThu", nil)
+}
+
+// WeekdayNameFri says "Friday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameFri() string { return In(i18n.Locale()).WeekdayNameFri() }
+
+// WeekdayNameFri says "Friday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameFri() string {
+	return Catalog.Format(msgs.locale, "weekdayNameFri", nil)
+}
+
+// WeekdayNameSat says "Saturday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameSat() string { return In(i18n.Locale()).WeekdayNameSat() }
+
+// WeekdayNameSat says "Saturday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameSat() string {
+	return Catalog.Format(msgs.locale, "weekdayNameSat", nil)
+}
+
+// WeekdayNameSun says "Sunday"
+// in the language the app shows.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func WeekdayNameSun() string { return In(i18n.Locale()).WeekdayNameSun() }
+
+// WeekdayNameSun says "Sunday"
+// in the language of msgs.
+//
+// Full name of a day of the week, for what a screen reader says of a
+// toggle.
+func (msgs Messages) WeekdayNameSun() string {
+	return Catalog.Format(msgs.locale, "weekdayNameSun", nil)
 }

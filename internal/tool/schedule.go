@@ -28,8 +28,12 @@ func (w Weekdays) With(d time.Weekday, on bool) Weekdays {
 	return w &^ (1 << d)
 }
 
-// MinutesPerDay is the length of a day on the clock.
-const MinutesPerDay = 24 * 60
+// MinutesPerDay and DaysPerWeek are the lengths of a day on the clock and of
+// a week.
+const (
+	MinutesPerDay = 24 * 60
+	DaysPerWeek   = 7
+)
 
 // Segment is a span of the day, on some days of the week. From and To are
 // minutes after midnight. A segment whose To is not after its From runs past
@@ -87,6 +91,48 @@ func (s Schedule) Clean() Schedule {
 	}
 	s.Segments = kept
 	return s
+}
+
+// Range is a stretch of one day, in minutes after midnight.
+type Range struct{ From, To int }
+
+// Coverage is what the plan holds of the day d, as ranges from the start of
+// the day, in order, with those that overlap or touch made one. A segment
+// that runs past midnight covers the rest of its own day and the start of
+// the next. It does not depend on whether the plan is on.
+func (s Schedule) Coverage(d time.Weekday) []Range {
+	var ranges []Range
+	yesterday := (d + DaysPerWeek - 1) % DaysPerWeek
+	for _, seg := range s.Segments {
+		if !seg.Valid() {
+			continue
+		}
+		wraps := seg.To <= seg.From
+		if seg.Days.Has(d) {
+			end := seg.To
+			if wraps {
+				end = MinutesPerDay
+			}
+			ranges = append(ranges, Range{seg.From, end})
+		}
+		if wraps && seg.Days.Has(yesterday) {
+			ranges = append(ranges, Range{0, seg.To})
+		}
+	}
+	return mergeRanges(ranges)
+}
+
+func mergeRanges(ranges []Range) []Range {
+	slices.SortFunc(ranges, func(a, b Range) int { return a.From - b.From })
+	var out []Range
+	for _, r := range ranges {
+		if n := len(out); n > 0 && r.From <= out[n-1].To {
+			out[n-1].To = max(out[n-1].To, r.To)
+			continue
+		}
+		out = append(out, r)
+	}
+	return out
 }
 
 // span is one run of a segment on one day.

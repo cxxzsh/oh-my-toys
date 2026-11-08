@@ -1,6 +1,9 @@
 package shell
 
 import (
+	"slices"
+	"time"
+
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
@@ -142,13 +145,19 @@ func (a *App) trayRow(c *ui.Context, i int, it trayItem) {
 	}
 }
 
+// traySwitchRow is a switch tool in the tray: the row with its switch, and
+// under it how it is running and how to start it another way.
 func (a *App) traySwitchRow(c *ui.Context, i int, sw tool.Switch, chosen bool) {
 	p := ds.P(c)
 	m, st := sw.Manifest(), sw.Status()
+	if st.On {
+		c.After(tick)
+	}
 	row := ui.ButtonBase(c.Key(i)).Label(m.Name(msgs())).Selected(chosen).Cursor(ui.CursorDefault)
 	if row.Clicked() {
 		a.trayChosen = i
-		a.setSwitch(sw, !st.On)
+		a.hideTray()
+		a.openMain(m.ID)
 	}
 	row.ContextMenu(func(menu *ui.Menu) { a.toolMenu(menu, sw) })
 	row.FillWidth().MinHeight(ds.TrayRow).Padding(ds.Space4, ds.Space8).Gap(ds.Space8).Radius(ds.RadiusSm).
@@ -167,20 +176,92 @@ func (a *App) traySwitchRow(c *ui.Context, i int, sw tool.Switch, chosen bool) {
 			a.setSwitch(sw, on)
 		}
 	})
-	if st.On && len(m.Actions) >= 3 {
-		a.traySwitchPresets(c, sw)
-	}
+	a.traySwitchBody(c, sw, st)
 }
 
-func (a *App) traySwitchPresets(c *ui.Context, sw tool.Switch) {
-	m := sw.Manifest()
-	ui.Row(c).FillWidth().Padding(0, ds.Space8, ds.Space8, ds.TraySubInset).Children(func() {
-		sel := 2
-		opts := []string{i18n.Awake1hShort(), i18n.Awake2hShort(), i18n.AwakeForeverShort()}
-		if comp.Segmented(c.Key("preset:"+m.ID), &sel, opts, m.Name(msgs())).Changed() && sel < len(m.Actions) {
-			a.runAction(sw, &m.Actions[sel])
+// traySwitchBody is under a switch's row: the time left of a run, the ways
+// to start it, and when its plan next turns it on.
+func (a *App) traySwitchBody(c *ui.Context, sw tool.Switch, st tool.Status) {
+	left, total, timed := timeLeft(st)
+	chips := hasChips(sw)
+	next, planned := trayPlanLine(sw, st)
+	if !timed && !chips && !planned {
+		return
+	}
+	ui.Column(c).FillWidth().Gap(ds.Space6).Padding(ds.Space2, ds.Space8, ds.Space8, ds.TraySubInset).Children(func() {
+		if timed {
+			comp.ProgressBar(c, float32(left)/float32(total))
+		}
+		if chips {
+			a.trayChips(c, sw, st)
+		}
+		if planned {
+			comp.Text(c, next, ds.Caption, ds.P(c).TextInactive)
 		}
 	})
+}
+
+// hasChips reports whether a tool has anything to show as a chip.
+func hasChips(sw tool.Switch) bool {
+	if _, ok := sw.(tool.Timed); ok {
+		return true
+	}
+	return slices.ContainsFunc(sw.Manifest().Actions, func(act tool.QuickAction) bool { return act.Short != nil })
+}
+
+// trayChips are the ways to start a tool in one click, the one in effect
+// marked; then a way to the page for a length of the person's own, and a
+// way to give a run that ends by itself more time.
+func (a *App) trayChips(c *ui.Context, sw tool.Switch, st tool.Status) {
+	m := sw.Manifest()
+	ui.Row(c).FillWidth().Gap(ds.Space4).Wrap().Children(func() {
+		for i := range m.Actions {
+			act := &m.Actions[i]
+			if act.Short != nil && a.trayChip(c, act.ID, act.Short(msgs()), st.On && st.Active == act.ID) {
+				a.runAction(sw, act)
+			}
+		}
+		timed, ok := sw.(tool.Timed)
+		if !ok {
+			return
+		}
+		if a.trayChip(c, "custom", i18n.SwitchCustom()+"…", false) {
+			a.hideTray()
+			a.openMain(m.ID)
+		}
+		if !st.Until.IsZero() && a.trayChip(c, "extend", i18n.SwitchExtend(int(extendBy/time.Minute)), false) {
+			a.extend(timed)
+		}
+	})
+}
+
+// trayChip is one way to start a tool; it reports a click.
+func (a *App) trayChip(c *ui.Context, key, label string, active bool) bool {
+	p := ds.P(c)
+	b := ui.ButtonBase(c.Key(key)).Label(label).Selected(active).Cursor(ui.CursorDefault)
+	clicked := b.Clicked()
+	style, ink, fill, line := ds.Caption, p.TextSecondary, p.FillControl, p.LineHairline
+	switch {
+	case active:
+		style.Weight, ink, fill, line = ds.Semibold, p.AccentText, p.AccentSoft, p.AccentLine
+	case b.Hovered():
+		fill = p.FillControlHover
+	}
+	b.Height(ds.ControlSm).Padding(0, ds.Space8).Radius(ds.RadiusSm).Background(fill).
+		Border(ds.LineWidth, line).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
+		comp.Text(c, label, style, ink).SingleLine()
+	})
+	return clicked
+}
+
+// trayPlanLine says when the plan of a tool next turns it on, unless the
+// plan holds it on now or is off.
+func trayPlanLine(sw tool.Switch, st tool.Status) (text string, ok bool) {
+	sched, has := sw.(tool.Scheduled)
+	if !has || st.Active == tool.ActivePlan {
+		return "", false
+	}
+	return nextRunText(sched.Schedule(), time.Now())
 }
 
 func (a *App) trayToolRow(c *ui.Context, i int, t tool.Tool, chosen bool) {

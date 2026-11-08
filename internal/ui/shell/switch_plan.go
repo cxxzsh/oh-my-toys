@@ -46,6 +46,16 @@ func weekdayLabel(d time.Weekday) string {
 	}
 }
 
+// weekdayName is the whole name of a day, for what a screen reader says of
+// its toggle.
+func weekdayName(d time.Weekday) string {
+	return [...]func() string{
+		time.Sunday: i18n.WeekdayNameSun, time.Monday: i18n.WeekdayNameMon, time.Tuesday: i18n.WeekdayNameTue,
+		time.Wednesday: i18n.WeekdayNameWed, time.Thursday: i18n.WeekdayNameThu,
+		time.Friday: i18n.WeekdayNameFri, time.Saturday: i18n.WeekdayNameSat,
+	}[d]()
+}
+
 // planRow is a span of the day as a person types it. Its times may be half
 // typed, so it is not a tool.Segment until both read.
 type planRow struct {
@@ -105,51 +115,64 @@ func (f *switchForm) segments() (segs []tool.Segment, allRead bool) {
 	return segs, allRead
 }
 
-// planTab is the plan of a tool: when it turns itself on and off. Every
+// planPanel is the plan of a tool: when it turns itself on and off. Every
 // change is kept and applied at once, for the rows that are whole.
-func (a *App) planTab(c *ui.Context, t tool.Scheduled, f *switchForm) {
+func (a *App) planPanel(c *ui.Context, t tool.Scheduled, f *switchForm) {
 	f.syncPlan(t)
-	a.planHead(c, t)
-	if len(f.rows) == 0 {
-		comp.Text(c, i18n.SwitchPlanEmpty(), ds.Caption, ds.P(c).TextInactive)
-	} else {
-		a.planRows(c, f)
-	}
-	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-		a.addSpanButton(c, f)
+	opts := comp.PanelOpts{Title: i18n.SwitchPlan(), Actions: func() { a.planSwitch(c, t) }}
+	a.kit.Panel(c, opts, func() {
+		a.planDisplay(c, t)
+		a.weekStrip(c, t.Schedule(), time.Now())
+		if len(f.rows) == 0 {
+			comp.Text(c, i18n.SwitchPlanEmpty(), ds.Caption, ds.P(c).TextInactive)
+		} else {
+			a.planRows(c, f)
+		}
+		ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			a.addSpanButton(c, f)
+		})
+		segs, allRead := f.segments()
+		if cur := t.Schedule(); !slices.Equal(segs, cur.Segments) {
+			cur.Segments = segs
+			a.setSchedule(t, cur)
+		}
+		a.planNote(c, t.Schedule(), allRead)
 	})
-	segs, allRead := f.segments()
-	if cur := t.Schedule(); !slices.Equal(segs, cur.Segments) {
-		cur.Segments = segs
-		a.setSchedule(t, cur)
-	}
-	a.planNote(c, t.Schedule(), allRead)
 }
 
-func (a *App) planHead(c *ui.Context, t tool.Scheduled) {
-	p, cur := ds.P(c), t.Schedule()
-	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+// planSwitch turns the plan on and off.
+func (a *App) planSwitch(c *ui.Context, t tool.Scheduled) {
+	cur := t.Schedule()
+	ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
 		on := cur.Enabled
 		if comp.Switch(c.Key("plan-on"), &on, i18n.SwitchPlanOn()).Changed() {
 			cur.Enabled = on
 			a.setSchedule(t, cur)
 		}
-		comp.Text(c, i18n.SwitchPlanOn(), ds.Label, p.TextPrimary)
-		ui.Spacer(c)
-		comp.Text(c, i18n.SwitchPlanDisplay(), ds.Caption, p.TextInactive)
+		comp.Text(c, i18n.SwitchPlanOn(), ds.Caption, ds.P(c).TextInactive)
+	})
+}
+
+// planDisplay is the choice to keep the display on while the plan holds.
+func (a *App) planDisplay(c *ui.Context, t tool.Scheduled) {
+	cur := t.Schedule()
+	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
 		display := cur.Display
 		if comp.SwitchCompact(c.Key("plan-display"), &display, i18n.SwitchPlanDisplay()).Changed() {
 			cur.Display = display
 			a.setSchedule(t, cur)
 		}
+		comp.Text(c, i18n.SwitchPlanDisplay(), ds.Body, ds.P(c).TextPrimary)
 	})
 }
 
-// planRows lists the spans, which scroll after a few.
+// planRows lists the spans of the plan.
 func (a *App) planRows(c *ui.Context, f *switchForm) {
-	shown := float32(ds.PlanRowsShown * (ds.ControlLg + ds.Space8))
-	ui.List(c.Key("plan-rows"), &f.list, len(f.rows), func(i int) { a.planRow(c, f, i) }).
-		FillWidth().MaxHeight(shown).Gap(ds.Space8).Padding(0, ds.Space10, 0, 0).Label(i18n.SwitchPlan())
+	ui.Column(c.Key("plan-rows")).FillWidth().Gap(ds.Space8).Children(func() {
+		for i := range f.rows {
+			a.planRow(c, f, i)
+		}
+	})
 }
 
 func (a *App) planRow(c *ui.Context, f *switchForm, i int) {
@@ -180,7 +203,7 @@ func (a *App) timeField(c *ui.Context, key [2]int, value *string, invalid bool) 
 // days after a click.
 func (a *App) dayToggle(c *ui.Context, row int, d time.Weekday, days tool.Weekdays) tool.Weekdays {
 	p, label, on := ds.P(c), weekdayLabel(d), days.Has(d)
-	b := ui.ButtonBase(c.Key([2]int{row, 10 + int(d)})).Label(label).Selected(on).Cursor(ui.CursorDefault)
+	b := ui.ButtonBase(c.Key([2]int{row, 10 + int(d)})).Label(weekdayName(d)).Selected(on).Cursor(ui.CursorDefault)
 	if b.Clicked() {
 		days, on = days.With(d, !on), !on
 	}
@@ -213,10 +236,18 @@ func (a *App) planNote(c *ui.Context, cur tool.Schedule, allRead bool) {
 		comp.Text(c, i18n.SwitchSpanBad(), ds.Caption, p.Danger)
 		return
 	}
-	if next, ok := cur.Next(time.Now()); ok {
-		day, at := weekdayLabel(next.Weekday()), tool.FormatClock(next.Hour()*60+next.Minute())
-		comp.Text(c, i18n.SwitchNextRun(day, at), ds.Caption, p.TextInactive)
+	if line, ok := nextRunText(cur, time.Now()); ok {
+		comp.Text(c, line, ds.Caption, p.TextInactive)
 	}
+}
+
+// nextRunText says when a plan next turns its tool on, as a line.
+func nextRunText(cur tool.Schedule, now time.Time) (string, bool) {
+	next, ok := cur.Next(now)
+	if !ok {
+		return "", false
+	}
+	return i18n.SwitchNextRun(weekdayLabel(next.Weekday()), tool.FormatClock(next.Hour()*60+next.Minute())), true
 }
 
 // setSchedule gives a tool its plan and keeps it for the next launch.
