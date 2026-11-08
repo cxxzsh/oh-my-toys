@@ -176,7 +176,10 @@ func (a *App) Start() {
 	a.applyDisplays()
 	a.opt.Events.OnChanged(func() { a.Post(a.syncDisplays) })
 	a.createMain()
-	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) { a.quitting = true })
+	mygo.App.OnBeforeQuit(func(*mygo.QuitEvent) {
+		a.quitting = true
+		a.reg.StopAll() // a tool that changed the system puts it back
+	})
 	mygo.App.OnWindowAllClosed(func() {}) // the tray keeps the app running
 	mygo.App.OnActivate(func(visible bool) {
 		if !visible {

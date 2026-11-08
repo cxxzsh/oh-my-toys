@@ -15,6 +15,12 @@ import (
 // switch tool itself.
 var ErrNoApp = errors.New("desktop app is not running")
 
+// ErrAppOnly is what the IPC answers for a tool the desktop app runs
+// itself. A traffic capture is one: it changes the system proxy and can
+// hold the secrets of the person's traffic, so it is for a person in front
+// of the app to start, never for another program on the machine.
+var ErrAppOnly = errors.New("only the desktop app runs this tool")
+
 // dialSwitch is how a command finds the desktop app. Tests replace it.
 var dialSwitch = SwitchDial
 
@@ -66,6 +72,9 @@ func replySwitch(ctx context.Context, reg *Registry, conn net.Conn) {
 
 func switchResult(ctx context.Context, reg *Registry, req ipcRequest) ipcResponse {
 	t := reg.Get(req.Tool)
+	if _, ok := t.(tool.Traffic); ok {
+		return ipcResponse{Error: fmt.Sprintf("%s: %v", req.Tool, ErrAppOnly)}
+	}
 	sw, ok := t.(tool.Switch)
 	if !ok {
 		return ipcResponse{Error: fmt.Sprintf("no switch tool %q", req.Tool)}

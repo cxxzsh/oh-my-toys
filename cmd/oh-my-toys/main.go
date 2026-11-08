@@ -11,9 +11,11 @@ import (
 	"image"
 	"log"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/egoist/mygo"
@@ -31,6 +33,7 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/tools/ports"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/rename"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/screenshot"
+	"github.com/cxxzsh/oh-my-toys/internal/tools/traffic"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/shell"
 )
@@ -68,7 +71,7 @@ func defaultMaterial() string {
 
 // tools is the one list of the app's tools, in the order they are shown.
 func tools(events *core.Events, dev bool) []tool.Tool {
-	list := []tool.Tool{awake.New(events.Changed), rename.New(), dupes.New(), ports.New(), color.New(), screenshot.New()}
+	list := []tool.Tool{awake.New(events.Changed), rename.New(), dupes.New(), ports.New(), color.New(), screenshot.New(), traffic.New(dataDir())}
 	if dev {
 		list = append(list, devtools.Crash{})
 		list = append(list, devtools.Fakes(fakeTools, events.Changed)...)
@@ -88,6 +91,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	recoverTraffic(reg)
 	if err := ds.RegisterFonts(); err != nil {
 		log.Print(err) // the system's fonts stand in
 	}
@@ -131,10 +135,38 @@ func main() {
 	case f.update:
 		mygo.App.WhenReady(func() { go selfUpdate() })
 	}
+	handleSignals(reg)
 	err = mygo.App.Run()
 	stopIPC()
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+// handleSignals stops the tools and quits when the app is sent SIGINT or
+// SIGTERM, so that a capture puts the system proxy back even when the app
+// is killed from a shell. SIGKILL cannot be caught; recovery at the next
+// launch covers it.
+func handleSignals(reg *core.Registry) {
+	signals, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-signals.Done()
+		stop()
+		reg.StopAll()
+		mygo.App.Quit()
+	}()
+}
+
+// recoverTraffic puts back the system proxy a capture left behind when the
+// app was killed, so that the person is on the network again at the next
+// launch. A failure is logged and never stops the app.
+func recoverTraffic(reg *core.Registry) {
+	t, ok := reg.Get(traffic.ID).(*traffic.Tool)
+	if !ok {
+		return
+	}
+	if err := t.Recover(); err != nil {
+		log.Printf("traffic: %v", err)
 	}
 }
 

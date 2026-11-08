@@ -87,11 +87,12 @@ func checkKind(t *testing.T, tl tool.Tool, names map[string]tool.Spec) {
 // change files, Keep Awake changes whether the system sleeps.
 func TestRisks(t *testing.T) {
 	want := map[string]map[string]tool.Risk{
-		"awake":  {"start": tool.RiskSystem, "stop": tool.RiskSystem, "status": tool.RiskRead},
-		"color":  {"plan": tool.RiskRead},
-		"ports":  {"plan": tool.RiskRead, "apply": tool.RiskProcess},
-		"rename": {"plan": tool.RiskRead, "apply": tool.RiskWrite},
-		"dupes":  {"plan": tool.RiskRead, "apply": tool.RiskWrite},
+		"awake":   {"start": tool.RiskSystem, "stop": tool.RiskSystem, "status": tool.RiskRead},
+		"color":   {"plan": tool.RiskRead},
+		"ports":   {"plan": tool.RiskRead, "apply": tool.RiskProcess},
+		"rename":  {"plan": tool.RiskRead, "apply": tool.RiskWrite},
+		"dupes":   {"plan": tool.RiskRead, "apply": tool.RiskWrite},
+		"traffic": {"start": tool.RiskSystem, "stop": tool.RiskSystem, "status": tool.RiskRead},
 	}
 	for _, tl := range tools(&core.Events{}, false) {
 		id := tl.Manifest().ID

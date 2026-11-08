@@ -5,6 +5,7 @@ package core
 
 import (
 	"fmt"
+	"log"
 	"runtime"
 	"slices"
 
@@ -73,6 +74,39 @@ func (r *Registry) Running() []tool.Switch {
 func IsRunning(t tool.Tool) bool {
 	s, ok := t.(tool.Switch)
 	return ok && s.Status().On
+}
+
+// StopAll stops every switch tool that is on, so that a tool which changed
+// the system leaves it as it was when the app quits: a proxy left pointing
+// at a dead port cuts the person off the network. A tool that fails to stop
+// is logged, and the others still stop.
+func (r *Registry) StopAll() {
+	for _, t := range r.tools {
+		stopSafely(t)
+	}
+}
+
+// stopSafely stops one tool when it is on, keeping a panic or a failure
+// inside it: the tools after it still stop, and the system a tool changed
+// is still put back.
+func stopSafely(t tool.Tool) {
+	id := ""
+	defer func() {
+		if v := recover(); v != nil {
+			log.Printf("%s: stop: %v", id, v)
+		}
+	}()
+	s, ok := t.(tool.Switch)
+	if !ok {
+		return
+	}
+	id = t.Manifest().ID
+	if !s.Status().On {
+		return
+	}
+	if err := s.Stop(); err != nil {
+		log.Printf("%s: stop: %v", id, err)
+	}
 }
 
 func platformName() string {

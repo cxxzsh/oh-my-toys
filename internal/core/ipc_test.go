@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 	"path/filepath"
 	"slices"
@@ -254,5 +255,45 @@ func TestCLIStartTakesADisplayFlag(t *testing.T) {
 	plain, _, _ := newCLI(t, &timedSwitch{})
 	if code := plain.Run(context.Background(), []string{"fake", "start", "--display", "off"}); code != ExitUsage {
 		t.Errorf("a tool with no display choice took --display: exit %d", code)
+	}
+}
+
+// fakeTraffic is a capture tool: the app draws it, and the command line
+// must not reach it, because a capture changes the system proxy and can
+// hold the secrets of the person's traffic.
+type fakeTraffic struct{ fakeSwitch }
+
+func (f *fakeTraffic) Manifest() tool.Manifest {
+	return tool.Manifest{ID: "traffic", Name: i18n.Messages.AppName, Summary: i18n.Messages.About, Kind: tool.KindSwitch}
+}
+
+func (f *fakeTraffic) Config() tool.CaptureConfig                     { return tool.CaptureConfig{} }
+func (f *fakeTraffic) SetConfig(tool.CaptureConfig) error             { return nil }
+func (f *fakeTraffic) Log() tool.FlowLog                              { return nil }
+func (f *fakeTraffic) Rules() []tool.Rule                             { return nil }
+func (f *fakeTraffic) SetRules([]tool.Rule) error                     { return nil }
+func (f *fakeTraffic) Cert() (tool.CertState, error)                  { return tool.CertState{}, nil }
+func (f *fakeTraffic) InstallCert(context.Context) error              { return nil }
+func (f *fakeTraffic) RemoveCert(context.Context) error               { return nil }
+func (f *fakeTraffic) Interfaces() ([]tool.NetInterface, error)       { return nil, nil }
+func (f *fakeTraffic) Replay(context.Context, uint64) (uint64, error) { return 0, nil }
+func (f *fakeTraffic) ExportHAR(io.Writer, []uint64) error            { return nil }
+
+// TestSwitchIPCRefusesACapture: the command line and MCP are told no, and
+// the capture does not start.
+func TestSwitchIPCRefusesACapture(t *testing.T) {
+	capturer := &fakeTraffic{}
+	sock := serveSwitch(t, capturer)
+	for _, action := range []string{tool.ActionStart, tool.ActionStop, tool.ActionStatus} {
+		_, err := CallSwitch(context.Background(), "unix", sock, "traffic", action, nil)
+		if err == nil {
+			t.Fatalf("%s: the command line reached the capture", action)
+		}
+		if !strings.Contains(err.Error(), "app") {
+			t.Errorf("%s: %v, want an error that says only the app runs it", action, err)
+		}
+	}
+	if capturer.started != 0 || capturer.on || capturer.stopped != 0 {
+		t.Errorf("the capture was acted on: started=%d on=%v stopped=%d", capturer.started, capturer.on, capturer.stopped)
 	}
 }
