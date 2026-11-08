@@ -610,6 +610,10 @@
   "@snapPermTitle": {
     "description": "Screenshot permission dialog title."
   },
+  "snapSave": "Save",
+  "@snapSave": {
+    "description": "Screenshot toolbar button that writes a PNG."
+  },
   "snapSaved": "Saved {path}",
   "@snapSaved": {
     "description": "Screenshot overlay flash after saving; path is the file.",

@@ -1720,6 +1720,20 @@ func (msgs Messages) SnapPermTitle() string {
 	return Catalog.Format(msgs.locale, "snapPermTitle", nil)
 }
 
+// SnapSave says "Save"
+// in the language the app shows.
+//
+// Screenshot toolbar button that writes a PNG.
+func SnapSave() string { return In(i18n.Locale()).SnapSave() }
+
+// SnapSave says "Save"
+// in the language of msgs.
+//
+// Screenshot toolbar button that writes a PNG.
+func (msgs Messages) SnapSave() string {
+	return Catalog.Format(msgs.locale, "snapSave", nil)
+}
+
 // SnapSaved says "Saved {path}"
 // in the language the app shows.
 //

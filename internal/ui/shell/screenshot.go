@@ -54,9 +54,14 @@ type snapSession struct {
 
 	sel      image.Rectangle // global points; empty when nothing is selected
 	anchor   image.Point     // where the drag in progress began
+	origin   image.Rectangle // the selection when a move or resize began
+	hover    image.Point
+	hoverOn  bool
+	mode     snapGrip
 	dragging bool
 	pressed  []bool // per overlay: its surface is being pressed
 	wasDown  bool
+	bar      image.Rectangle // toolbar, in global points; empty when hidden
 
 	flash     string
 	flashTil  time.Time
@@ -256,7 +261,7 @@ func (a *App) snapCopy() {
 				a.snapFlash(err.Error())
 				return
 			}
-			a.snapFlash(i18n.SnapCopied())
+			a.endSnap()
 		})
 	}()
 }
