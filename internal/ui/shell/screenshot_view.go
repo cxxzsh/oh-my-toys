@@ -30,6 +30,8 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 	c.OnShortcut(ui.Cmd, ui.KeyS, a.snapSave)
 	if s.text == nil {
 		c.OnShortcut(0, ui.KeyEnter, a.snapReturn)
+		c.OnShortcut(ui.Cmd, ui.KeyZ, a.snapUndo)
+		c.OnShortcut(ui.Cmd|ui.Shift, ui.KeyZ, a.snapRedo)
 	}
 
 	a.snapToolKeys(c, s)
@@ -170,9 +172,19 @@ func (a *App) snapPress(s *snapSession, pos image.Point) bool {
 		return false
 	}
 	if hit == snapGripNone {
+		if s.tool != snapToolNone {
+			s.mode = snapGripNone
+			return false
+		}
 		s.mode, s.anchor, s.dragging = snapGripNew, pos, true
 		s.sel = image.Rect(pos.X, pos.Y, pos.X, pos.Y)
 		s.pressWin = snapWindowAt(s.wins, pos)
+		return true
+	}
+	if hit != snapGripMove {
+		// A handle keeps working with a tool in hand, so the selection can
+		// still be fitted around what is drawn.
+		s.mode, s.origin, s.anchor, s.dragging = hit, s.sel, pos, true
 		return true
 	}
 	if s.tool != snapToolNone && pos.In(s.sel) {
@@ -375,6 +387,16 @@ func (a *App) snapBar(c *ui.Context, ov *snapOverlay, s *snapSession, pal *ds.Pa
 		Right(float32(ov.shot.Bounds.Max.X - s.bar.Max.X)).
 		Top(float32(s.bar.Min.Y - ov.shot.Bounds.Min.Y)).
 		Children(func() {
+			if a.kit.Button(c.Key("snap-undo"), "", comp.ButtonOpts{
+				Kind: comp.Ghost, Small: true, Glyph: "undo", Tooltip: i18n.SnapUndo(), Disabled: !s.canUndo(),
+			}).Clicked() {
+				a.snapUndo()
+			}
+			if a.kit.Button(c.Key("snap-redo"), "", comp.ButtonOpts{
+				Kind: comp.Ghost, Small: true, Glyph: "redo", Tooltip: i18n.SnapRedo(), Disabled: !s.canRedo(),
+			}).Clicked() {
+				a.snapRedo()
+			}
 			a.snapToolButtons(c, s)
 			if a.kit.Button(c.Key("snap-copy"), i18n.CopyValue(), comp.ButtonOpts{Kind: comp.Primary, Small: true}).Clicked() {
 				a.snapCopy()

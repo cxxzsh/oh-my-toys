@@ -121,6 +121,8 @@
   "snapHint": "拖动选择 · 回车复制 · ⌘S 保存 · Esc 取消",
   "snapArrow": "箭头",
   "snapMosaic": "马赛克",
+  "snapRedo": "重做",
+  "snapUndo": "撤销",
   "snapText": "文字",
   "snapPermBody": "oh-my-toys 需要“屏幕录制”权限才能截图。授权后 macOS 可能要求重启应用。",
   "snapPermOpen": "打开系统设置",

@@ -209,3 +209,25 @@ func TestSnapDrawMark(t *testing.T) {
 		t.Fatal("text drew nothing")
 	}
 }
+
+func TestSnapDropMark(t *testing.T) {
+	s := &snapSession{}
+	if s.canUndo() || s.dropMark() {
+		t.Fatal("an empty session has nothing to undo")
+	}
+	s.marks = []snapMark{{tool: snapToolArrow}}
+	if !s.canUndo() || !s.dropMark() || len(s.marks) != 0 {
+		t.Fatalf("marks = %v", s.marks)
+	}
+	if !s.canRedo() || !s.restoreMark() || len(s.marks) != 1 || s.canRedo() {
+		t.Fatalf("redo left marks = %v, undone %v", s.marks, s.undone)
+	}
+	s.marks = nil
+	if s.restoreMark() {
+		t.Fatal("redid without an undo")
+	}
+	s.pending, s.dragging, s.mode = &snapMark{tool: snapToolMosaic}, true, snapGripMark
+	if !s.dropMark() || s.pending != nil || s.dragging || s.mode != snapGripNone {
+		t.Fatalf("pending = %v dragging %v mode %v", s.pending, s.dragging, s.mode)
+	}
+}

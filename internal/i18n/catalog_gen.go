@@ -1734,6 +1734,34 @@ func (msgs Messages) SnapMosaic() string {
 	return Catalog.Format(msgs.locale, "snapMosaic", nil)
 }
 
+// SnapRedo says "Redo"
+// in the language the app shows.
+//
+// Screenshot toolbar button that puts back the last annotation undone.
+func SnapRedo() string { return In(i18n.Locale()).SnapRedo() }
+
+// SnapRedo says "Redo"
+// in the language of msgs.
+//
+// Screenshot toolbar button that puts back the last annotation undone.
+func (msgs Messages) SnapRedo() string {
+	return Catalog.Format(msgs.locale, "snapRedo", nil)
+}
+
+// SnapUndo says "Undo"
+// in the language the app shows.
+//
+// Screenshot toolbar button that takes back the last annotation.
+func SnapUndo() string { return In(i18n.Locale()).SnapUndo() }
+
+// SnapUndo says "Undo"
+// in the language of msgs.
+//
+// Screenshot toolbar button that takes back the last annotation.
+func (msgs Messages) SnapUndo() string {
+	return Catalog.Format(msgs.locale, "snapUndo", nil)
+}
+
 // SnapText says "Text"
 // in the language the app shows.
 //

@@ -614,6 +614,14 @@
   "@snapMosaic": {
     "description": "Screenshot annotation tool."
   },
+  "snapRedo": "Redo",
+  "@snapRedo": {
+    "description": "Screenshot toolbar button that puts back the last annotation undone."
+  },
+  "snapUndo": "Undo",
+  "@snapUndo": {
+    "description": "Screenshot toolbar button that takes back the last annotation."
+  },
   "snapText": "Text",
   "@snapText": {
     "description": "Screenshot annotation tool."

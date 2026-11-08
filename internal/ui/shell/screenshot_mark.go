@@ -13,6 +13,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/design"
+	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
 // snapTool is the annotation tool in hand; none lets the pointer move the
@@ -48,19 +49,28 @@ const (
 // file.
 var snapMarkColor = color.RGBA{R: 0xE5, G: 0x3E, B: 0x3E, A: 0xFF}
 
-// snapPaintMarks draws the session's marks that touch one display.
+// snapPaintMarks draws the session's marks that touch one display, clipped
+// to the selection as the exported picture is, and the one being drawn with
+// its box outlined.
 func (a *App) snapPaintMarks(p *ui.Painter, ov *snapOverlay, s *snapSession) {
+	clip := snapLocal(s.sel, ov.shot.Bounds)
+	if clip.W <= 0 || clip.H <= 0 {
+		return
+	}
 	c := ui.RGBA(snapMarkColor.R, snapMarkColor.G, snapMarkColor.B, 1)
-	for _, m := range s.marks {
-		a.snapPaintMark(p, ov, m, c)
-	}
-	if s.pending != nil {
-		a.snapPaintMark(p, ov, *s.pending, c)
-	}
+	p.Clip(clip, 0, func() {
+		for _, m := range s.marks {
+			a.snapPaintMark(p, ov, m, c, false)
+		}
+		if s.pending != nil {
+			a.snapPaintMark(p, ov, *s.pending, c, true)
+		}
+	})
 }
 
-// snapPaintMark draws one mark in one display's points.
-func (a *App) snapPaintMark(p *ui.Painter, ov *snapOverlay, m snapMark, c ui.Color) {
+// snapPaintMark draws one mark in one display's points; a mark being drawn
+// also outlines the box it covers.
+func (a *App) snapPaintMark(p *ui.Painter, ov *snapOverlay, m snapMark, c ui.Color, pending bool) {
 	o := ov.shot.Bounds.Min
 	at := func(pt image.Point) (float32, float32) {
 		return float32(pt.X - o.X), float32(pt.Y - o.Y)
@@ -75,6 +85,9 @@ func (a *App) snapPaintMark(p *ui.Painter, ov *snapOverlay, m snapMark, c ui.Col
 		}
 	case snapToolMosaic:
 		a.snapPaintMosaic(p, ov, m)
+		if pending {
+			p.Stroke(snapLocal(snapMarkRect(m), ov.shot.Bounds), c, 0, ds.LineWidth)
+		}
 	case snapToolText:
 		x, y := at(m.a)
 		p.Text(x, y, m.text, snapMarkText, c)
@@ -126,6 +139,38 @@ func snapArrowLines(a, b image.Point) [3][2]image.Point {
 	}
 }
 
+// dropMark takes back the mark being drawn, or the last one kept, which
+// redo can put back. It reports whether there was one.
+func (s *snapSession) dropMark() bool {
+	if s.pending != nil {
+		s.pending, s.dragging, s.mode = nil, false, snapGripNone
+		return true
+	}
+	if len(s.marks) == 0 {
+		return false
+	}
+	s.undone = append(s.undone, s.marks[len(s.marks)-1])
+	s.marks = s.marks[:len(s.marks)-1]
+	return true
+}
+
+// restoreMark puts back the mark undone last. It reports whether there was
+// one.
+func (s *snapSession) restoreMark() bool {
+	if len(s.undone) == 0 {
+		return false
+	}
+	s.marks = append(s.marks, s.undone[len(s.undone)-1])
+	s.undone = s.undone[:len(s.undone)-1]
+	return true
+}
+
+// canUndo reports whether there is a mark to take back.
+func (s *snapSession) canUndo() bool { return s.pending != nil || len(s.marks) > 0 }
+
+// canRedo reports whether undo took back a mark that can come again.
+func (s *snapSession) canRedo() bool { return len(s.undone) > 0 }
+
 // commitMark keeps the mark just drawn, unless it is too small to mean
 // anything.
 func (s *snapSession) commitMark() {
@@ -149,6 +194,7 @@ func (s *snapSession) commitMark() {
 		m.a, m.b = r.Min, r.Max
 	}
 	s.marks = append(s.marks, *m)
+	s.undone = nil
 }
 
 // snapDrawMarks draws the session's marks into the exported image, whose
