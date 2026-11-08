@@ -12,7 +12,7 @@ oh-my-toys is a toolbox: many small tools, one app. The code is in layers, and *
 | UI | MyGo views: main window, tray panel, command palette, settings | core, tool manifests, i18n |
 | Core | tool registry, search index, state and events, runner, settings store | tools, platform, i18n |
 | Tools | one package per tool: manifest + logic, no UI | platform, i18n |
-| Platform | per-OS system calls (power, ports, clipboard, OCR…) | standard library only |
+| Platform | per-OS system calls (power, ports, clipboard, OCR, screen capture…) | standard library and purego; cgo only where nothing else reaches the API |
 
 - The UI never names a specific tool. Everything it shows comes from the registry.
 - A tool never imports the UI, the core or another tool.
