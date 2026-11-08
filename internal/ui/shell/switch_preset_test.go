@@ -54,6 +54,15 @@ func TestSavedPresetNeedsALengthTheToolLacks(t *testing.T) {
 	if got := a.settings.Presets(modeToolID); len(got) != 0 {
 		t.Fatalf("saved %v from an empty form and from a length the tool has", got)
 	}
+	if !tt.HasText(i18n.SwitchPresetExists()) {
+		t.Errorf("a length the tool has a preset of says nothing of why it is not saved: %q", tt.Texts())
+	}
+	typeInto(t, tt, i18n.SwitchMinutes(), "31")
+	if tt.HasText(i18n.SwitchPresetExists()) {
+		t.Error("a length with no preset is said to have one")
+	}
+	typeInto(t, tt, i18n.SwitchMinutes(), "")
+	typeInto(t, tt, i18n.SwitchMinutes(), "30")
 
 	if err := tt.Click(i18n.SwitchModeClock()); err != nil {
 		t.Fatal(err)

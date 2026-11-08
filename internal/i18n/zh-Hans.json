@@ -219,6 +219,7 @@
   "awake4hShort": "4 小时",
   "awake8hShort": "8 小时",
   "switchSavePreset": "存为预设",
+  "switchPresetExists": "已经有这个时长的预设了。",
   "switchRemovePreset": "删除这个预设",
   "switchLengthHours": "{hours} 小时",
   "switchLengthMinutes": "{minutes} 分钟",

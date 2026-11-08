@@ -136,6 +136,7 @@ func (a *App) customForm(c *ui.Context, t tool.Timed, f *switchForm) {
 		a.startFor(t, h.d)
 	}
 	a.customPreview(c, h)
+	a.presetNote(c, t, f, h.d)
 }
 
 // saveButton keeps the length typed in as a preset, when it is a length the

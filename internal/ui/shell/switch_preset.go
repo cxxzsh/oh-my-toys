@@ -31,13 +31,21 @@ func lengthName(d time.Duration) string {
 // firstN is the first n of s, or all of it when it has fewer.
 func firstN[T any](s []T, n int) []T { return s[:min(n, len(s))] }
 
+// presetNote says why a length typed in cannot be saved: the tool has a
+// preset of it already. Without it the button only looks dead.
+func (a *App) presetNote(c *ui.Context, t tool.Switch, f *switchForm, d time.Duration) {
+	if f.mode == holdLength && d > 0 && a.hasLength(t, d) {
+		comp.Text(c, i18n.SwitchPresetExists(), ds.Caption, ds.P(c).TextInactive)
+	}
+}
+
 // savedTiles are the lengths a person saved as presets, as tiles with a
 // button that removes each.
 func (a *App) savedTiles(c *ui.Context, t tool.Timed, st tool.Status) {
 	id := t.Manifest().ID
 	for _, d := range a.settings.Presets(id) {
 		key := lengthName(d)
-		ui.Row(c.Key("saved:" + key)).Grow(1).Basis(ds.PresetBasis).Gap(ds.Space4).AlignItems(ui.Center).Children(func() {
+		ui.Row(c.Key("saved:" + key)).Width(ds.PresetBasis).Gap(ds.Space4).AlignItems(ui.Center).Children(func() {
 			a.presetTile(c, "preset:"+key, key, runsFor(st, t, d), 0, func() { a.startFor(t, d) })
 			opts := comp.ButtonOpts{Kind: comp.Plain, Small: true, Tooltip: i18n.SwitchRemovePreset()}
 			if a.kit.Button(c.Key("drop:"+key), removeSpan, opts).Clicked() {

@@ -3132,6 +3132,20 @@ func (msgs Messages) SwitchSavePreset() string {
 	return Catalog.Format(msgs.locale, "switchSavePreset", nil)
 }
 
+// SwitchPresetExists says "There is already a preset of this length."
+// in the language the app shows.
+//
+// Shown under the custom length when saving it would repeat a preset.
+func SwitchPresetExists() string { return In(i18n.Locale()).SwitchPresetExists() }
+
+// SwitchPresetExists says "There is already a preset of this length."
+// in the language of msgs.
+//
+// Shown under the custom length when saving it would repeat a preset.
+func (msgs Messages) SwitchPresetExists() string {
+	return Catalog.Format(msgs.locale, "switchPresetExists", nil)
+}
+
 // SwitchRemovePreset says "Remove this preset"
 // in the language the app shows.
 //

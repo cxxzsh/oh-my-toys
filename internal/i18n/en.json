@@ -1166,6 +1166,10 @@
   "@switchSavePreset": {
     "description": "Button that keeps the length typed in as a preset."
   },
+  "switchPresetExists": "There is already a preset of this length.",
+  "@switchPresetExists": {
+    "description": "Shown under the custom length when saving it would repeat a preset."
+  },
   "switchRemovePreset": "Remove this preset",
   "@switchRemovePreset": {
     "description": "Tooltip of the button that removes a preset a person saved."

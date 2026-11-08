@@ -264,7 +264,12 @@ func (a *App) presetTile(c *ui.Context, key, title string, active bool, basis fl
 	case b.Hovered():
 		fill = p.FillControlHover
 	}
-	b.Grow(1).Basis(basis).Height(ds.PresetHeight).Padding(0, ds.Space12).Gap(ds.Space8).
+	if basis > 0 {
+		b.Width(basis)
+	} else {
+		b.Grow(1)
+	}
+	b.Height(ds.PresetHeight).Padding(0, ds.Space12).Gap(ds.Space8).
 		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, line).AlignItems(ui.Center).Children(func() {
 		comp.Text(c, title, style, ink).Grow(1).SingleLine().Ellipsis("…")
 		if active {
