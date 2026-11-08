@@ -91,6 +91,51 @@ jobs:
           CGO_ENABLED: "0"
         run: go test ./...
 
+  # The platform packages are unit tested against fake command runners. This
+  # job runs the live tests, which change the runner's own system proxy,
+  # trust store and network capture, on the two systems that have no
+  # developer machine in the loop. macOS asks for an administrator password
+  # that a runner cannot give, so it was checked by hand instead.
+  live:
+    name: Live (${{ matrix.os }})
+    if: github.event.pull_request.draft == false
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu, windows]
+    env:
+      CGO_ENABLED: "0"
+      OMT_LIVE: "1"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: System proxy and trust store (current user)
+        if: matrix.os == 'windows'
+        run: go test -v -count=1 -timeout 5m -run TestLive ./internal/platform/sysproxy/ ./internal/platform/trust/
+      # Root is needed to write the system trust store and to open a raw
+      # socket, so these two tests are compiled first and the binary alone
+      # runs under sudo.
+      - name: Trust store and packet capture (root)
+        if: matrix.os == 'ubuntu'
+        run: |
+          for pkg in trust pcap; do
+            go test -c -o "$RUNNER_TEMP/$pkg.test" "./internal/platform/$pkg"
+            (cd "internal/platform/$pkg" && sudo OMT_LIVE=1 "$RUNNER_TEMP/$pkg.test" -test.run TestLive -test.v -test.timeout 5m)
+          done
+      # gsettings keeps its values in dconf, which needs a session bus.
+      - name: System proxy (gsettings)
+        if: matrix.os == 'ubuntu'
+        env:
+          GSETTINGS_BACKEND: dconf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends dbus dconf-service dconf-gsettings-backend gsettings-desktop-schemas
+          dbus-run-session -- go test -v -count=1 -timeout 5m -run TestLive ./internal/platform/sysproxy/
+
   build:
     name: Build
     if: github.event.pull_request.draft == false
