@@ -115,29 +115,26 @@ func (f *switchForm) segments() (segs []tool.Segment, allRead bool) {
 	return segs, allRead
 }
 
-// planPanel is the plan of a tool: when it turns itself on and off. Every
+// planTab is the plan of a tool: when it turns itself on and off. Every
 // change is kept and applied at once, for the rows that are whole.
-func (a *App) planPanel(c *ui.Context, t tool.Scheduled, f *switchForm) {
+func (a *App) planTab(c *ui.Context, t tool.Scheduled, f *switchForm) {
 	f.syncPlan(t)
-	opts := comp.PanelOpts{Title: i18n.SwitchPlan(), Actions: func() { a.planSwitch(c, t) }}
-	a.kit.Panel(c, opts, func() {
-		a.planDisplay(c, t)
-		a.weekStrip(c, t.Schedule(), time.Now())
-		if len(f.rows) == 0 {
-			comp.Text(c, i18n.SwitchPlanEmpty(), ds.Caption, ds.P(c).TextInactive)
-		} else {
-			a.planRows(c, f)
-		}
-		ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-			a.addSpanButton(c, f)
-		})
-		segs, allRead := f.segments()
-		if cur := t.Schedule(); !slices.Equal(segs, cur.Segments) {
-			cur.Segments = segs
-			a.setSchedule(t, cur)
-		}
-		a.planNote(c, t.Schedule(), allRead)
+	a.planDisplay(c, t)
+	a.weekStrip(c, t.Schedule(), time.Now())
+	if len(f.rows) == 0 {
+		comp.Text(c, i18n.SwitchPlanEmpty(), ds.Caption, ds.P(c).TextInactive)
+	} else {
+		a.planRows(c, f)
+	}
+	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		a.addSpanButton(c, f)
 	})
+	segs, allRead := f.segments()
+	if cur := t.Schedule(); !slices.Equal(segs, cur.Segments) {
+		cur.Segments = segs
+		a.setSchedule(t, cur)
+	}
+	a.planNote(c, t.Schedule(), allRead)
 }
 
 // planSwitch turns the plan on and off.

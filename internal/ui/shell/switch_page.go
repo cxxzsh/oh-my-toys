@@ -132,19 +132,47 @@ func (a *App) heroFacts(c *ui.Context, t tool.Switch, st tool.Status) {
 // extendBy is how much time the extend button adds to a run.
 const extendBy = 30 * time.Minute
 
+// The tabs of a switch tool's page.
+const (
+	tabModes = iota
+	tabPlan
+)
+
 // switchModes is how to start the tool: its presets and, when it can, a
-// length of the person's own; then the plan, when it has one.
+// length of the person's own; and on a tab of its own the plan, when it
+// has one.
 func (a *App) switchModes(c *ui.Context, t tool.Switch, st tool.Status) {
 	f := a.switchForm(t.Manifest().ID)
-	a.kit.Panel(c, comp.PanelOpts{Title: i18n.SwitchModes(), Glyph: "tune"}, func() {
+	sched, planned := t.(tool.Scheduled)
+	if !planned {
+		f.tab = tabModes
+	}
+	comp.Card(c).FillWidth().Padding(ds.Space12).Gap(ds.Space10).Children(func() {
+		if planned {
+			a.modeTabs(c, sched, f)
+		}
+		if f.tab == tabPlan {
+			a.planTab(c, sched, f)
+			return
+		}
 		a.presetTiles(c, t, st)
 		if timed, ok := t.(tool.Timed); ok {
 			a.customForm(c, timed, f)
 		}
 	})
-	if sched, ok := t.(tool.Scheduled); ok {
-		a.planPanel(c, sched, f)
-	}
+}
+
+// modeTabs picks between the ways to start the tool and its plan; the
+// switch that turns the plan on is beside the tabs while the plan shows.
+func (a *App) modeTabs(c *ui.Context, t tool.Scheduled, f *switchForm) {
+	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		names := []string{i18n.SwitchModes(), i18n.SwitchPlan()}
+		comp.Segmented(c.Key("modes-tab"), &f.tab, names, i18n.SwitchModes())
+		ui.Spacer(c)
+		if f.tab == tabPlan {
+			a.planSwitch(c, t)
+		}
+	})
 }
 
 // presetTiles lists a tool's modes as tiles, the one in effect marked.

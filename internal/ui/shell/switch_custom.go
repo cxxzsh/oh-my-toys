@@ -27,6 +27,7 @@ const notALength = "?"
 // switchForm is what a person has typed into a switch tool's page. It
 // lives as long as the app, so a tool's page keeps its fields.
 type switchForm struct {
+	tab     int // tabModes or tabPlan
 	mode    int // holdLength or holdClock
 	hours   string
 	minutes string

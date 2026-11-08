@@ -92,6 +92,33 @@ func modeSwitchPage(t *testing.T, m *modeSwitch) (*App, *ui.Tester) {
 	return a, tt
 }
 
+// modeSwitchPlan opens the switch tool's page on its plan tab.
+func modeSwitchPlan(t *testing.T, m *modeSwitch) (*App, *ui.Tester) {
+	t.Helper()
+	a, tt := modeSwitchPage(t, m)
+	if err := tt.Click(i18n.SwitchPlan()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	return a, tt
+}
+
+// TestSwitchPageTabsShowOneThingAtATime: the modes are on the first tab
+// and the plan on the second.
+func TestSwitchPageTabsShowOneThingAtATime(t *testing.T) {
+	_, tt := modeSwitchPage(t, &modeSwitch{})
+	if !tt.HasText(modeShortTitle) || tt.HasText(i18n.SwitchPlanEmpty()) {
+		t.Errorf("the modes tab is not the one shown first: %q", tt.Texts())
+	}
+	if err := tt.Click(i18n.SwitchPlan()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if tt.HasText(modeShortTitle) || !tt.HasText(i18n.SwitchPlanEmpty()) {
+		t.Errorf("the plan tab shows the modes, or not the plan: %q", tt.Texts())
+	}
+}
+
 // TestSwitchPageShowsTheRunByItsState checks what each state of a switch
 // tool puts on its page: the way to turn it off only while it runs, and the
 // end of a run only when it has one.
@@ -249,7 +276,7 @@ func workSpan() tool.Segment {
 // among the texts of a page, so the days and that line are what is checked.
 func TestSwitchPlanShowsTheSpansOfTheTool(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
-	_, tt := modeSwitchPage(t, m)
+	_, tt := modeSwitchPlan(t, m)
 	next := strings.SplitN(i18n.SwitchNextRun("\x00", ""), "\x00", 2)[0]
 	found := false
 	for _, s := range tt.Texts() {
@@ -272,7 +299,7 @@ func TestSwitchPlanShowsTheSpansOfTheTool(t *testing.T) {
 // to 18:00; the tool gets it and the settings keep it for the next launch.
 func TestSwitchPlanAddsASpanAndKeepsIt(t *testing.T) {
 	m := &modeSwitch{}
-	a, tt := modeSwitchPage(t, m)
+	a, tt := modeSwitchPlan(t, m)
 	if !tt.HasText(i18n.SwitchPlanEmpty()) {
 		t.Fatalf("no hint on an empty plan: %q", tt.Texts())
 	}
@@ -298,7 +325,7 @@ func TestSwitchPlanAddsASpanAndKeepsIt(t *testing.T) {
 func TestSwitchPlanTakesManySpans(t *testing.T) {
 	const spans = 12
 	m := &modeSwitch{}
-	_, tt := modeSwitchPage(t, m)
+	_, tt := modeSwitchPlan(t, m)
 	for range spans {
 		if err := tt.Click("+ " + i18n.SwitchAddSpan()); err != nil {
 			t.Fatal(err)
@@ -314,7 +341,7 @@ func TestSwitchPlanTakesManySpans(t *testing.T) {
 // time yet, and until it is, the plan keeps the span as it was.
 func TestSwitchPlanHalfTypedTimeKeepsTheSpan(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
-	_, tt := modeSwitchPage(t, m)
+	_, tt := modeSwitchPlan(t, m)
 	if err := tt.Click("09:00"); err != nil {
 		t.Fatal(err)
 	}
@@ -330,7 +357,7 @@ func TestSwitchPlanHalfTypedTimeKeepsTheSpan(t *testing.T) {
 
 func TestSwitchPlanTogglesADayAndRemovesASpan(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Enabled: true, Segments: []tool.Segment{workSpan()}}}
-	_, tt := modeSwitchPage(t, m)
+	_, tt := modeSwitchPlan(t, m)
 	if err := tt.Click(i18n.WeekdayNameSat()); err != nil {
 		t.Fatal(err)
 	}
@@ -352,7 +379,7 @@ func TestSwitchPlanTogglesADayAndRemovesASpan(t *testing.T) {
 
 func TestSwitchPlanSwitchTurnsThePlanOnAndOff(t *testing.T) {
 	m := &modeSwitch{sched: tool.Schedule{Segments: []tool.Segment{workSpan()}}}
-	_, tt := modeSwitchPage(t, m)
+	_, tt := modeSwitchPlan(t, m)
 	if err := tt.Click(i18n.SwitchPlanOn()); err != nil {
 		t.Fatal(err)
 	}
