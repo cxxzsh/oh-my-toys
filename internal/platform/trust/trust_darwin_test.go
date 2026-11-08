@@ -14,6 +14,9 @@ import (
 // testKeychain is a keychain path in the shape `security` prints.
 const testKeychain = "    \"/Users/x/Library/Keychains/login.keychain-db\"\n"
 
+// otherSHA256 is a fingerprint that is not the test certificate's.
+const otherSHA256 = "ABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABABAB"
+
 // TestSecurityPathIsAbsolute pins that the tool is named by absolute path:
 // a `security` found through PATH could fake the approval dialog.
 func TestSecurityPathIsAbsolute(t *testing.T) {
@@ -37,14 +40,16 @@ func TestTrustedRejectsThrowawayCertificate(t *testing.T) {
 }
 
 func TestInstallDarwin(t *testing.T) {
-	f := &fakeRunner{replies: []reply{{out: testKeychain}}}
+	c := testCertificate(t)
+	f := &fakeRunner{replies: []reply{{out: testKeychain}, {out: keychainHashes(otherSHA256)}}}
 	var temp string
 	f.inspect = func(cl call) { temp = certArg(cl) }
-	if err := installWith(testCertificate(t), f.runner()); err != nil {
+	if err := installWith(c, f.runner()); err != nil {
 		t.Fatalf("installWith: %v", err)
 	}
 	wantCalls := []call{
 		{name: securityCmd, args: []string{"default-keychain", "-d", "user"}},
+		{name: securityCmd, args: []string{"find-certificate", "-a", "-Z", "/Users/x/Library/Keychains/login.keychain-db"}},
 		{name: securityCmd, args: []string{"add-trusted-cert", "-r", "trustRoot", "-p", "ssl", "-k", "/Users/x/Library/Keychains/login.keychain-db", temp}},
 	}
 	if !slices.EqualFunc(f.calls, wantCalls, sameCall) {
@@ -73,18 +78,20 @@ func TestInstallDarwinFailures(t *testing.T) {
 			name: "a refused approval is ErrPermission",
 			replies: []reply{
 				{out: testKeychain},
+				{out: keychainHashes(otherSHA256)},
 				{out: "security: SecTrustSettingsSetTrustSettings: The authorization was denied.\n", err: errors.New("exit status 1")},
 			},
-			wantCalls:      2,
+			wantCalls:      4,
 			wantPermission: true,
 		},
 		{
 			name: "another failure keeps its detail",
 			replies: []reply{
 				{out: testKeychain},
+				{out: keychainHashes(otherSHA256)},
 				{out: "security: the keychain is locked\n", err: errors.New("exit status 1")},
 			},
-			wantCalls: 2,
+			wantCalls: 4,
 			wantErr:   "the keychain is locked",
 		},
 		{
@@ -113,6 +120,133 @@ func checkInstallFailure(t *testing.T, c installFailure) {
 		}
 	}
 	checkFailure(t, err, c.wantPermission, c.wantErr)
+}
+
+// TestInstallRefusedTakesImportedCertificateOut covers what `security` does
+// before it asks: the certificate is in the keychain even when the person
+// refuses, so the install has to take it out again.
+func TestInstallRefusedTakesImportedCertificateOut(t *testing.T) {
+	c := testCertificate(t)
+	f := &fakeRunner{replies: []reply{
+		{out: testKeychain},
+		{out: keychainHashes(otherSHA256)},
+		{out: "security: The authorization was denied.\n", err: errors.New("exit status 1")},
+	}}
+	err := installWith(c, f.runner())
+	if !errors.Is(err, ErrPermission) {
+		t.Fatalf("installWith returned %v, want ErrPermission", err)
+	}
+	want := call{name: securityCmd, args: []string{"delete-certificate", "-Z", c.sha256}}
+	if len(f.calls) != 4 || !sameCall(f.calls[3], want) {
+		t.Fatalf("ran %v, want the imported certificate deleted last", f.calls)
+	}
+}
+
+// TestInstallRefusedKeepsCertificateThatWasThere leaves a certificate the
+// person already had alone, even when the install fails.
+func TestInstallRefusedKeepsCertificateThatWasThere(t *testing.T) {
+	c := testCertificate(t)
+	f := &fakeRunner{replies: []reply{
+		{out: testKeychain},
+		{out: keychainHashes(otherSHA256, c.sha256)},
+		{out: "security: User canceled.\n", err: errors.New("exit status 1")},
+	}}
+	err := installWith(c, f.runner())
+	if !errors.Is(err, ErrPermission) {
+		t.Fatalf("installWith returned %v, want ErrPermission", err)
+	}
+	if len(f.calls) != 3 {
+		t.Fatalf("ran %d commands, want no delete: %v", len(f.calls), f.calls)
+	}
+}
+
+// TestInstallSuccessDeletesNothing checks that a working install leaves the
+// keychain alone.
+func TestInstallSuccessDeletesNothing(t *testing.T) {
+	f := &fakeRunner{replies: []reply{{out: testKeychain}, {out: keychainHashes(otherSHA256)}}}
+	if err := installWith(testCertificate(t), f.runner()); err != nil {
+		t.Fatalf("installWith: %v", err)
+	}
+	for _, cl := range f.calls {
+		if len(cl.args) > 0 && cl.args[0] == "delete-certificate" {
+			t.Fatalf("a working install ran %v", cl)
+		}
+	}
+}
+
+// TestInstallCleanupFailureKeepsOriginalError checks that a failed cleanup
+// does not hide why the install failed.
+func TestInstallCleanupFailureKeepsOriginalError(t *testing.T) {
+	c := testCertificate(t)
+	f := &fakeRunner{replies: []reply{
+		{out: testKeychain},
+		{out: keychainHashes(otherSHA256)},
+		{out: "security: The authorization was denied.\n", err: errors.New("exit status 1")},
+		{out: "security: the keychain is locked\n", err: errors.New("exit status 1")},
+	}}
+	err := installWith(c, f.runner())
+	if !errors.Is(err, ErrPermission) {
+		t.Fatalf("the original error was masked: %v", err)
+	}
+	if !strings.Contains(err.Error(), "the keychain is locked") {
+		t.Errorf("the cleanup error is missing from %v", err)
+	}
+}
+
+// TestInstallStopsWhenKeychainCannotBeRead checks that nothing is imported
+// when the install cannot tell what the keychain held.
+func TestInstallStopsWhenKeychainCannotBeRead(t *testing.T) {
+	f := &fakeRunner{replies: []reply{
+		{out: testKeychain},
+		{out: "security: the keychain is locked\n", err: errors.New("exit status 1")},
+	}}
+	err := installWith(testCertificate(t), f.runner())
+	if err == nil || !strings.Contains(err.Error(), "read keychain") {
+		t.Fatalf("installWith returned %v, want a read keychain error", err)
+	}
+	if len(f.calls) != 2 {
+		t.Fatalf("ran %v, want nothing added", f.calls)
+	}
+}
+
+func TestCertInKeychain(t *testing.T) {
+	c := testCertificate(t)
+	for _, tc := range []struct {
+		name string
+		out  string
+		want bool
+	}{
+		{"the certificate", keychainHashes(otherSHA256, c.sha256), true},
+		{"lower case hash", "SHA-256 hash: " + strings.ToLower(c.sha256) + "\n", true},
+		{"another certificate", keychainHashes(otherSHA256), false},
+		{"nothing", "", false},
+		{"a hash that only starts the same", "SHA-256 hash: " + c.sha256 + "0\n", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := &fakeRunner{replies: []reply{{out: tc.out}}}
+			got, err := certInKeychain(c, "/keychain", f.runner())
+			if err != nil {
+				t.Fatalf("certInKeychain: %v", err)
+			}
+			if got != tc.want {
+				t.Errorf("certInKeychain = %t, want %t", got, tc.want)
+			}
+			want := call{name: securityCmd, args: []string{"find-certificate", "-a", "-Z", "/keychain"}}
+			if !sameCall(f.calls[0], want) {
+				t.Errorf("ran %v, want %v", f.calls[0], want)
+			}
+		})
+	}
+}
+
+// keychainHashes is what `security find-certificate -a -Z` prints for a
+// keychain holding the certificates with these SHA-256 hashes.
+func keychainHashes(hashes ...string) string {
+	var b strings.Builder
+	for _, h := range hashes {
+		b.WriteString("SHA-256 hash: " + h + "\nSHA-1 hash: 0000000000000000000000000000000000000000\n")
+	}
+	return b.String()
 }
 
 func TestRemoveDarwin(t *testing.T) {

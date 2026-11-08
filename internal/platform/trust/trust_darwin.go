@@ -13,13 +13,19 @@ import (
 // on PATH could show a fake approval dialog and keep the password.
 const securityCmd = "/usr/bin/security"
 
+// sha256Label is how `security find-certificate -Z` prints a hash; the
+// certificate is matched by that hash and never by name.
+const sha256Label = "SHA-256 hash:"
+
 // configure leaves the command as it is: macOS has no console window to
 // keep out of sight for a windowed app.
 func configure(cmd *exec.Cmd) *exec.Cmd { return cmd }
 
 // install gives the certificate user trust as a TLS server root. `security`
 // shows the system's own approval dialog, and imports the certificate into
-// the default keychain, where Remove finds it again.
+// the default keychain, where Remove finds it again. Because the import
+// happens before the dialog, a refused install takes the new certificate
+// out again.
 func install(c cert) error { return installWith(c, newRunner()) }
 
 // installWith is install with the command runner to test it through.
@@ -28,14 +34,51 @@ func installWith(c cert, r *runner) error {
 	if err != nil {
 		return err
 	}
+	// `security` imports the certificate before it shows the approval
+	// dialog, so a refused approval would leave it in the keychain
+	// untrusted. Ask first whether it was already there, to know whether a
+	// failed install may take it out again.
+	existed, err := certInKeychain(c, keychain, r)
+	if err != nil {
+		return err
+	}
 	return withTempPEM(c, func(path string) error {
 		out, err := r.exec(securityCmd, "add-trusted-cert", "-r", "trustRoot", "-p", "ssl", "-k", keychain, path)
-		return securityErr("add trusted certificate", out, err, false)
+		addErr := securityErr("add trusted certificate", out, err, false)
+		if addErr == nil || existed {
+			return addErr
+		}
+		if cleanupErr := deleteCertificate(c, r); cleanupErr != nil {
+			return errors.Join(addErr, cleanupErr)
+		}
+		return addErr
 	})
 }
 
-// remove takes the trust setting away and then the certificate, so the
-// keychain is as it was before Install.
+// certInKeychain reports whether the keychain already holds the
+// certificate, matched by its SHA-256 hash and never by name.
+func certInKeychain(c cert, keychain string, r *runner) (bool, error) {
+	out, err := r.exec(securityCmd, "find-certificate", "-a", "-Z", keychain)
+	if err != nil {
+		return false, fmt.Errorf("read keychain: %w: %s", err, outputLine(out))
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		hash, found := strings.CutPrefix(strings.TrimSpace(line), sha256Label)
+		if found && strings.EqualFold(strings.TrimSpace(hash), c.sha256) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// deleteCertificate takes the certificate out of the keychain, and treats
+// an absent one as already gone.
+func deleteCertificate(c cert, r *runner) error {
+	out, err := r.exec(securityCmd, "delete-certificate", "-Z", c.sha256)
+	return securityErr("delete certificate", out, err, true)
+}
+
+// remove takes the trust setting away and then the certificate.
 func remove(c cert) error { return removeWith(c, newRunner()) }
 
 // removeWith is remove with the command runner to test it through.
@@ -47,8 +90,7 @@ func removeWith(c cert, r *runner) error {
 	if err != nil {
 		return err
 	}
-	out, err := r.exec(securityCmd, "delete-certificate", "-Z", c.sha256)
-	return securityErr("delete certificate", out, err, true)
+	return deleteCertificate(c, r)
 }
 
 // defaultKeychain is the keychain `security` imports the certificate into,
