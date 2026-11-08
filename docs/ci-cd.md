@@ -1,8 +1,8 @@
 # CI and releases
 
-The workflows are in `.github/workflows`: `ci.yml`, `release-please.yml` and
-`release.yml`. This document says what they do and what to set up before the
-first release.
+The workflows are in `.github/workflows`: `ci.yml`, `pr-title.yml`,
+`release-please.yml` and `release.yml`. This document says what they do and
+what to set up before the first release.
 
 ## Overview
 
@@ -15,12 +15,16 @@ both into the release PR.
 
 ## 1. CI (`.github/workflows/ci.yml`)
 
-Runs on every pull request (including edits of its title) and on every push to
-`main`. A newer push cancels the run of an older one on the same branch.
+Runs on every pull request and on every push to `main`. A newer push cancels
+the run of an older one on the same branch. The pull request's title, which
+becomes the squash-merge commit message, is checked by `pr-title.yml` instead,
+a workflow of its own so that editing the title or the body re-runs only that
+check: the title must follow Conventional Commits with the types of
+CONTRIBUTING.md section 13, with an English, imperative summary that starts
+with a lowercase letter, has no trailing period and is at most 72 characters.
 
 | Job | Runner | What it checks |
 |---|---|---|
-| PR title | ubuntu | The title follows Conventional Commits with the types of CONTRIBUTING.md section 13: an English, imperative, lowercase summary of at most 72 characters, with no trailing period. It becomes the squash-merge commit message. |
 | Lint | ubuntu, once per `GOOS` (linux, darwin, windows) | `gofumpt` and `goimports` with the local prefix (on linux), `go vet`, and `golangci-lint` with the linters in CONTRIBUTING.md section 4, including `depguard` for the layers. The per-OS code under `internal/platform` is split by build tags, so each OS is checked on its own. |
 | Test | ubuntu, macOS, Windows | `go test -race ./...`, with cgo as the race detector needs it, then `go test ./...` with `CGO_ENABLED=0`, as the programs ship. |
 | Build | ubuntu | `CGO_ENABLED=0` cross-builds of every package for darwin, windows and linux on amd64 and arm64. |
