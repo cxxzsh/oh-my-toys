@@ -19,6 +19,11 @@ const trayHeight = 600
 func modeSwitchTray(t *testing.T, m *modeSwitch) *ui.Tester {
 	t.Helper()
 	a, _ := modeSwitchPage(t, m)
+	return trayTester(a)
+}
+
+// trayTester shows the tray panel of an app.
+func trayTester(a *App) *ui.Tester {
 	tt := ui.NewTester(a.trayView, ds.TrayWidth, trayHeight)
 	tt.Frame()
 	return tt

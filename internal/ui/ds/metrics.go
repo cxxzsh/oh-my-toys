@@ -26,8 +26,8 @@ const (
 	CountdownSize    = 32 // the countdown of a switch tool, in a mono face
 	CountdownLine    = 38
 	FactsMinWidth    = 220 // the facts beside the countdown wrap under it below this
-	PresetBasis      = 280 // a preset tile's width before the row wraps: two a row, as the design shows
-	PresetHeight     = 44
+	PresetBasis      = 140 // a preset tile's width before the row wraps: several a row
+	PresetHeight     = 36
 	CustomFieldWidth = 96  // hours and minutes of a custom run
 	ClockFieldWidth  = 128 // a time of day
 	SpanFieldWidth   = 84  // a time in a span of a plan

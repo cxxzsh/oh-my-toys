@@ -181,16 +181,29 @@ func (a *App) modeTabs(c *ui.Context, t tool.Scheduled, f *switchForm) {
 	})
 }
 
-// presetTiles lists a tool's modes as tiles, the one in effect marked.
+// presetTiles lists a tool's modes as tiles, the one in effect marked, and
+// after them the lengths a person saved.
 func (a *App) presetTiles(c *ui.Context, t tool.Switch, st tool.Status) {
 	m := t.Manifest()
 	ui.Row(c).FillWidth().Gap(ds.Space8).Wrap().Children(func() {
 		for i := range m.Actions {
 			if act := &m.Actions[i]; !act.Stops {
-				a.presetTile(c, t, act, st.On && st.Active == act.ID)
+				run := func() { a.runAction(t, act) }
+				a.presetTile(c, "preset:"+act.ID, tileName(act), st.On && st.Active == act.ID, ds.PresetBasis, run)
 			}
 		}
+		if timed, ok := t.(tool.Timed); ok {
+			a.savedTiles(c, timed, st)
+		}
 	})
+}
+
+// tileName is what a mode's tile says: its short name, when it has one.
+func tileName(act *tool.QuickAction) string {
+	if act.Short != nil {
+		return act.Short(msgs())
+	}
+	return act.Title(msgs())
 }
 
 // canExtend reports whether a run can be given more time: it ends by
@@ -235,12 +248,14 @@ func (a *App) stopButton(c *ui.Context, t tool.Switch) {
 	}
 }
 
-func (a *App) presetTile(c *ui.Context, t tool.Switch, act *tool.QuickAction, active bool) {
+// presetTile is one way to start the tool as a tile, marked when it is the
+// one in effect. basis is how wide it asks to be before the row shares out
+// what is left.
+func (a *App) presetTile(c *ui.Context, key, title string, active bool, basis float32, run func()) {
 	p := ds.P(c)
-	title := act.Title(msgs())
-	b := ui.ButtonBase(c.Key("preset:" + act.ID)).Label(title).Selected(active).Cursor(ui.CursorDefault)
+	b := ui.ButtonBase(c.Key(key)).Label(title).Selected(active).Cursor(ui.CursorDefault)
 	if b.Clicked() {
-		a.runAction(t, act)
+		run()
 	}
 	style, ink, fill, line := ds.Label, p.TextPrimary, p.FillControl, p.LineHairline
 	switch {
@@ -249,7 +264,7 @@ func (a *App) presetTile(c *ui.Context, t tool.Switch, act *tool.QuickAction, ac
 	case b.Hovered():
 		fill = p.FillControlHover
 	}
-	b.Grow(1).Basis(ds.PresetBasis).Height(ds.PresetHeight).Padding(0, ds.Space12).Gap(ds.Space8).
+	b.Grow(1).Basis(basis).Height(ds.PresetHeight).Padding(0, ds.Space12).Gap(ds.Space8).
 		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, line).AlignItems(ui.Center).Children(func() {
 		comp.Text(c, title, style, ink).Grow(1).SingleLine().Ellipsis("…")
 		if active {

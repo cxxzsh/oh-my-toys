@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
@@ -35,6 +36,9 @@ type Settings struct {
 	// Displays is whether the tools that can keep the display on do, by tool
 	// ID. A tool not in it keeps its own default.
 	Displays map[string]bool `json:"displays,omitempty"`
+	// SavedPresets are the lengths a person saved as presets, in minutes, by
+	// tool ID.
+	SavedPresets map[string][]int `json:"presets,omitempty"`
 	// Language is the language chosen in the settings; empty follows the
 	// system.
 	Language string `json:"language,omitempty"`
@@ -55,6 +59,39 @@ func (v *Settings) SetDisplay(id string, on bool) {
 		v.Displays = map[string]bool{}
 	}
 	v.Displays[id] = on
+}
+
+// Presets are the lengths a person saved for a tool, in the order they were
+// saved.
+func (v *Settings) Presets(id string) []time.Duration {
+	out := make([]time.Duration, len(v.SavedPresets[id]))
+	for i, minutes := range v.SavedPresets[id] {
+		out[i] = time.Duration(minutes) * time.Minute
+	}
+	return out
+}
+
+// AddPreset saves a length, in whole minutes, as a preset of a tool. A length
+// already saved, or no length, is not added again.
+func (v *Settings) AddPreset(id string, d time.Duration) {
+	minutes := int(d / time.Minute)
+	if minutes <= 0 || slices.Contains(v.SavedPresets[id], minutes) {
+		return
+	}
+	if v.SavedPresets == nil {
+		v.SavedPresets = map[string][]int{}
+	}
+	v.SavedPresets[id] = append(v.SavedPresets[id], minutes)
+}
+
+// RemovePreset takes a length out of the presets saved for a tool.
+func (v *Settings) RemovePreset(id string, d time.Duration) {
+	left := slices.DeleteFunc(slices.Clone(v.SavedPresets[id]), func(m int) bool { return m == int(d/time.Minute) })
+	if len(left) > 0 {
+		v.SavedPresets[id] = left
+	} else {
+		delete(v.SavedPresets, id)
+	}
 }
 
 // Store keeps settings in a JSON file.

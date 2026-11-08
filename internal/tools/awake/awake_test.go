@@ -146,3 +146,24 @@ func TestStartForRunsThatLong(t *testing.T) {
 		t.Errorf("%d requests held, want 1", *held)
 	}
 }
+
+// TestEveryLengthModeRunsForItsLength: a mode that says how long it lasts
+// lasts so long, so the page can tell a saved length from a mode of the tool,
+// and the modes with no length are the ones until turned off or off itself.
+func TestEveryLengthModeRunsForItsLength(t *testing.T) {
+	tl, _, _ := newTestTool(t)
+	lengths := 0
+	for _, a := range tl.Manifest().Actions {
+		if a.Length == 0 {
+			continue
+		}
+		lengths++
+		runAction(t, tl, a.ID)
+		if st := tl.Status(); st.Active != a.ID || st.Until.Sub(st.Since) != a.Length {
+			t.Errorf("%s: status %+v, want a run of %v", a.ID, st, a.Length)
+		}
+	}
+	if lengths < 2 {
+		t.Errorf("only %d modes have a length", lengths)
+	}
+}

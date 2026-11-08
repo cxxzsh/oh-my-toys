@@ -206,33 +206,46 @@ func hasChips(sw tool.Switch) bool {
 	if _, ok := sw.(tool.Timed); ok {
 		return true
 	}
-	return slices.ContainsFunc(sw.Manifest().Actions, func(act tool.QuickAction) bool { return act.Short != nil })
+	return slices.ContainsFunc(sw.Manifest().Actions, func(act tool.QuickAction) bool { return act.Short != nil && act.Tray })
 }
 
 // trayChips are the ways to start a tool in one click, the one in effect
-// marked; then a way to the page for a length of the person's own, and a
-// way to give a run that ends by itself more time.
+// marked; then, for a timed tool, the lengths a person saved, a way to the
+// page for a length of the person's own, and a way to give a run that ends by
+// itself more time.
 func (a *App) trayChips(c *ui.Context, sw tool.Switch, st tool.Status) {
-	m := sw.Manifest()
 	ui.Row(c).FillWidth().Gap(ds.Space4).Wrap().Children(func() {
-		for i := range m.Actions {
-			act := &m.Actions[i]
-			if act.Short != nil && a.trayChip(c, act.ID, act.Short(msgs()), st.On && st.Active == act.ID) {
-				a.runAction(sw, act)
-			}
-		}
-		timed, ok := sw.(tool.Timed)
-		if !ok {
-			return
-		}
-		if a.trayChip(c, "custom", i18n.SwitchCustom()+"…", false) {
-			a.hideTray()
-			a.openMain(m.ID)
-		}
-		if canExtend(st) && a.trayChip(c, "extend", i18n.SwitchExtend(int(extendBy/time.Minute)), false) {
-			a.extend(timed)
+		a.trayModeChips(c, sw, st)
+		if timed, ok := sw.(tool.Timed); ok {
+			a.trayTimedChips(c, timed, st)
 		}
 	})
+}
+
+func (a *App) trayModeChips(c *ui.Context, sw tool.Switch, st tool.Status) {
+	m := sw.Manifest()
+	for i := range m.Actions {
+		act := &m.Actions[i]
+		if act.Short != nil && act.Tray && a.trayChip(c, act.ID, act.Short(msgs()), st.On && st.Active == act.ID) {
+			a.runAction(sw, act)
+		}
+	}
+}
+
+func (a *App) trayTimedChips(c *ui.Context, t tool.Timed, st tool.Status) {
+	id := t.Manifest().ID
+	for _, d := range firstN(a.settings.Presets(id), savedPresetsInTray) {
+		if a.trayChip(c, "preset:"+lengthName(d), lengthName(d), runsFor(st, t, d)) {
+			a.startFor(t, d)
+		}
+	}
+	if a.trayChip(c, "custom", i18n.SwitchCustom()+"…", false) {
+		a.hideTray()
+		a.openMain(id)
+	}
+	if canExtend(st) && a.trayChip(c, "extend", i18n.SwitchExtend(int(extendBy/time.Minute)), false) {
+		a.extend(t)
+	}
 }
 
 // trayChip is one way to start a tool; it reports a click.

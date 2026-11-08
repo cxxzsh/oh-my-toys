@@ -174,6 +174,48 @@ func (msgs Messages) AwakeFor2h() string {
 	return Catalog.Format(msgs.locale, "awakeFor2h", nil)
 }
 
+// AwakeFor30m says "Keep awake for 30 minutes"
+// in the language the app shows.
+//
+// Quick action.
+func AwakeFor30m() string { return In(i18n.Locale()).AwakeFor30m() }
+
+// AwakeFor30m says "Keep awake for 30 minutes"
+// in the language of msgs.
+//
+// Quick action.
+func (msgs Messages) AwakeFor30m() string {
+	return Catalog.Format(msgs.locale, "awakeFor30m", nil)
+}
+
+// AwakeFor4h says "Keep awake for 4 hours"
+// in the language the app shows.
+//
+// Quick action.
+func AwakeFor4h() string { return In(i18n.Locale()).AwakeFor4h() }
+
+// AwakeFor4h says "Keep awake for 4 hours"
+// in the language of msgs.
+//
+// Quick action.
+func (msgs Messages) AwakeFor4h() string {
+	return Catalog.Format(msgs.locale, "awakeFor4h", nil)
+}
+
+// AwakeFor8h says "Keep awake for 8 hours"
+// in the language the app shows.
+//
+// Quick action.
+func AwakeFor8h() string { return In(i18n.Locale()).AwakeFor8h() }
+
+// AwakeFor8h says "Keep awake for 8 hours"
+// in the language of msgs.
+//
+// Quick action.
+func (msgs Messages) AwakeFor8h() string {
+	return Catalog.Format(msgs.locale, "awakeFor8h", nil)
+}
+
 // AwakeUntilOff says "Keep awake until turned off"
 // in the language the app shows.
 //
@@ -3032,6 +3074,120 @@ func AwakeForeverShort() string { return In(i18n.Locale()).AwakeForeverShort() }
 // Keep Awake duration preset.
 func (msgs Messages) AwakeForeverShort() string {
 	return Catalog.Format(msgs.locale, "awakeForeverShort", nil)
+}
+
+// Awake30mShort says "30 Min"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func Awake30mShort() string { return In(i18n.Locale()).Awake30mShort() }
+
+// Awake30mShort says "30 Min"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) Awake30mShort() string {
+	return Catalog.Format(msgs.locale, "awake30mShort", nil)
+}
+
+// Awake4hShort says "4 Hours"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func Awake4hShort() string { return In(i18n.Locale()).Awake4hShort() }
+
+// Awake4hShort says "4 Hours"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) Awake4hShort() string {
+	return Catalog.Format(msgs.locale, "awake4hShort", nil)
+}
+
+// Awake8hShort says "8 Hours"
+// in the language the app shows.
+//
+// Keep Awake duration preset.
+func Awake8hShort() string { return In(i18n.Locale()).Awake8hShort() }
+
+// Awake8hShort says "8 Hours"
+// in the language of msgs.
+//
+// Keep Awake duration preset.
+func (msgs Messages) Awake8hShort() string {
+	return Catalog.Format(msgs.locale, "awake8hShort", nil)
+}
+
+// SwitchSavePreset says "Save as preset"
+// in the language the app shows.
+//
+// Button that keeps the length typed in as a preset.
+func SwitchSavePreset() string { return In(i18n.Locale()).SwitchSavePreset() }
+
+// SwitchSavePreset says "Save as preset"
+// in the language of msgs.
+//
+// Button that keeps the length typed in as a preset.
+func (msgs Messages) SwitchSavePreset() string {
+	return Catalog.Format(msgs.locale, "switchSavePreset", nil)
+}
+
+// SwitchRemovePreset says "Remove this preset"
+// in the language the app shows.
+//
+// Tooltip of the button that removes a preset a person saved.
+func SwitchRemovePreset() string { return In(i18n.Locale()).SwitchRemovePreset() }
+
+// SwitchRemovePreset says "Remove this preset"
+// in the language of msgs.
+//
+// Tooltip of the button that removes a preset a person saved.
+func (msgs Messages) SwitchRemovePreset() string {
+	return Catalog.Format(msgs.locale, "switchRemovePreset", nil)
+}
+
+// SwitchLengthHours says "{hours} h"
+// in the language the app shows.
+//
+// Name of a saved length of whole hours.
+func SwitchLengthHours(hours int) string { return In(i18n.Locale()).SwitchLengthHours(hours) }
+
+// SwitchLengthHours says "{hours} h"
+// in the language of msgs.
+//
+// Name of a saved length of whole hours.
+func (msgs Messages) SwitchLengthHours(hours int) string {
+	return Catalog.Format(msgs.locale, "switchLengthHours", map[string]any{"hours": hours})
+}
+
+// SwitchLengthMinutes says "{minutes} min"
+// in the language the app shows.
+//
+// Name of a saved length under an hour.
+func SwitchLengthMinutes(minutes int) string { return In(i18n.Locale()).SwitchLengthMinutes(minutes) }
+
+// SwitchLengthMinutes says "{minutes} min"
+// in the language of msgs.
+//
+// Name of a saved length under an hour.
+func (msgs Messages) SwitchLengthMinutes(minutes int) string {
+	return Catalog.Format(msgs.locale, "switchLengthMinutes", map[string]any{"minutes": minutes})
+}
+
+// SwitchLengthBoth says "{hours} h {minutes} min"
+// in the language the app shows.
+//
+// Name of a saved length of hours and minutes.
+func SwitchLengthBoth(hours int, minutes int) string {
+	return In(i18n.Locale()).SwitchLengthBoth(hours, minutes)
+}
+
+// SwitchLengthBoth says "{hours} h {minutes} min"
+// in the language of msgs.
+//
+// Name of a saved length of hours and minutes.
+func (msgs Messages) SwitchLengthBoth(hours int, minutes int) string {
+	return Catalog.Format(msgs.locale, "switchLengthBoth", map[string]any{"hours": hours, "minutes": minutes})
 }
 
 // TrayActiveTooltip says "{app} · {tool} on"

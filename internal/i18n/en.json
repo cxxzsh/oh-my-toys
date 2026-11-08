@@ -40,6 +40,18 @@
   "@awakeFor2h": {
     "description": "Quick action."
   },
+  "awakeFor30m": "Keep awake for 30 minutes",
+  "@awakeFor30m": {
+    "description": "Quick action."
+  },
+  "awakeFor4h": "Keep awake for 4 hours",
+  "@awakeFor4h": {
+    "description": "Quick action."
+  },
+  "awakeFor8h": "Keep awake for 8 hours",
+  "@awakeFor8h": {
+    "description": "Quick action."
+  },
   "awakeUntilOff": "Keep awake until turned off",
   "@awakeUntilOff": {
     "description": "Quick action."
@@ -1137,6 +1149,56 @@
   "awakeForeverShort": "Forever",
   "@awakeForeverShort": {
     "description": "Keep Awake duration preset."
+  },
+  "awake30mShort": "30 Min",
+  "@awake30mShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "awake4hShort": "4 Hours",
+  "@awake4hShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "awake8hShort": "8 Hours",
+  "@awake8hShort": {
+    "description": "Keep Awake duration preset."
+  },
+  "switchSavePreset": "Save as preset",
+  "@switchSavePreset": {
+    "description": "Button that keeps the length typed in as a preset."
+  },
+  "switchRemovePreset": "Remove this preset",
+  "@switchRemovePreset": {
+    "description": "Tooltip of the button that removes a preset a person saved."
+  },
+  "switchLengthHours": "{hours} h",
+  "@switchLengthHours": {
+    "description": "Name of a saved length of whole hours.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "switchLengthMinutes": "{minutes} min",
+  "@switchLengthMinutes": {
+    "description": "Name of a saved length under an hour.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "switchLengthBoth": "{hours} h {minutes} min",
+  "@switchLengthBoth": {
+    "description": "Name of a saved length of hours and minutes.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
   },
   "trayActiveTooltip": "{app} · {tool} on",
   "@trayActiveTooltip": {

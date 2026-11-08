@@ -123,6 +123,9 @@ func (a *App) customForm(c *ui.Context, t tool.Timed, f *switchForm) {
 			submitted = a.lengthFields(c, f)
 		}
 		ui.Spacer(c)
+		if f.mode == holdLength {
+			a.saveButton(c, t, h.d)
+		}
 		ok := h.d > 0
 		opts := comp.ButtonOpts{Kind: comp.Primary, Disabled: !ok}
 		if a.kit.Button(c.Key("custom-start"), i18n.SwitchStart(), opts).Clicked() && ok {
@@ -133,6 +136,17 @@ func (a *App) customForm(c *ui.Context, t tool.Timed, f *switchForm) {
 		a.startFor(t, h.d)
 	}
 	a.customPreview(c, h)
+}
+
+// saveButton keeps the length typed in as a preset, when it is a length the
+// tool has no preset of. A time of day means another length each day, so it
+// is never kept.
+func (a *App) saveButton(c *ui.Context, t tool.Timed, d time.Duration) {
+	ok := d > 0 && !a.hasLength(t, d)
+	opts := comp.ButtonOpts{Kind: comp.Secondary, Disabled: !ok}
+	if a.kit.Button(c.Key("custom-save"), i18n.SwitchSavePreset(), opts).Clicked() && ok {
+		a.savePreset(t, d)
+	}
 }
 
 func (a *App) lengthFields(c *ui.Context, f *switchForm) (submitted bool) {

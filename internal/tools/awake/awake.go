@@ -17,11 +17,14 @@ const ID = "awake"
 
 // The IDs of the quick actions.
 const (
-	idHour     = "1h"
-	idTwoHours = "2h"
-	idUntilOff = "on"
-	idOff      = "off"
-	idCustom   = "custom" // a length or time of day the person typed, which has no quick action
+	idHalfHour   = "30m"
+	idHour       = "1h"
+	idTwoHours   = "2h"
+	idFourHours  = "4h"
+	idEightHours = "8h"
+	idUntilOff   = "on"
+	idOff        = "off"
+	idCustom     = "custom" // a length or time of day the person typed, which has no quick action
 )
 
 // reason is what the system lists as keeping the computer awake.
@@ -72,9 +75,21 @@ func (t *Tool) Manifest() tool.Manifest {
 		Keywords:  []string{"caffeinate", "keep awake", "amphetamine", "sleep", "不睡眠", "咖啡因"},
 		Platforms: []string{"macos", "windows", "linux"},
 		Actions: []tool.QuickAction{
-			{ID: idHour, Title: i18n.Messages.AwakeFor1h, Short: i18n.Messages.Awake1hShort, Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour)},
-			{ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Short: i18n.Messages.Awake2hShort, Run: t.runFor(idTwoHours, 2*time.Hour)},
-			{ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Short: i18n.Messages.AwakeForeverShort, Run: t.runFor(idUntilOff, 0)},
+			t.preset(idHalfHour, 30*time.Minute, i18n.Messages.AwakeFor30m, i18n.Messages.Awake30mShort),
+			{
+				ID: idHour, Title: i18n.Messages.AwakeFor1h, Short: i18n.Messages.Awake1hShort, Length: time.Hour, Tray: true,
+				Shortcut: "Alt+1", Run: t.runFor(idHour, time.Hour),
+			},
+			{
+				ID: idTwoHours, Title: i18n.Messages.AwakeFor2h, Short: i18n.Messages.Awake2hShort, Length: 2 * time.Hour,
+				Tray: true, Run: t.runFor(idTwoHours, 2*time.Hour),
+			},
+			t.preset(idFourHours, 4*time.Hour, i18n.Messages.AwakeFor4h, i18n.Messages.Awake4hShort),
+			t.preset(idEightHours, 8*time.Hour, i18n.Messages.AwakeFor8h, i18n.Messages.Awake8hShort),
+			{
+				ID: idUntilOff, Title: i18n.Messages.AwakeUntilOff, Short: i18n.Messages.AwakeForeverShort, Tray: true,
+				Run: t.runFor(idUntilOff, 0),
+			},
 			{ID: idOff, Title: i18n.Messages.AwakeTurnOff, Stops: true, Run: func(context.Context) error { return t.Stop() }},
 		},
 	}
@@ -91,6 +106,11 @@ func (t *Tool) runFor(id string, d time.Duration) func(context.Context) error {
 		t.start(id, d)
 		return nil
 	}
+}
+
+// preset is a quick action that keeps the computer awake for a length.
+func (t *Tool) preset(id string, d time.Duration, title, short tool.Message) tool.QuickAction {
+	return tool.QuickAction{ID: id, Title: title, Short: short, Length: d, Run: t.runFor(id, d)}
 }
 
 // Start keeps the computer awake with the settings used last.

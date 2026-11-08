@@ -16,12 +16,13 @@ import (
 )
 
 const (
-	modeShortTitle = "Short run"
-	modeLongTitle  = "Long run"
-	modeStopTitle  = "Stop it"
-	modeShortChip  = "Short"
-	modeLongChip   = "Long"
-	modeToolID     = "mode-switch"
+	modeShortTitle  = "Short run"
+	modeLongTitle   = "Long run"
+	modeStopTitle   = "Stop it"
+	modeShortChip   = "Short"
+	modeLongChip    = "Long"
+	modeToolID      = "mode-switch"
+	modeShortLength = 30 * time.Minute // what the fake's modes say they last
 )
 
 // modeSwitch is a switch tool with two modes and a quick action that stops
@@ -43,7 +44,8 @@ func (m *modeSwitch) Manifest() tool.Manifest {
 			return nil
 		}}
 		if short != "" {
-			qa.Short = titled(short)
+			qa.Short, qa.Tray = titled(short), true
+			qa.Length = modeShortLength
 		}
 		return qa
 	}
@@ -110,14 +112,14 @@ func modeSwitchPlan(t *testing.T, m *modeSwitch) (*App, *ui.Tester) {
 // and the plan on the second.
 func TestSwitchPageTabsShowOneThingAtATime(t *testing.T) {
 	_, tt := modeSwitchPage(t, &modeSwitch{})
-	if !tt.HasText(modeShortTitle) || tt.HasText(i18n.SwitchPlanEmpty()) {
+	if !tt.HasText(modeShortChip) || tt.HasText(i18n.SwitchPlanEmpty()) {
 		t.Errorf("the modes tab is not the one shown first: %q", tt.Texts())
 	}
 	if err := tt.Click(i18n.SwitchPlan()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if tt.HasText(modeShortTitle) || !tt.HasText(i18n.SwitchPlanEmpty()) {
+	if tt.HasText(modeShortChip) || !tt.HasText(i18n.SwitchPlanEmpty()) {
 		t.Errorf("the plan tab shows the modes, or not the plan: %q", tt.Texts())
 	}
 }
@@ -134,7 +136,7 @@ func TestSwitchPageShowsTheRunByItsState(t *testing.T) {
 		want     []string
 		wantNone []string
 	}{
-		{"off", tool.Status{}, []string{modeShortTitle, modeLongTitle, i18n.SwitchPickPreset()}, []string{modeStopTitle}},
+		{"off", tool.Status{}, []string{modeShortChip, modeLongChip, i18n.SwitchPickPreset()}, []string{modeStopTitle}},
 		{
 			"timed",
 			tool.Status{On: true, Active: "short", Since: now, Until: ends},
@@ -170,7 +172,7 @@ func TestSwitchPageShowsTheRunByItsState(t *testing.T) {
 func TestSwitchPagePresetsRunTheirActions(t *testing.T) {
 	m := &modeSwitch{st: tool.Status{On: true, Active: "short", Since: time.Now()}}
 	_, tt := modeSwitchPage(t, m)
-	for _, title := range []string{modeLongTitle, modeStopTitle} {
+	for _, title := range []string{modeLongChip, modeStopTitle} {
 		if err := tt.Click(title); err != nil {
 			t.Fatal(err)
 		}

@@ -3,6 +3,7 @@ package core
 import (
 	"slices"
 	"testing"
+	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
@@ -114,5 +115,36 @@ func TestDisplayChoiceSurvivesResetAndRestart(t *testing.T) {
 	}
 	if on, kept := got.Displays["awake"]; !kept || on {
 		t.Errorf("display choice after reset and reload: %v, kept %v, want false, kept", on, kept)
+	}
+}
+
+// TestPresetsAreSavedOnceAndKept: a length is saved once, in the order it
+// was saved, removing one that is not there changes nothing, and they come
+// back from the file after a sidebar reset.
+func TestPresetsAreSavedOnceAndKept(t *testing.T) {
+	var s Settings
+	s.RemovePreset("awake", time.Hour) // nothing saved yet
+	s.AddPreset("awake", 90*time.Minute)
+	s.AddPreset("awake", 45*time.Minute)
+	s.AddPreset("awake", 90*time.Minute)
+	s.AddPreset("awake", 0)
+	s.AddPreset("awake", 20*time.Second)
+	s.Reset(Settings{})
+
+	store := NewStore(t.TempDir())
+	if err := store.Save(s); err != nil {
+		t.Fatal(err)
+	}
+	got, err := store.Load(Settings{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []time.Duration{90 * time.Minute, 45 * time.Minute}; !slices.Equal(got.Presets("awake"), want) {
+		t.Fatalf("presets %v, want %v", got.Presets("awake"), want)
+	}
+	got.RemovePreset("awake", 90*time.Minute)
+	got.RemovePreset("awake", 45*time.Minute)
+	if len(got.Presets("awake")) != 0 || len(got.SavedPresets) != 0 {
+		t.Errorf("after removing both: %v", got.SavedPresets)
 	}
 }
