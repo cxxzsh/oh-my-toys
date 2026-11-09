@@ -14,24 +14,26 @@ const statusClassDivisor = 100
 // criteria is a filter ready for matching many flows: the collections kept
 // in the case they are compared in, so the work is done once per Rows.
 type criteria struct {
-	text    string
-	hosts   []string
-	methods []string
-	types   []string
-	classes []int
-	source  tool.FlowSource
-	failed  bool
+	text      string
+	hosts     []string
+	methods   []string
+	types     []string
+	classes   []int
+	processes []string
+	source    tool.FlowSource
+	failed    bool
 }
 
 func newCriteria(f tool.Filter) *criteria {
 	return &criteria{
-		text:    strings.ToLower(f.Text),
-		hosts:   lowerAll(f.Hosts),
-		methods: lowerAll(f.Methods),
-		types:   lowerAll(f.Types),
-		classes: f.StatusClasses,
-		source:  f.Source,
-		failed:  f.Failed,
+		text:      strings.ToLower(f.Text),
+		hosts:     lowerAll(f.Hosts),
+		methods:   lowerAll(f.Methods),
+		types:     lowerAll(f.Types),
+		classes:   f.StatusClasses,
+		processes: f.Processes,
+		source:    f.Source,
+		failed:    f.Failed,
 	}
 }
 
@@ -58,6 +60,9 @@ func (c *criteria) matches(fl *tool.Flow) bool {
 		return false
 	}
 	if len(c.types) > 0 && !anyPrefix(c.types, fl.Type) {
+		return false
+	}
+	if len(c.processes) > 0 && !anyEqualFold(c.processes, fl.Process.Name) {
 		return false
 	}
 	if len(c.hosts) > 0 && !c.hostMatches(fl.Host) {

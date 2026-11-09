@@ -16,7 +16,7 @@ import (
 // upstream, recording) and returns the ID of the flow it recorded, with
 // ReplayOf set when replayOf is not 0.
 func (s *Server) Do(ctx context.Context, req *http.Request, replayOf uint64) (uint64, error) {
-	m := meta{proto: protoHTTP11, replayOf: replayOf, headers: headerList(req.Header)}
+	m := meta{proto: protoHTTP11, replayOf: replayOf, headers: headerList(req.Header), program: s.self}
 	if req.URL != nil {
 		m.decrypted = strings.EqualFold(req.URL.Scheme, schemeHTTPS)
 	}

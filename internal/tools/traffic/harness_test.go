@@ -4,13 +4,16 @@ import (
 	"context"
 	"io"
 	"net"
+	"net/netip"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/platform/pcap"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/procnet"
 	"github.com/cxxzsh/oh-my-toys/internal/platform/sysproxy"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/terminal"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 )
 
@@ -55,6 +58,14 @@ type fakeSystem struct {
 
 	now      time.Time
 	onEnable func() // run inside Enable, before it answers
+	// owner answers which program owns a connection; nil means none does.
+	owner func(local, remote netip.AddrPort) (procnet.Process, error)
+	// caBundles are the system CA bundle files the fake machine has; none
+	// means a machine without one, such as Windows.
+	caBundles []string
+	// terminalVars are the variables of the last terminal opened.
+	terminalVars []terminal.Var
+	terminalErr  error
 }
 
 // record notes one call, in the order it happened.
@@ -188,7 +199,21 @@ func (f *fakeSystem) system() system {
 				return f.grant(ctx, reason)
 			},
 		},
-		now: f.clock,
+		now:       f.clock,
+		caBundles: f.caBundles,
+		owner: func(local, remote netip.AddrPort) (procnet.Process, error) {
+			if f.owner == nil {
+				return procnet.Process{}, procnet.ErrNotFound
+			}
+			return f.owner(local, remote)
+		},
+		openTerminal: func(_ context.Context, vars []terminal.Var) error {
+			f.record("terminal")
+			f.mu.Lock()
+			f.terminalVars = vars
+			f.mu.Unlock()
+			return f.terminalErr
+		},
 	}
 }
 

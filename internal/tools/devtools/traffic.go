@@ -25,6 +25,20 @@ const trafficTick = time.Second
 // trafficNotify is how often a log wakes the page that watches it.
 const trafficNotify = 100 * time.Millisecond
 
+// cannedPrograms are the programs that open the made-up flows, in turn. The
+// last one opens nothing, so a flow with no program shows too.
+var cannedPrograms = []tool.Program{
+	{PID: 4120, Name: "Safari", Path: "/Applications/Safari.app/Contents/MacOS/Safari"},
+	{PID: 2231, Name: "Slack", Path: "/Applications/Slack.app/Contents/MacOS/Slack"},
+	{PID: 9087, Name: "curl", Path: "/usr/bin/curl"},
+	{},
+}
+
+// cannedProgram is the program that opened the made-up flow with the id.
+func cannedProgram(id uint64) tool.Program {
+	return cannedPrograms[id%uint64(len(cannedPrograms))]
+}
+
 // Traffic is a made-up traffic tool: canned flows and packets, settings in
 // memory, and a certificate that comes and goes as it is installed and
 // removed. It exists so that the inspector page can be run and looked at,
@@ -139,6 +153,54 @@ func (t *Traffic) Log() tool.FlowLog {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	return t.logLocked()
+}
+
+// Environment is what a program needs to go through the made-up proxy. It
+// fails as the real tool does when the proxy is not running, or in packet
+// mode.
+func (t *Traffic) Environment() (tool.Environment, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if err := t.proxyReadyLocked(); err != nil {
+		return tool.Environment{}, err
+	}
+	return fakeEnvironment(t.cfg.ProxyPort), nil
+}
+
+// OpenTerminal opens nothing, as the made-up tool has no terminal to open;
+// it fails as Environment does.
+func (t *Traffic) OpenTerminal(context.Context) error {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.proxyReadyLocked()
+}
+
+// proxyReadyLocked is nil while the made-up proxy runs, ErrUnsupportedHere
+// in packet mode and ErrNotRunning otherwise; the caller holds mu.
+func (t *Traffic) proxyReadyLocked() error {
+	if t.cfg.Mode == tool.ModePackets {
+		return tool.ErrUnsupportedHere
+	}
+	if !t.on {
+		return tool.ErrNotRunning
+	}
+	return nil
+}
+
+// fakeEnvironment sets the proxy variables, as a POSIX shell reads them.
+func fakeEnvironment(port int) tool.Environment {
+	proxy := fmt.Sprintf("http://127.0.0.1:%d", port)
+	vars := []tool.Header{
+		{Name: "http_proxy", Value: proxy},
+		{Name: "https_proxy", Value: proxy},
+		{Name: "all_proxy", Value: proxy},
+		{Name: "no_proxy", Value: "localhost,127.0.0.1"},
+	}
+	var script strings.Builder
+	for _, v := range vars {
+		fmt.Fprintf(&script, "export %s=%s\n", v.Name, v.Value)
+	}
+	return tool.Environment{Vars: vars, Script: script.String(), Shell: "sh"}
 }
 
 // logLocked picks the log of the mode in progress; the caller holds mu.
@@ -352,6 +414,9 @@ func (l *fakeLog) add(f tool.Flow) uint64 {
 	l.mu.Lock()
 	id := l.nextIDLocked()
 	f.ID = id
+	if f.Process == (tool.Program{}) {
+		f.Process = cannedProgram(id)
+	}
 	l.flows = append(l.flows, f)
 	l.version++
 	l.mu.Unlock()
@@ -373,6 +438,20 @@ func (l *fakeLog) count() int {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return len(l.flows)
+}
+
+// Processes counts the flows by the program that opened them.
+func (l *fakeLog) Processes() []tool.Facet {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return countFacets(l.flows, func(f tool.Flow) string { return f.Process.Name })
+}
+
+// Hosts counts the flows by host.
+func (l *fakeLog) Hosts() []tool.Facet {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return countFacets(l.flows, func(f tool.Flow) string { return f.Host })
 }
 
 // snapshot copies the flows with the given ids, or all of them.
@@ -419,6 +498,36 @@ func (l *fakeLog) wake() {
 	}
 }
 
+// countFacets counts the flows by the name that name gives them, grouping
+// names ignoring case and keeping the first spelling; a flow with no name
+// is left out. The most flows come first, then the names in order.
+func countFacets(flows []tool.Flow, name func(tool.Flow) string) []tool.Facet {
+	byKey := map[string]*tool.Facet{}
+	for _, f := range flows {
+		n := name(f)
+		if n == "" {
+			continue
+		}
+		key := strings.ToLower(n)
+		if c, ok := byKey[key]; ok {
+			c.Count++
+			continue
+		}
+		byKey[key] = &tool.Facet{Name: n, Count: 1}
+	}
+	out := make([]tool.Facet, 0, len(byKey))
+	for _, c := range byKey {
+		out = append(out, *c)
+	}
+	slices.SortFunc(out, func(a, b tool.Facet) int {
+		if a.Count != b.Count {
+			return b.Count - a.Count
+		}
+		return strings.Compare(a.Name, b.Name)
+	})
+	return out
+}
+
 // trafficMatch is what the made-up log's filters do: the same things the
 // real one promises.
 func trafficMatch(f tool.Flow, filter tool.Filter) bool {
@@ -428,6 +537,19 @@ func trafficMatch(f tool.Flow, filter tool.Filter) bool {
 	if filter.Text != "" && !trafficText(f, strings.ToLower(filter.Text)) {
 		return false
 	}
+	if len(filter.StatusClasses) > 0 && !slices.Contains(filter.StatusClasses, f.Status/100) {
+		return false
+	}
+	if !trafficNamesMatch(f, filter) {
+		return false
+	}
+	return !filter.Failed || f.State == tool.FlowFailed || f.State == tool.FlowBlocked
+}
+
+// trafficNamesMatch is what the made-up log's list filters do: the hosts,
+// methods, media types and programs, each of which matches any of its
+// entries.
+func trafficNamesMatch(f tool.Flow, filter tool.Filter) bool {
 	if len(filter.Hosts) > 0 && !slices.ContainsFunc(filter.Hosts, func(h string) bool {
 		return strings.EqualFold(h, f.Host)
 	}) {
@@ -441,10 +563,9 @@ func trafficMatch(f tool.Flow, filter tool.Filter) bool {
 	}) {
 		return false
 	}
-	if len(filter.StatusClasses) > 0 && !slices.Contains(filter.StatusClasses, f.Status/100) {
-		return false
-	}
-	return !filter.Failed || f.State == tool.FlowFailed || f.State == tool.FlowBlocked
+	return len(filter.Processes) == 0 || slices.ContainsFunc(filter.Processes, func(p string) bool {
+		return strings.EqualFold(p, f.Process.Name)
+	})
 }
 
 // trafficText reports whether the lowered text is in the flow's URL, its

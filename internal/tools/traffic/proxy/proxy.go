@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/netip"
 	"net/url"
 	"sync"
 	"time"
@@ -59,6 +60,14 @@ type Options struct {
 	// go through (scheme http; credentials in its userinfo). TLS tunnels
 	// still dial the target through Dial.
 	UpstreamProxy *url.URL
+	// Program names the process that owns a client connection. It is asked
+	// once per connection and may be slow; see programWait. Nil: programs
+	// are unknown.
+	Program func(client netip.AddrPort) tool.Program
+	// Scope limits recording and decryption to the named programs
+	// (case-insensitive). Empty: everything is recorded. When set, a
+	// connection whose program is unknown is not recorded either.
+	Scope []string
 }
 
 // Server is the proxy. It is safe to use from any goroutine.
@@ -81,6 +90,11 @@ type Server struct {
 	stopping bool
 	conns    map[net.Conn]struct{}
 	wg       sync.WaitGroup
+
+	// scope is the normalized Options.Scope; self is the program this
+	// process runs as, which owns the flows the proxy sends itself.
+	scope []string
+	self  tool.Program
 
 	stopOnce sync.Once
 }
@@ -146,6 +160,8 @@ func New(o Options) (*Server, error) {
 		conns:               make(map[net.Conn]struct{}),
 		responseHeadTimeout: responseHeadTimeoutDefault,
 		handshakeTimeout:    handshakeTimeoutDefault,
+		scope:               normalizeScope(o.Scope),
+		self:                selfProgram(),
 	}, nil
 }
 
@@ -288,11 +304,13 @@ func (s *Server) handle(ctx context.Context, conn net.Conn) {
 				Source:  tool.SourceProxy,
 				Started: time.Now(),
 				Proto:   protoHTTP11,
+				Process: programOf(ctx),
 				State:   tool.FlowFailed,
 				Info:    fmt.Sprintf("proxy error: %v", recovered),
 			}})
 		}
 		_ = conn.Close()
 	}()
+	ctx = withProgram(ctx, s.resolve(conn.RemoteAddr()))
 	s.serveConn(ctx, conn)
 }

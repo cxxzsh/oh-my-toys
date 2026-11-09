@@ -32,6 +32,9 @@ type Log struct {
 	bodyBytes    int64
 	version      uint64
 	cache        *cachedRows
+	processes    facetTally
+	hosts        facetTally
+	facets       *facetSnapshot
 	subscribers  []*subscriber
 	wake         chan struct{}
 	quit         chan struct{}
@@ -61,6 +64,8 @@ func New(maxFlows int, maxBodyBytes int64) *Log {
 		maxBodyBytes: maxBodyBytes,
 		order:        list.New(),
 		byID:         make(map[uint64]*flowEntry, maxFlows),
+		processes:    facetTally{},
+		hosts:        facetTally{},
 		wake:         make(chan struct{}, 1),
 	}
 }
@@ -87,6 +92,7 @@ func (l *Log) Put(f tool.Flow) uint64 {
 // append adds f, whose ID is already fixed, as the newest flow.
 func (l *Log) append(f tool.Flow) *flowEntry {
 	e := &flowEntry{flow: f, bytes: bodyBytes(f)}
+	l.tally(&f, 1)
 	e.elem = l.order.PushBack(e)
 	l.byID[f.ID] = e
 	l.bodyBytes += e.bytes
@@ -106,6 +112,8 @@ func (l *Log) replace(f tool.Flow) *flowEntry {
 		return nil
 	}
 	size := bodyBytes(f)
+	l.tally(&e.flow, -1)
+	l.tally(&f, 1)
 	l.bodyBytes += size - e.bytes
 	e.flow = f
 	e.bytes = size
@@ -173,6 +181,7 @@ func (l *Log) oldest(skip *flowEntry) *flowEntry {
 func (l *Log) remove(e *flowEntry) {
 	l.order.Remove(e.elem)
 	delete(l.byID, e.flow.ID)
+	l.tally(&e.flow, -1)
 	l.bodyBytes -= e.bytes
 	l.version++
 }
@@ -198,6 +207,8 @@ func (l *Log) Len() int {
 func (l *Log) Clear() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	l.processes = facetTally{}
+	l.hosts = facetTally{}
 	l.order.Init()
 	l.byID = make(map[uint64]*flowEntry, l.capacity)
 	l.bodyBytes = 0

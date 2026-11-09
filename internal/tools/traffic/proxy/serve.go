@@ -61,7 +61,7 @@ func (s *Server) plain(ctx context.Context, conn net.Conn, br *bufio.Reader, req
 		_ = writeSimple(conn, http.StatusBadRequest)
 		return false
 	}
-	m := meta{proto: protoHTTP11, headers: headers}
+	m := meta{proto: protoHTTP11, headers: headers, program: programOf(ctx)}
 	rp := &reply{
 		write: writeHTTP1(conn), //nolint:bodyclose // writeHTTP1 closes the body it writes.
 		abort: func() { _ = conn.Close() },
@@ -78,6 +78,9 @@ func (s *Server) plain(ctx context.Context, conn net.Conn, br *bufio.Reader, req
 // and writes the answer with rp.
 func (s *Server) serve(ctx context.Context, req *http.Request, m meta, rp *reply) (id uint64, err error) {
 	started := time.Now()
+	if m.replayOf == 0 && !s.inScope(m.program) {
+		return 0, s.passThrough(ctx, req, rp)
+	}
 	flow := newFlow(req, m, started)
 	flow.ID = s.put(flow)
 	defer func() {

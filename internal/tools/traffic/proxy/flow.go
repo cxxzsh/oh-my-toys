@@ -20,6 +20,7 @@ type meta struct {
 	tlsVersion string
 	headers    []tool.Header
 	replayOf   uint64
+	program    tool.Program
 	// tunnelHost is the host a decrypted tunnel was opened for; a request
 	// for another host inside it is refused.
 	tunnelHost string
@@ -50,6 +51,7 @@ func newFlow(req *http.Request, m meta, started time.Time) tool.Flow {
 			Host:    requestHost(req),
 			Path:    requestPath(req),
 			Proto:   m.proto,
+			Process: m.program,
 			State:   tool.FlowOpen,
 		},
 		Request:    tool.HTTPMessage{Headers: m.headers},

@@ -48,6 +48,7 @@ func (t *Tool) loadConfig() tool.CaptureConfig {
 		return defaultConfig()
 	}
 	c.Bypass = nonEmpty(c.Bypass)
+	c.Scope = nonEmpty(c.Scope)
 	if err := validateConfig(c); err != nil {
 		log.Printf("traffic: %v; capturing with the defaults", err)
 		return defaultConfig()
@@ -62,6 +63,7 @@ func (t *Tool) SetConfig(c tool.CaptureConfig) error {
 		return err
 	}
 	c.Bypass = slices.Clone(c.Bypass)
+	c.Scope = slices.Clone(c.Scope)
 	t.opMu.Lock()
 	defer t.opMu.Unlock()
 	old := t.Config()
@@ -103,6 +105,9 @@ func validateConfig(c tool.CaptureConfig) error {
 	if i := slices.IndexFunc(c.Bypass, blank); i >= 0 {
 		return fmt.Errorf("%w: the bypass entry %d is empty", ErrBadConfig, i+1)
 	}
+	if i := slices.IndexFunc(c.Scope, blank); i >= 0 {
+		return fmt.Errorf("%w: the scope entry %d is empty", ErrBadConfig, i+1)
+	}
 	return nil
 }
 
@@ -115,7 +120,8 @@ func sameConfig(a, b tool.CaptureConfig) bool {
 		a.Decrypt == b.Decrypt &&
 		a.Interface == b.Interface &&
 		a.Upstream == b.Upstream &&
-		slices.Equal(a.Bypass, b.Bypass)
+		slices.Equal(a.Bypass, b.Bypass) &&
+		slices.Equal(a.Scope, b.Scope)
 }
 
 // blank reports whether a pattern is empty or only spaces.
