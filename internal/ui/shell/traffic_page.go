@@ -82,8 +82,8 @@ type trafficState struct {
 	sources    int // the sources column: by width, or shown or hidden by a person
 	total      int // the flows the log holds, before any filter narrows them
 	rules      ruleView
-	sel        int // the chosen row, -1 for none
-	selSeen    int // the choice of the last frame, to tell a new one
+	sel        int    // the chosen row, -1 for none
+	selID      uint64 // the chosen flow; sel is its row
 	list       ui.ListState
 	follow     bool
 	splitP     float32 // the list's share of the width beside the detail, percent
@@ -211,7 +211,7 @@ func (st *trafficState) apply(o trafficOutcome) {
 // end, no row chosen, and the split at the design system's sizes.
 func newTrafficState() trafficState {
 	return trafficState{
-		sel: -1, selSeen: -1, follow: true, autoSelect: true,
+		sel: -1, follow: true, autoSelect: true,
 		splitP: listSplitPercent, splitV: listSplitVPercent,
 		rulesSplit: ds.TrafficRulesList,
 	}
@@ -273,7 +273,8 @@ func (a *App) trafficLog(t tool.Traffic, st *trafficState) {
 		st.stop = nil
 	}
 	st.log = log
-	st.rows, st.fetched, st.sel = nil, false, -1
+	st.rows, st.fetched = nil, false
+	st.sel, st.selID = -1, 0
 	st.detailID, st.detail, st.hasDetail = 0, tool.Flow{}, false
 	st.list = ui.ListState{}
 	st.picked, st.autoID = false, 0
@@ -478,26 +479,15 @@ func (st *trafficState) sync() {
 		st.pending = 0
 		st.picked = true
 	}
+	st.followChoice()
 	st.selectNewest()
 	st.keepChoice()
 }
 
-// keepChoice keeps the choice by flow, and loads the chosen flow again
-// while it is still arriving, so that a filter or a new arrival does not
-// quietly show another flow's detail.
+// keepChoice loads the chosen flow's detail, and loads it again while the
+// flow is still arriving, so that a filter or a new arrival does not quietly
+// show another flow's detail.
 func (st *trafficState) keepChoice() {
-	// A new choice wins over the flow the detail still shows: keeping the
-	// old flow by id is for rows moving under it, not for a click.
-	if st.sel != st.selSeen {
-		st.selSeen = st.sel
-		st.detailID, st.hasDetail = 0, false
-	}
-	if st.detailID != 0 {
-		if i := st.indexOf(st.detailID); i >= 0 {
-			st.sel = i
-		}
-	}
-	st.sel = max(-1, min(st.sel, len(st.rows)-1))
 	if st.sel < 0 {
 		st.hasDetail, st.detailID = false, 0
 		return
@@ -540,11 +530,36 @@ func (st *trafficState) indexOf(id uint64) int {
 	return -1
 }
 
-// selectID chooses a flow and brings its row into view, once the rows
-// hold it.
+// followChoice finds the chosen flow among the rows now, so that a filter or
+// a new arrival moves the choice with its flow. A flow the rows no longer
+// hold is let go, and Auto select may choose the newest row again.
+func (st *trafficState) followChoice() {
+	if st.selID == 0 {
+		st.sel = -1
+		return
+	}
+	if i := st.indexOf(st.selID); i >= 0 {
+		st.sel = i
+		return
+	}
+	st.setSel(-1)
+	st.autoID = 0
+}
+
+// setSel chooses row i and the flow it shows. An index with no row clears the
+// choice.
+func (st *trafficState) setSel(i int) {
+	if i < 0 || i >= len(st.rows) {
+		st.sel, st.selID = -1, 0
+		return
+	}
+	st.sel, st.selID = i, st.rows[i].ID
+}
+
+// selectID chooses a flow and brings its row into view, once the rows hold it.
 func (st *trafficState) selectID(id uint64) {
 	if i := st.indexOf(id); i >= 0 {
-		st.sel = i
+		st.setSel(i)
 		st.list.ScrollIntoView(i)
 		return
 	}

@@ -853,6 +853,9 @@ func (r *trafficRun) filter() error {
 	if err := r.expectFlow("flow after program", true); err != nil {
 		return err
 	}
+	if err := r.waitDetail(); err != nil {
+		return fmt.Errorf("the detail was lost when the list was filtered by program: %w", err)
+	}
 	if err := r.chipFilter(); err != nil {
 		return err
 	}

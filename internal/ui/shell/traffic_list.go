@@ -178,6 +178,7 @@ func (a *App) trafficList(c *ui.Context, t tool.Traffic, st *trafficState, cols 
 	st.listKeys(lst)
 	if lst.Changed() {
 		st.picked = true
+		st.setSel(st.sel)
 	}
 	// Scrolling up is how a person stops following the end; the list
 	// reports it once it has settled.
@@ -355,7 +356,8 @@ func methodColor(p *ds.Palette, method string) ui.Color {
 // by hand, so that Auto select stops taking the choice away.
 func (st *trafficState) choose(i int) {
 	i = max(0, min(i, len(st.rows)-1))
-	st.sel, st.picked = i, true
+	st.setSel(i)
+	st.picked = true
 	st.list.ScrollIntoView(i)
 }
 
@@ -365,7 +367,8 @@ func (st *trafficState) choose(i int) {
 func (st *trafficState) listKeys(lst ui.Element) {
 	switch {
 	case lst.Shortcut(0, ui.KeyEscape):
-		st.sel, st.picked = -1, false
+		st.setSel(-1)
+		st.picked = false
 	case runtime.GOOS == "darwin" && lst.Shortcut(0, ui.KeyPageDown):
 		st.choose(max(0, st.sel) + st.pageRows())
 	case runtime.GOOS == "darwin" && lst.Shortcut(0, ui.KeyPageUp):
@@ -391,5 +394,5 @@ func (st *trafficState) selectNewest() {
 		return
 	}
 	st.autoID = st.rows[last].ID
-	st.sel, st.detailID, st.hasDetail = last, 0, false
+	st.setSel(last)
 }
