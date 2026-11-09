@@ -4290,6 +4290,386 @@ func (msgs Messages) TrafficSummary() string {
 	return Catalog.Format(msgs.locale, "trafficSummary", nil)
 }
 
+// TrafficSettings says "Traffic Settings"
+// in the language the app shows.
+//
+// Toolbar button that opens the traffic settings.
+func TrafficSettings() string { return In(i18n.Locale()).TrafficSettings() }
+
+// TrafficSettings says "Traffic Settings"
+// in the language of msgs.
+//
+// Toolbar button that opens the traffic settings.
+func (msgs Messages) TrafficSettings() string {
+	return Catalog.Format(msgs.locale, "trafficSettings", nil)
+}
+
+// TrafficSettingsTitle says "Traffic Settings"
+// in the language the app shows.
+//
+// Title of the traffic settings dialog.
+func TrafficSettingsTitle() string { return In(i18n.Locale()).TrafficSettingsTitle() }
+
+// TrafficSettingsTitle says "Traffic Settings"
+// in the language of msgs.
+//
+// Title of the traffic settings dialog.
+func (msgs Messages) TrafficSettingsTitle() string {
+	return Catalog.Format(msgs.locale, "trafficSettingsTitle", nil)
+}
+
+// TrafficSettingsDone says "Done"
+// in the language the app shows.
+//
+// Button that closes the traffic settings dialog.
+func TrafficSettingsDone() string { return In(i18n.Locale()).TrafficSettingsDone() }
+
+// TrafficSettingsDone says "Done"
+// in the language of msgs.
+//
+// Button that closes the traffic settings dialog.
+func (msgs Messages) TrafficSettingsDone() string {
+	return Catalog.Format(msgs.locale, "trafficSettingsDone", nil)
+}
+
+// TrafficCaptureTitle says "Capture a Program"
+// in the language the app shows.
+//
+// Section title for capturing one program's traffic.
+func TrafficCaptureTitle() string { return In(i18n.Locale()).TrafficCaptureTitle() }
+
+// TrafficCaptureTitle says "Capture a Program"
+// in the language of msgs.
+//
+// Section title for capturing one program's traffic.
+func (msgs Messages) TrafficCaptureTitle() string {
+	return Catalog.Format(msgs.locale, "trafficCaptureTitle", nil)
+}
+
+// TrafficCaptureHint says "Programs that ignore the system proxy send nothing here. Open a terminal with the proxy set, and start them from it."
+// in the language the app shows.
+//
+// Explains why some programs need a terminal started with the proxy.
+func TrafficCaptureHint() string { return In(i18n.Locale()).TrafficCaptureHint() }
+
+// TrafficCaptureHint says "Programs that ignore the system proxy send nothing here. Open a terminal with the proxy set, and start them from it."
+// in the language of msgs.
+//
+// Explains why some programs need a terminal started with the proxy.
+func (msgs Messages) TrafficCaptureHint() string {
+	return Catalog.Format(msgs.locale, "trafficCaptureHint", nil)
+}
+
+// TrafficOpenTerminal says "Open Terminal with Proxy"
+// in the language the app shows.
+//
+// Button that opens a terminal whose environment routes through the proxy.
+func TrafficOpenTerminal() string { return In(i18n.Locale()).TrafficOpenTerminal() }
+
+// TrafficOpenTerminal says "Open Terminal with Proxy"
+// in the language of msgs.
+//
+// Button that opens a terminal whose environment routes through the proxy.
+func (msgs Messages) TrafficOpenTerminal() string {
+	return Catalog.Format(msgs.locale, "trafficOpenTerminal", nil)
+}
+
+// TrafficCopyEnv says "Copy Proxy Environment"
+// in the language the app shows.
+//
+// Button that copies the proxy environment variables.
+func TrafficCopyEnv() string { return In(i18n.Locale()).TrafficCopyEnv() }
+
+// TrafficCopyEnv says "Copy Proxy Environment"
+// in the language of msgs.
+//
+// Button that copies the proxy environment variables.
+func (msgs Messages) TrafficCopyEnv() string {
+	return Catalog.Format(msgs.locale, "trafficCopyEnv", nil)
+}
+
+// TrafficEnvCopied says "Copied the proxy environment"
+// in the language the app shows.
+//
+// Toast after the proxy environment is copied.
+func TrafficEnvCopied() string { return In(i18n.Locale()).TrafficEnvCopied() }
+
+// TrafficEnvCopied says "Copied the proxy environment"
+// in the language of msgs.
+//
+// Toast after the proxy environment is copied.
+func (msgs Messages) TrafficEnvCopied() string {
+	return Catalog.Format(msgs.locale, "trafficEnvCopied", nil)
+}
+
+// TrafficPrograms says "Programs"
+// in the language the app shows.
+//
+// Sidebar section listing the programs that sent traffic.
+func TrafficPrograms() string { return In(i18n.Locale()).TrafficPrograms() }
+
+// TrafficPrograms says "Programs"
+// in the language of msgs.
+//
+// Sidebar section listing the programs that sent traffic.
+func (msgs Messages) TrafficPrograms() string {
+	return Catalog.Format(msgs.locale, "trafficPrograms", nil)
+}
+
+// TrafficHosts says "Hosts"
+// in the language the app shows.
+//
+// Sidebar section listing the hosts that received traffic.
+func TrafficHosts() string { return In(i18n.Locale()).TrafficHosts() }
+
+// TrafficHosts says "Hosts"
+// in the language of msgs.
+//
+// Sidebar section listing the hosts that received traffic.
+func (msgs Messages) TrafficHosts() string {
+	return Catalog.Format(msgs.locale, "trafficHosts", nil)
+}
+
+// TrafficAllPrograms says "All Programs"
+// in the language the app shows.
+//
+// Sidebar entry that shows flows of every program.
+func TrafficAllPrograms() string { return In(i18n.Locale()).TrafficAllPrograms() }
+
+// TrafficAllPrograms says "All Programs"
+// in the language of msgs.
+//
+// Sidebar entry that shows flows of every program.
+func (msgs Messages) TrafficAllPrograms() string {
+	return Catalog.Format(msgs.locale, "trafficAllPrograms", nil)
+}
+
+// TrafficAllHosts says "All Hosts"
+// in the language the app shows.
+//
+// Sidebar entry that shows flows to every host.
+func TrafficAllHosts() string { return In(i18n.Locale()).TrafficAllHosts() }
+
+// TrafficAllHosts says "All Hosts"
+// in the language of msgs.
+//
+// Sidebar entry that shows flows to every host.
+func (msgs Messages) TrafficAllHosts() string {
+	return Catalog.Format(msgs.locale, "trafficAllHosts", nil)
+}
+
+// TrafficShowOnly says "Show Only This Program"
+// in the language the app shows.
+//
+// Menu item that narrows the list to one program.
+func TrafficShowOnly() string { return In(i18n.Locale()).TrafficShowOnly() }
+
+// TrafficShowOnly says "Show Only This Program"
+// in the language of msgs.
+//
+// Menu item that narrows the list to one program.
+func (msgs Messages) TrafficShowOnly() string {
+	return Catalog.Format(msgs.locale, "trafficShowOnly", nil)
+}
+
+// TrafficCaptureOnly says "Capture Only This Program"
+// in the language the app shows.
+//
+// Menu item that records only one program's traffic.
+func TrafficCaptureOnly() string { return In(i18n.Locale()).TrafficCaptureOnly() }
+
+// TrafficCaptureOnly says "Capture Only This Program"
+// in the language of msgs.
+//
+// Menu item that records only one program's traffic.
+func (msgs Messages) TrafficCaptureOnly() string {
+	return Catalog.Format(msgs.locale, "trafficCaptureOnly", nil)
+}
+
+// TrafficHostsMore says "Showing the top {shown} of {total} hosts"
+// in the language the app shows.
+//
+// Hint under a truncated host list.
+func TrafficHostsMore(shown string, total string) string {
+	return In(i18n.Locale()).TrafficHostsMore(shown, total)
+}
+
+// TrafficHostsMore says "Showing the top {shown} of {total} hosts"
+// in the language of msgs.
+//
+// Hint under a truncated host list.
+func (msgs Messages) TrafficHostsMore(shown string, total string) string {
+	return Catalog.Format(msgs.locale, "trafficHostsMore", map[string]any{"shown": shown, "total": total})
+}
+
+// TrafficScopeChip says "Capturing {names}"
+// in the language the app shows.
+//
+// Toolbar chip naming the programs being captured.
+func TrafficScopeChip(names string) string { return In(i18n.Locale()).TrafficScopeChip(names) }
+
+// TrafficScopeChip says "Capturing {names}"
+// in the language of msgs.
+//
+// Toolbar chip naming the programs being captured.
+func (msgs Messages) TrafficScopeChip(names string) string {
+	return Catalog.Format(msgs.locale, "trafficScopeChip", map[string]any{"names": names})
+}
+
+// TrafficScopeClear says "Capture All Programs"
+// in the language the app shows.
+//
+// Tooltip on the scope chip that clears the scope.
+func TrafficScopeClear() string { return In(i18n.Locale()).TrafficScopeClear() }
+
+// TrafficScopeClear says "Capture All Programs"
+// in the language of msgs.
+//
+// Tooltip on the scope chip that clears the scope.
+func (msgs Messages) TrafficScopeClear() string {
+	return Catalog.Format(msgs.locale, "trafficScopeClear", nil)
+}
+
+// TrafficFlowCount says "{count, plural, =0 {No flows} one {# flow} other {# flows}}"
+// in the language the app shows.
+//
+// Flow count in the toolbar.
+func TrafficFlowCount(count int) string { return In(i18n.Locale()).TrafficFlowCount(count) }
+
+// TrafficFlowCount says "{count, plural, =0 {No flows} one {# flow} other {# flows}}"
+// in the language of msgs.
+//
+// Flow count in the toolbar.
+func (msgs Messages) TrafficFlowCount(count int) string {
+	return Catalog.Format(msgs.locale, "trafficFlowCount", map[string]any{"count": count})
+}
+
+// TrafficColProgram says "Program"
+// in the language the app shows.
+//
+// Column header for the program that opened a flow.
+func TrafficColProgram() string { return In(i18n.Locale()).TrafficColProgram() }
+
+// TrafficColProgram says "Program"
+// in the language of msgs.
+//
+// Column header for the program that opened a flow.
+func (msgs Messages) TrafficColProgram() string {
+	return Catalog.Format(msgs.locale, "trafficColProgram", nil)
+}
+
+// TrafficGuideTitle says "Capture Your First Request"
+// in the language the app shows.
+//
+// Title of the first-run guide.
+func TrafficGuideTitle() string { return In(i18n.Locale()).TrafficGuideTitle() }
+
+// TrafficGuideTitle says "Capture Your First Request"
+// in the language of msgs.
+//
+// Title of the first-run guide.
+func (msgs Messages) TrafficGuideTitle() string {
+	return Catalog.Format(msgs.locale, "trafficGuideTitle", nil)
+}
+
+// TrafficGuideBody says "Requests appear here once a program sends traffic through the proxy."
+// in the language the app shows.
+//
+// Body text of the first-run guide.
+func TrafficGuideBody() string { return In(i18n.Locale()).TrafficGuideBody() }
+
+// TrafficGuideBody says "Requests appear here once a program sends traffic through the proxy."
+// in the language of msgs.
+//
+// Body text of the first-run guide.
+func (msgs Messages) TrafficGuideBody() string {
+	return Catalog.Format(msgs.locale, "trafficGuideBody", nil)
+}
+
+// TrafficGuideCert says "Install and trust the certificate"
+// in the language the app shows.
+//
+// First-run guide step: certificate trusted.
+func TrafficGuideCert() string { return In(i18n.Locale()).TrafficGuideCert() }
+
+// TrafficGuideCert says "Install and trust the certificate"
+// in the language of msgs.
+//
+// First-run guide step: certificate trusted.
+func (msgs Messages) TrafficGuideCert() string {
+	return Catalog.Format(msgs.locale, "trafficGuideCert", nil)
+}
+
+// TrafficGuideProxy says "Set the system proxy"
+// in the language the app shows.
+//
+// First-run guide step: system proxy set.
+func TrafficGuideProxy() string { return In(i18n.Locale()).TrafficGuideProxy() }
+
+// TrafficGuideProxy says "Set the system proxy"
+// in the language of msgs.
+//
+// First-run guide step: system proxy set.
+func (msgs Messages) TrafficGuideProxy() string {
+	return Catalog.Format(msgs.locale, "trafficGuideProxy", nil)
+}
+
+// TrafficGuideStart says "Start the capture"
+// in the language the app shows.
+//
+// First-run guide step: capture running.
+func TrafficGuideStart() string { return In(i18n.Locale()).TrafficGuideStart() }
+
+// TrafficGuideStart says "Start the capture"
+// in the language of msgs.
+//
+// First-run guide step: capture running.
+func (msgs Messages) TrafficGuideStart() string {
+	return Catalog.Format(msgs.locale, "trafficGuideStart", nil)
+}
+
+// TrafficGuideOr says "or start a program from Settings"
+// in the language the app shows.
+//
+// First-run guide hint: the other way to capture, from Settings.
+func TrafficGuideOr() string { return In(i18n.Locale()).TrafficGuideOr() }
+
+// TrafficGuideOr says "or start a program from Settings"
+// in the language of msgs.
+//
+// First-run guide hint: the other way to capture, from Settings.
+func (msgs Messages) TrafficGuideOr() string {
+	return Catalog.Format(msgs.locale, "trafficGuideOr", nil)
+}
+
+// TrafficErrNotRunningTitle says "The capture is not running"
+// in the language the app shows.
+//
+// Problem title when a terminal is requested while the proxy is off.
+func TrafficErrNotRunningTitle() string { return In(i18n.Locale()).TrafficErrNotRunningTitle() }
+
+// TrafficErrNotRunningTitle says "The capture is not running"
+// in the language of msgs.
+//
+// Problem title when a terminal is requested while the proxy is off.
+func (msgs Messages) TrafficErrNotRunningTitle() string {
+	return Catalog.Format(msgs.locale, "trafficErrNotRunningTitle", nil)
+}
+
+// TrafficErrNotRunningSteps says "1. Press Start in the toolbar. 2. Open the terminal again."
+// in the language the app shows.
+//
+// Problem steps when a terminal is requested while the proxy is off.
+func TrafficErrNotRunningSteps() string { return In(i18n.Locale()).TrafficErrNotRunningSteps() }
+
+// TrafficErrNotRunningSteps says "1. Press Start in the toolbar. 2. Open the terminal again."
+// in the language of msgs.
+//
+// Problem steps when a terminal is requested while the proxy is off.
+func (msgs Messages) TrafficErrNotRunningSteps() string {
+	return Catalog.Format(msgs.locale, "trafficErrNotRunningSteps", nil)
+}
+
 // TrafficModeProxy says "Proxy"
 // in the language the app shows.
 //
@@ -4842,13 +5222,13 @@ func (msgs Messages) TrafficColID() string {
 	return Catalog.Format(msgs.locale, "trafficColID", nil)
 }
 
-// TrafficColTime says "Time"
+// TrafficColTime says "Started"
 // in the language the app shows.
 //
 // Column header: when the flow started.
 func TrafficColTime() string { return In(i18n.Locale()).TrafficColTime() }
 
-// TrafficColTime says "Time"
+// TrafficColTime says "Started"
 // in the language of msgs.
 //
 // Column header: when the flow started.
@@ -4870,32 +5250,18 @@ func (msgs Messages) TrafficColMethod() string {
 	return Catalog.Format(msgs.locale, "trafficColMethod", nil)
 }
 
-// TrafficColHost says "Host"
+// TrafficColURL says "URL"
 // in the language the app shows.
 //
-// Column header: the host of the request.
-func TrafficColHost() string { return In(i18n.Locale()).TrafficColHost() }
+// Column header: the host and path of the request.
+func TrafficColURL() string { return In(i18n.Locale()).TrafficColURL() }
 
-// TrafficColHost says "Host"
+// TrafficColURL says "URL"
 // in the language of msgs.
 //
-// Column header: the host of the request.
-func (msgs Messages) TrafficColHost() string {
-	return Catalog.Format(msgs.locale, "trafficColHost", nil)
-}
-
-// TrafficColPath says "Path"
-// in the language the app shows.
-//
-// Column header: the path and query of the request.
-func TrafficColPath() string { return In(i18n.Locale()).TrafficColPath() }
-
-// TrafficColPath says "Path"
-// in the language of msgs.
-//
-// Column header: the path and query of the request.
-func (msgs Messages) TrafficColPath() string {
-	return Catalog.Format(msgs.locale, "trafficColPath", nil)
+// Column header: the host and path of the request.
+func (msgs Messages) TrafficColURL() string {
+	return Catalog.Format(msgs.locale, "trafficColURL", nil)
 }
 
 // TrafficColType says "Type"
@@ -4926,13 +5292,13 @@ func (msgs Messages) TrafficColSize() string {
 	return Catalog.Format(msgs.locale, "trafficColSize", nil)
 }
 
-// TrafficColDuration says "Took"
+// TrafficColDuration says "Time"
 // in the language the app shows.
 //
 // Column header: how long the flow took.
 func TrafficColDuration() string { return In(i18n.Locale()).TrafficColDuration() }
 
-// TrafficColDuration says "Took"
+// TrafficColDuration says "Time"
 // in the language of msgs.
 //
 // Column header: how long the flow took.
@@ -6532,20 +6898,6 @@ func (msgs Messages) TrafficBlockThisURL() string {
 	return Catalog.Format(msgs.locale, "trafficBlockThisURL", nil)
 }
 
-// TrafficBlockThisHost says "Block This Host"
-// in the language the app shows.
-//
-// Menu item: a block rule for this host.
-func TrafficBlockThisHost() string { return In(i18n.Locale()).TrafficBlockThisHost() }
-
-// TrafficBlockThisHost says "Block This Host"
-// in the language of msgs.
-//
-// Menu item: a block rule for this host.
-func (msgs Messages) TrafficBlockThisHost() string {
-	return Catalog.Format(msgs.locale, "trafficBlockThisHost", nil)
-}
-
 // TrafficRuleRewriteResponse says "Rewrite Response…"
 // in the language the app shows.
 //
@@ -6600,4 +6952,136 @@ func TrafficCaptureStoppedNote() string { return In(i18n.Locale()).TrafficCaptur
 // Status note when a capture stops on its own.
 func (msgs Messages) TrafficCaptureStoppedNote() string {
 	return Catalog.Format(msgs.locale, "trafficCaptureStoppedNote", nil)
+}
+
+// TrafficFilterButton says "Filter"
+// in the language the app shows.
+//
+// Button that opens the popover of method, status and type choices.
+func TrafficFilterButton() string { return In(i18n.Locale()).TrafficFilterButton() }
+
+// TrafficFilterButton says "Filter"
+// in the language of msgs.
+//
+// Button that opens the popover of method, status and type choices.
+func (msgs Messages) TrafficFilterButton() string {
+	return Catalog.Format(msgs.locale, "trafficFilterButton", nil)
+}
+
+// TrafficMenuCopyCurl says "Copy as cURL"
+// in the language the app shows.
+//
+// Row menu item: copies the request as a cURL command.
+func TrafficMenuCopyCurl() string { return In(i18n.Locale()).TrafficMenuCopyCurl() }
+
+// TrafficMenuCopyCurl says "Copy as cURL"
+// in the language of msgs.
+//
+// Row menu item: copies the request as a cURL command.
+func (msgs Messages) TrafficMenuCopyCurl() string {
+	return Catalog.Format(msgs.locale, "trafficMenuCopyCurl", nil)
+}
+
+// TrafficMenuFilterProgram says "Filter to This Program"
+// in the language the app shows.
+//
+// Row menu item: adds a program: token to the search text.
+func TrafficMenuFilterProgram() string { return In(i18n.Locale()).TrafficMenuFilterProgram() }
+
+// TrafficMenuFilterProgram says "Filter to This Program"
+// in the language of msgs.
+//
+// Row menu item: adds a program: token to the search text.
+func (msgs Messages) TrafficMenuFilterProgram() string {
+	return Catalog.Format(msgs.locale, "trafficMenuFilterProgram", nil)
+}
+
+// TrafficMenuBlockHost says "Block This Host"
+// in the language the app shows.
+//
+// Row menu item: adds a block rule for the flow's host.
+func TrafficMenuBlockHost() string { return In(i18n.Locale()).TrafficMenuBlockHost() }
+
+// TrafficMenuBlockHost says "Block This Host"
+// in the language of msgs.
+//
+// Row menu item: adds a block rule for the flow's host.
+func (msgs Messages) TrafficMenuBlockHost() string {
+	return Catalog.Format(msgs.locale, "trafficMenuBlockHost", nil)
+}
+
+// TrafficMenuDecrypt says "Do Not Decrypt This Host"
+// in the language the app shows.
+//
+// Row menu item: never decrypt traffic to the flow's host.
+func TrafficMenuDecrypt() string { return In(i18n.Locale()).TrafficMenuDecrypt() }
+
+// TrafficMenuDecrypt says "Do Not Decrypt This Host"
+// in the language of msgs.
+//
+// Row menu item: never decrypt traffic to the flow's host.
+func (msgs Messages) TrafficMenuDecrypt() string {
+	return Catalog.Format(msgs.locale, "trafficMenuDecrypt", nil)
+}
+
+// TrafficMenuCaptureProgram says "Capture Only This Program"
+// in the language the app shows.
+//
+// Row menu item: record only the traffic of the flow's program.
+func TrafficMenuCaptureProgram() string { return In(i18n.Locale()).TrafficMenuCaptureProgram() }
+
+// TrafficMenuCaptureProgram says "Capture Only This Program"
+// in the language of msgs.
+//
+// Row menu item: record only the traffic of the flow's program.
+func (msgs Messages) TrafficMenuCaptureProgram() string {
+	return Catalog.Format(msgs.locale, "trafficMenuCaptureProgram", nil)
+}
+
+// TrafficMenuBlocked says "Blocking {host}"
+// in the language the app shows.
+//
+// Toast after a block rule for a host was added or already existed. {host}
+// is the host name.
+func TrafficMenuBlocked(host string) string { return In(i18n.Locale()).TrafficMenuBlocked(host) }
+
+// TrafficMenuBlocked says "Blocking {host}"
+// in the language of msgs.
+//
+// Toast after a block rule for a host was added or already existed. {host}
+// is the host name.
+func (msgs Messages) TrafficMenuBlocked(host string) string {
+	return Catalog.Format(msgs.locale, "trafficMenuBlocked", map[string]any{"host": host})
+}
+
+// TrafficMenuBypassed says "Not decrypting {host}"
+// in the language the app shows.
+//
+// Toast after a host was added to the never-decrypt list. {host} is the
+// host name.
+func TrafficMenuBypassed(host string) string { return In(i18n.Locale()).TrafficMenuBypassed(host) }
+
+// TrafficMenuBypassed says "Not decrypting {host}"
+// in the language of msgs.
+//
+// Toast after a host was added to the never-decrypt list. {host} is the
+// host name.
+func (msgs Messages) TrafficMenuBypassed(host string) string {
+	return Catalog.Format(msgs.locale, "trafficMenuBypassed", map[string]any{"host": host})
+}
+
+// TrafficMenuScoped says "Capturing only {name}"
+// in the language the app shows.
+//
+// Toast after the capture was scoped to one program. {name} is the program
+// name.
+func TrafficMenuScoped(name string) string { return In(i18n.Locale()).TrafficMenuScoped(name) }
+
+// TrafficMenuScoped says "Capturing only {name}"
+// in the language of msgs.
+//
+// Toast after the capture was scoped to one program. {name} is the program
+// name.
+func (msgs Messages) TrafficMenuScoped(name string) string {
+	return Catalog.Format(msgs.locale, "trafficMenuScoped", map[string]any{"name": name})
 }

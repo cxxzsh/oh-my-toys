@@ -41,14 +41,10 @@ const (
 // glyphPower is the glyph of the button that starts and stops a capture.
 const glyphPower = "power_settings_new"
 
-// listSplitPercent is the flow list's share of the width when the window
-// is large: the list carries more columns than the detail does. Below
-// wideWindow it keeps the points of TrafficSplit, which the window has
-// room for; below TrafficWide it sits above the detail instead.
-const (
-	listSplitPercent = 55
-	wideWindow       = 1400
-)
+// listSplitPercent is the flow list's share of the width beside the detail.
+// The list carries more columns than the detail, so it takes the larger
+// share; both panes grow with the window.
+const listSplitPercent = 58
 
 // trafficKey names the inspector's state on its page element.
 type trafficKey struct{}
@@ -69,21 +65,15 @@ type trafficState struct {
 	pending uint64         // a flow to select once the rows have it
 	saved   string         // a HAR file saved, to say so once
 
-	text    string
-	failed  bool
-	methods [trafficMethodCount]bool
-	classes [trafficClassCount]bool
-	types   [trafficTypeCount]bool
+	trafficFilterState
 
 	view       int // the flows, or the rule book
 	rules      ruleView
 	sel        int // the chosen row, -1 for none
 	selSeen    int // the choice of the last frame, to tell a new one
 	list       ui.ListState
-	search     ui.Handle
 	follow     bool
 	splitP     float32 // the list's share of the width beside the detail, percent
-	splitW     float32 // the list's width beside the detail, when the window is not large
 	rulesSplit float32 // the rule list's width beside its form
 	splitH     float32 // the list's height above the detail
 	detailTab  int
@@ -119,6 +109,19 @@ type trafficState struct {
 	outcomes []trafficOutcome
 
 	err error // the last failure, which the banner explains
+
+	// settings is whether the Settings dialog is open.
+	settings bool
+
+	// procs and hosts are the sidebar's facets, read again only when the log changes.
+	procs    []tool.Facet
+	hosts    []tool.Facet
+	facetVer uint64
+	facetSet bool
+
+	// procSel and hostSel are the program and host the list narrows to; empty means all.
+	procSel string
+	hostSel string
 }
 
 // trafficOutcome is what one piece of background work reported.
@@ -188,7 +191,7 @@ func (st *trafficState) apply(o trafficOutcome) {
 func newTrafficState() trafficState {
 	return trafficState{
 		sel: -1, selSeen: -1, follow: true,
-		splitP: listSplitPercent, splitW: ds.TrafficSplit, splitH: ds.TrafficSplitH,
+		splitP: listSplitPercent, splitH: ds.TrafficSplitH,
 		rulesSplit: ds.TrafficRulesList,
 	}
 }
@@ -204,22 +207,24 @@ func (a *App) trafficPage(c *ui.Context, t tool.Traffic) {
 	a.trafficLog(t, st)
 	a.rulesDue(c, t, st)
 	st.sync()
+	st.refreshFacets()
 	page.Children(func() {
 		if st.saved != "" {
 			c.Toast(i18n.TrafficExported(st.saved))
 			st.saved = ""
 		}
-		a.trafficHead(c, t, st)
-		a.trafficNote(c, t)
-		a.trafficControls(c, t, st)
-		a.trafficTabs(c, st)
-		a.trafficProblem(c, st)
+		a.trafficToolbar(c, t, st)
+		if !st.settings {
+			a.trafficProblem(c, st)
+		}
+		a.trafficSettings(c, t, st)
 		if st.view == viewRules {
+			a.trafficTabs(c, st)
 			a.rulesView(c, t, st)
 			return
 		}
 		a.trafficFilterBar(c, t, st)
-		a.trafficPanes(c, t, st)
+		a.trafficWorkspace(c, t, st)
 	})
 }
 
@@ -284,47 +289,11 @@ func sameLog(a, b tool.FlowLog) bool {
 	return a == b
 }
 
-// trafficHead is the page's title, the state of the capture and what acts
-// on it.
-func (a *App) trafficHead(c *ui.Context, t tool.Traffic, st *trafficState) {
-	m := t.Manifest()
-	comp.PageHeader(c, comp.Header{
-		Title:       m.Name(msgs()),
-		Badge:       t.Status().Text,
-		Description: m.Summary(msgs()),
-		Meta:        func() { a.trafficActions(c, t, st) },
-	})
-}
-
 // trafficNote is what the capture asks the person to know beyond its
 // state: a system proxy that apps will not use, for one.
 func (a *App) trafficNote(c *ui.Context, t tool.Traffic) {
 	if note := t.Status().Note; note != "" {
 		comp.Text(c, note, ds.Caption, ds.P(c).TextInactive).Selectable()
-	}
-}
-
-// trafficActions starts and stops the capture, clears the log and saves a
-// HAR file.
-func (a *App) trafficActions(c *ui.Context, t tool.Traffic, st *trafficState) {
-	if a.trafficBusy(st) {
-		comp.Text(c, i18n.Working(), ds.Caption, ds.P(c).TextInactive)
-	}
-	on := t.Status().On
-	opts := comp.ButtonOpts{Kind: comp.Primary, Small: true, Glyph: glyphPower, Disabled: a.trafficBusy(st)}
-	label := i18n.SwitchStart()
-	if on {
-		label, opts = i18n.Stop(), comp.ButtonOpts{Kind: comp.Danger, Small: true, Disabled: a.trafficBusy(st)}
-	}
-	if a.kit.Button(c.Key("traffic-on"), label, opts).Clicked() {
-		a.trafficSetOn(t, st, !on)
-	}
-	if a.kit.Button(c.Key("traffic-clear"), i18n.TrafficClear(), comp.ButtonOpts{Kind: comp.Secondary, Small: true}).Clicked() {
-		t.Log().Clear()
-	}
-	if t.Config().Mode == tool.ModeProxy &&
-		a.kit.Button(c.Key("traffic-har"), i18n.TrafficExport(), comp.ButtonOpts{Kind: comp.Secondary, Small: true}).Clicked() {
-		a.trafficExport(t, st)
 	}
 }
 
@@ -407,17 +376,36 @@ func trafficFileName(now time.Time) string {
 // trafficPanes are the list and the detail, side by side when the window
 // is wide and one above the other when it is not.
 func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
-	list := func() { a.trafficListPane(c, t, st) }
+	list := func() {
+		if trafficGuideDue(t, st) {
+			a.trafficGuide(c, t, st)
+			return
+		}
+		a.trafficListPane(c, t, st)
+	}
 	detail := func() { a.trafficDetailPane(c, t, st) }
-	if w, _ := c.Size(); w >= wideWindow {
+	if w := a.trafficPanesWidth(c); w >= ds.TrafficWide {
 		comp.SplitPercent(c, &st.splitP, list, detail).Grow(1).FillWidth()
 		return
 	}
-	if w, _ := c.Size(); w >= ds.TrafficWide {
-		comp.Split(c, &st.splitW, list, detail).Grow(1).FillWidth()
-		return
-	}
 	comp.SplitVertical(c, &st.splitH, list, detail).Grow(1).FillWidth()
+}
+
+// trafficWorkspace places the sidebar beside the list and the detail. The
+// sidebar keeps its fixed width; the panes take the rest.
+func (a *App) trafficWorkspace(c *ui.Context, t tool.Traffic, st *trafficState) {
+	ui.Row(c).Grow(1).FillWidth().Gap(ds.Space12).AlignItems(ui.Stretch).Children(func() {
+		a.trafficSidebar(c, t, st)
+		ui.Column(c).Grow(1).Basis(0).MinWidth(0).FillHeight().Children(func() {
+			a.trafficPanes(c, t, st)
+		})
+	})
+}
+
+// trafficPanesWidth is the width the list and the detail share: the window
+// less the app sidebar and the traffic sidebar beside them.
+func (a *App) trafficPanesWidth(c *ui.Context) float32 {
+	return a.workbenchWidth(c) - trafficSidebarWidth - ds.Space12
 }
 
 // sync reads the log again when it or the filter changed, and keeps the
@@ -425,9 +413,9 @@ func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
 func (st *trafficState) sync() {
 	st.frames++
 	log := st.log
-	f := st.narrowFilter(st.makeFilter())
-	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) {
-		st.filter, st.ver, st.fetched = f, log.Version(), true
+	f := st.withFacets(st.narrowFilter(st.makeFilter()))
+	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) || st.rowsText != st.text {
+		st.filter, st.ver, st.fetched, st.rowsText = f, log.Version(), true, st.text
 		st.rows = st.narrowRows(log.Rows(f))
 	}
 	if st.pending != 0 {
@@ -497,7 +485,8 @@ func (st *trafficState) selectID(id uint64) {
 
 // sameFilter reports whether two filters pick the same flows.
 func sameFilter(a, b tool.Filter) bool {
-	return a.Source == b.Source && a.Text == b.Text && a.Failed == b.Failed &&
+	return a.Text == b.Text && a.Failed == b.Failed &&
+		a.Source == b.Source && slices.Equal(a.Processes, b.Processes) &&
 		slices.Equal(a.Hosts, b.Hosts) && slices.Equal(a.Methods, b.Methods) &&
 		slices.Equal(a.Types, b.Types) && slices.Equal(a.StatusClasses, b.StatusClasses)
 }

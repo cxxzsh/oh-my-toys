@@ -53,9 +53,9 @@ func (st *trafficState) captureConfig(t tool.Traffic) (tool.CaptureConfig, bool)
 	return cfg, !st.portBad && ok
 }
 
-// trafficControls is the mode and its settings: the proxy's port, system
-// proxy, decryption, bypass list and upstream proxy, or the interface
-// packets are read from.
+// trafficControls holds the settings of the mode in use: the proxy's port,
+// system proxy, decryption, bypass list and upstream proxy, or the interface
+// packets are read from. The mode itself is picked in the toolbar.
 func (a *App) trafficControls(c *ui.Context, t tool.Traffic, st *trafficState) {
 	a.trafficConfigDue(c, t, st)
 	if t.Config().Mode == tool.ModePackets && !st.ifacesLoaded {
@@ -63,10 +63,6 @@ func (a *App) trafficControls(c *ui.Context, t tool.Traffic, st *trafficState) {
 	}
 	comp.Card(c).FillWidth().Padding(ds.Space12).Gap(ds.Space10).Children(func() {
 		ui.Row(c).FillWidth().Gap(ds.Space16).AlignItems(ui.End).Wrap().Children(func() {
-			modes := []string{i18n.TrafficModeProxy(), i18n.TrafficModePackets()}
-			if comp.Segmented(c.Key("traffic-mode"), &st.mode, modes, i18n.ModeLabel()).Changed() {
-				a.trafficApplyNow(t, st)
-			}
 			if st.mode == int(tool.ModeProxy) {
 				a.trafficProxyToggles(c, t, st)
 				return

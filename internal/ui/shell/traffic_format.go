@@ -81,24 +81,6 @@ func trafficRowLabel(r tool.FlowRow) string {
 	return line + " " + r.Type
 }
 
-// trafficRowText is a row copied as text: one flow a line, its fields
-// separated by tabs, as a spreadsheet reads them.
-func trafficRowText(r tool.FlowRow) string {
-	if r.Source == tool.SourcePacket {
-		return strings.Join([]string{
-			fmt.Sprint(r.ID), r.Started.Format(time.TimeOnly), r.Proto, r.Host, r.Info, trafficSize(r.Size),
-		}, "\t")
-	}
-	status := ""
-	if r.Status > 0 {
-		status = fmt.Sprint(r.Status)
-	}
-	return strings.Join([]string{
-		fmt.Sprint(r.ID), r.Started.Format(time.TimeOnly), r.Method, r.Host, r.Path,
-		status, r.Type, trafficSize(r.Size), trafficTook(r.Duration),
-	}, "\t")
-}
-
 // listSelection is the fill of a chosen row: the design system's
 // selection token over the card, so that a row reads as chosen in either
 // theme while the list's own accent mark, and the text it would pale, are
