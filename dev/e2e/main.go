@@ -49,6 +49,7 @@ const paramWindow = "window"
 const (
 	roleButton = "button"
 	roleField  = "textField"
+	roleText   = "text"
 )
 
 var errNoNode = errors.New("no such element")

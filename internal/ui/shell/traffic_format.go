@@ -2,6 +2,7 @@ package shell
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,29 +46,6 @@ func trafficTook(d time.Duration) string {
 	return i18n.TrafficSeconds(d.Seconds())
 }
 
-// shortType writes a media type the way a dense log has room for: the
-// subtype, with the few names that read badly spelled out.
-func shortType(media string) string {
-	if media == "" {
-		return ""
-	}
-	_, sub, ok := strings.Cut(media, "/")
-	if !ok {
-		return media
-	}
-	switch sub {
-	case "x-www-form-urlencoded":
-		return "form"
-	case "octet-stream":
-		return "bin"
-	case "javascript":
-		return "js"
-	case "plain":
-		return "text"
-	}
-	return sub
-}
-
 // trafficRowLabel is the accessible name of a row: what a person would
 // read of it.
 func trafficRowLabel(r tool.FlowRow) string {
@@ -104,4 +82,67 @@ func statusTone(status int) comp.Tone {
 		return comp.ToneSuccess
 	}
 	return comp.ToneNeutral
+}
+
+// rowText is the text a row shows, made once for a flow and kept while the
+// flow reads the same. Rows in view are drawn every frame, and formatting
+// them each time would cost the frame.
+type rowText struct {
+	key                                 flowKey
+	label, id, time, size, took, status string
+}
+
+// flowKey is what a row's text is made from. A flow still arriving moves
+// these, and only these, so the row is made again when one of them moves.
+type flowKey struct {
+	status int
+	state  tool.FlowState
+	size   int64
+	took   time.Duration
+	typ    string
+	info   string
+}
+
+// rowTextSlack is how many cached rows may exceed the rows listed before
+// the cache is emptied, so that it cannot grow without bound.
+const rowTextSlack = 64
+
+// textOf is the text of a row, made now if the cache has none for the flow
+// or the flow has changed since.
+func (st *trafficState) textOf(r tool.FlowRow) rowText {
+	key := flowKey{r.Status, r.State, r.Size, r.Duration, r.Type, r.Info}
+	if txt, ok := st.texts[r.ID]; ok && txt.key == key {
+		return txt
+	}
+	if st.texts == nil || len(st.texts) > 2*len(st.rows)+rowTextSlack {
+		st.texts = make(map[uint64]rowText)
+	}
+	txt := rowText{
+		key:    key,
+		label:  trafficRowLabel(r),
+		id:     strconv.FormatUint(r.ID, 10),
+		time:   r.Started.Format(time.TimeOnly),
+		size:   trafficSize(r.Size),
+		took:   trafficTook(r.Duration),
+		status: rowStatusText(r),
+	}
+	st.texts[r.ID] = txt
+	return txt
+}
+
+// rowStatusText is the word a flow's list row shows as its status: its status
+// code, or the word for a block, a failure, or a response still on its way.
+func rowStatusText(r tool.FlowRow) string {
+	switch r.State {
+	case tool.FlowBlocked:
+		return i18n.TrafficBlocked()
+	case tool.FlowFailed:
+		return i18n.TrafficFailed()
+	case tool.FlowOpen:
+		if r.Status == 0 {
+			return i18n.TrafficOpen()
+		}
+	case tool.FlowDone:
+	}
+	return strconv.Itoa(r.Status)
 }

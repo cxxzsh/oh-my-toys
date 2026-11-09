@@ -664,11 +664,6 @@ func ruleDelayMillis(text string) (d time.Duration, ok bool) {
 	return time.Duration(n) * time.Millisecond, true
 }
 
-// trafficTabs chooses between the captured traffic and the rule book.
-func (a *App) trafficTabs(c *ui.Context, st *trafficState) {
-	comp.Tabs(c.Key("traffic-view"), &st.view, i18n.TrafficView(), i18n.TrafficViewFlows(), i18n.TrafficViewRules())
-}
-
 // trafficRuleHits are the rules a flow names, each a way into its editor
 // when the book knows it.
 func (a *App) trafficRuleHits(c *ui.Context, st *trafficState, hits []string) {

@@ -55,7 +55,7 @@ func (st *trafficState) captureConfig(t tool.Traffic) (tool.CaptureConfig, bool)
 
 // trafficControls holds the settings of the mode in use: the proxy's port,
 // system proxy, decryption, bypass list and upstream proxy, or the interface
-// packets are read from. The mode itself is picked in the toolbar.
+// packets are read from. The mode itself is picked above, in the same dialog.
 func (a *App) trafficControls(c *ui.Context, t tool.Traffic, st *trafficState) {
 	a.trafficConfigDue(c, t, st)
 	if t.Config().Mode == tool.ModePackets && !st.ifacesLoaded {

@@ -4360,18 +4360,20 @@ func (msgs Messages) TrafficCaptureHint() string {
 	return Catalog.Format(msgs.locale, "trafficCaptureHint", nil)
 }
 
-// TrafficOpenTerminal says "Open Terminal with Proxy"
+// TrafficTerminal says "Terminal"
 // in the language the app shows.
 //
-// Button that opens a terminal whose environment routes through the proxy.
-func TrafficOpenTerminal() string { return In(i18n.Locale()).TrafficOpenTerminal() }
+// Toolbar button that opens a terminal whose environment routes through the
+// proxy.
+func TrafficTerminal() string { return In(i18n.Locale()).TrafficTerminal() }
 
-// TrafficOpenTerminal says "Open Terminal with Proxy"
+// TrafficTerminal says "Terminal"
 // in the language of msgs.
 //
-// Button that opens a terminal whose environment routes through the proxy.
-func (msgs Messages) TrafficOpenTerminal() string {
-	return Catalog.Format(msgs.locale, "trafficOpenTerminal", nil)
+// Toolbar button that opens a terminal whose environment routes through the
+// proxy.
+func (msgs Messages) TrafficTerminal() string {
+	return Catalog.Format(msgs.locale, "trafficTerminal", nil)
 }
 
 // TrafficCopyEnv says "Copy Proxy Environment"
@@ -4544,6 +4546,66 @@ func (msgs Messages) TrafficFlowCount(count int) string {
 	return Catalog.Format(msgs.locale, "trafficFlowCount", map[string]any{"count": count})
 }
 
+// TrafficFlowCountOf says "{shown} of {total, plural, =0 {no flows} one {# flow} other {# flows}}"
+// in the language the app shows.
+//
+// Flow count in the bottom bar when a filter narrows the list: the flows
+// shown, out of the flows the log holds.
+func TrafficFlowCountOf(shown int, total int) string {
+	return In(i18n.Locale()).TrafficFlowCountOf(shown, total)
+}
+
+// TrafficFlowCountOf says "{shown} of {total, plural, =0 {no flows} one {# flow} other {# flows}}"
+// in the language of msgs.
+//
+// Flow count in the bottom bar when a filter narrows the list: the flows
+// shown, out of the flows the log holds.
+func (msgs Messages) TrafficFlowCountOf(shown int, total int) string {
+	return Catalog.Format(msgs.locale, "trafficFlowCountOf", map[string]any{"shown": shown, "total": total})
+}
+
+// TrafficAutoSelect says "Auto select"
+// in the language the app shows.
+//
+// Switch in the bottom bar: select each new flow as it arrives.
+func TrafficAutoSelect() string { return In(i18n.Locale()).TrafficAutoSelect() }
+
+// TrafficAutoSelect says "Auto select"
+// in the language of msgs.
+//
+// Switch in the bottom bar: select each new flow as it arrives.
+func (msgs Messages) TrafficAutoSelect() string {
+	return Catalog.Format(msgs.locale, "trafficAutoSelect", nil)
+}
+
+// TrafficSourcesShow says "Show sources"
+// in the language the app shows.
+//
+// Tooltip and name of the toolbar button that shows the sources column.
+func TrafficSourcesShow() string { return In(i18n.Locale()).TrafficSourcesShow() }
+
+// TrafficSourcesShow says "Show sources"
+// in the language of msgs.
+//
+// Tooltip and name of the toolbar button that shows the sources column.
+func (msgs Messages) TrafficSourcesShow() string {
+	return Catalog.Format(msgs.locale, "trafficSourcesShow", nil)
+}
+
+// TrafficSourcesHide says "Hide sources"
+// in the language the app shows.
+//
+// Tooltip and name of the toolbar button that hides the sources column.
+func TrafficSourcesHide() string { return In(i18n.Locale()).TrafficSourcesHide() }
+
+// TrafficSourcesHide says "Hide sources"
+// in the language of msgs.
+//
+// Tooltip and name of the toolbar button that hides the sources column.
+func (msgs Messages) TrafficSourcesHide() string {
+	return Catalog.Format(msgs.locale, "trafficSourcesHide", nil)
+}
+
 // TrafficColProgram says "Program"
 // in the language the app shows.
 //
@@ -4626,20 +4688,6 @@ func TrafficGuideStart() string { return In(i18n.Locale()).TrafficGuideStart() }
 // First-run guide step: capture running.
 func (msgs Messages) TrafficGuideStart() string {
 	return Catalog.Format(msgs.locale, "trafficGuideStart", nil)
-}
-
-// TrafficGuideOr says "or start a program from Settings"
-// in the language the app shows.
-//
-// First-run guide hint: the other way to capture, from Settings.
-func TrafficGuideOr() string { return In(i18n.Locale()).TrafficGuideOr() }
-
-// TrafficGuideOr says "or start a program from Settings"
-// in the language of msgs.
-//
-// First-run guide hint: the other way to capture, from Settings.
-func (msgs Messages) TrafficGuideOr() string {
-	return Catalog.Format(msgs.locale, "trafficGuideOr", nil)
 }
 
 // TrafficErrNotRunningTitle says "The capture is not running"
@@ -5040,13 +5088,13 @@ func (msgs Messages) TrafficSearch() string {
 	return Catalog.Format(msgs.locale, "trafficSearch", nil)
 }
 
-// TrafficFilterFailed says "Failed only"
+// TrafficFilterFailed says "Failed"
 // in the language the app shows.
 //
 // Chip: show only flows that failed or were blocked.
 func TrafficFilterFailed() string { return In(i18n.Locale()).TrafficFilterFailed() }
 
-// TrafficFilterFailed says "Failed only"
+// TrafficFilterFailed says "Failed"
 // in the language of msgs.
 //
 // Chip: show only flows that failed or were blocked.
@@ -5054,32 +5102,60 @@ func (msgs Messages) TrafficFilterFailed() string {
 	return Catalog.Format(msgs.locale, "trafficFilterFailed", nil)
 }
 
-// TrafficMethods says "Methods"
+// TrafficTypeForm says "Form"
 // in the language the app shows.
 //
-// Accessible name of the method filter chips.
-func TrafficMethods() string { return In(i18n.Locale()).TrafficMethods() }
+// Type chip: form and multipart request bodies.
+func TrafficTypeForm() string { return In(i18n.Locale()).TrafficTypeForm() }
 
-// TrafficMethods says "Methods"
+// TrafficTypeForm says "Form"
 // in the language of msgs.
 //
-// Accessible name of the method filter chips.
-func (msgs Messages) TrafficMethods() string {
-	return Catalog.Format(msgs.locale, "trafficMethods", nil)
+// Type chip: form and multipart request bodies.
+func (msgs Messages) TrafficTypeForm() string {
+	return Catalog.Format(msgs.locale, "trafficTypeForm", nil)
 }
 
-// TrafficTypes says "Types"
+// TrafficTypeXML says "XML"
 // in the language the app shows.
 //
-// Accessible name of the media type filter chips.
-func TrafficTypes() string { return In(i18n.Locale()).TrafficTypes() }
+// Type chip: XML responses.
+func TrafficTypeXML() string { return In(i18n.Locale()).TrafficTypeXML() }
 
-// TrafficTypes says "Types"
+// TrafficTypeXML says "XML"
 // in the language of msgs.
 //
-// Accessible name of the media type filter chips.
-func (msgs Messages) TrafficTypes() string {
-	return Catalog.Format(msgs.locale, "trafficTypes", nil)
+// Type chip: XML responses.
+func (msgs Messages) TrafficTypeXML() string {
+	return Catalog.Format(msgs.locale, "trafficTypeXML", nil)
+}
+
+// TrafficTypeDocument says "Document"
+// in the language the app shows.
+//
+// Type chip: HTML and PDF documents.
+func TrafficTypeDocument() string { return In(i18n.Locale()).TrafficTypeDocument() }
+
+// TrafficTypeDocument says "Document"
+// in the language of msgs.
+//
+// Type chip: HTML and PDF documents.
+func (msgs Messages) TrafficTypeDocument() string {
+	return Catalog.Format(msgs.locale, "trafficTypeDocument", nil)
+}
+
+// TrafficTypeMedia says "Media"
+// in the language the app shows.
+//
+// Type chip: images, video and audio.
+func TrafficTypeMedia() string { return In(i18n.Locale()).TrafficTypeMedia() }
+
+// TrafficTypeMedia says "Media"
+// in the language of msgs.
+//
+// Type chip: images, video and audio.
+func (msgs Messages) TrafficTypeMedia() string {
+	return Catalog.Format(msgs.locale, "trafficTypeMedia", nil)
 }
 
 // TrafficTypeJSON says "JSON"
@@ -5094,20 +5170,6 @@ func TrafficTypeJSON() string { return In(i18n.Locale()).TrafficTypeJSON() }
 // Type chip: JSON responses.
 func (msgs Messages) TrafficTypeJSON() string {
 	return Catalog.Format(msgs.locale, "trafficTypeJSON", nil)
-}
-
-// TrafficTypeHTML says "HTML"
-// in the language the app shows.
-//
-// Type chip: HTML responses.
-func TrafficTypeHTML() string { return In(i18n.Locale()).TrafficTypeHTML() }
-
-// TrafficTypeHTML says "HTML"
-// in the language of msgs.
-//
-// Type chip: HTML responses.
-func (msgs Messages) TrafficTypeHTML() string {
-	return Catalog.Format(msgs.locale, "trafficTypeHTML", nil)
 }
 
 // TrafficTypeJS says "JS"
@@ -5138,20 +5200,6 @@ func (msgs Messages) TrafficTypeCSS() string {
 	return Catalog.Format(msgs.locale, "trafficTypeCSS", nil)
 }
 
-// TrafficTypeImage says "Image"
-// in the language the app shows.
-//
-// Type chip: images.
-func TrafficTypeImage() string { return In(i18n.Locale()).TrafficTypeImage() }
-
-// TrafficTypeImage says "Image"
-// in the language of msgs.
-//
-// Type chip: images.
-func (msgs Messages) TrafficTypeImage() string {
-	return Catalog.Format(msgs.locale, "trafficTypeImage", nil)
-}
-
 // TrafficTypeOther says "Other"
 // in the language the app shows.
 //
@@ -5166,20 +5214,6 @@ func (msgs Messages) TrafficTypeOther() string {
 	return Catalog.Format(msgs.locale, "trafficTypeOther", nil)
 }
 
-// TrafficStatusNone says "None"
-// in the language the app shows.
-//
-// Status chip: flows with no response yet.
-func TrafficStatusNone() string { return In(i18n.Locale()).TrafficStatusNone() }
-
-// TrafficStatusNone says "None"
-// in the language of msgs.
-//
-// Status chip: flows with no response yet.
-func (msgs Messages) TrafficStatusNone() string {
-	return Catalog.Format(msgs.locale, "trafficStatusNone", nil)
-}
-
 // TrafficClearFilters says "Clear Filters"
 // in the language the app shows.
 //
@@ -5192,20 +5226,6 @@ func TrafficClearFilters() string { return In(i18n.Locale()).TrafficClearFilters
 // Button: remove every filter and the search text.
 func (msgs Messages) TrafficClearFilters() string {
 	return Catalog.Format(msgs.locale, "trafficClearFilters", nil)
-}
-
-// TrafficFollow says "Follow"
-// in the language the app shows.
-//
-// Switch label: keep the list at its end as flows arrive.
-func TrafficFollow() string { return In(i18n.Locale()).TrafficFollow() }
-
-// TrafficFollow says "Follow"
-// in the language of msgs.
-//
-// Switch label: keep the list at its end as flows arrive.
-func (msgs Messages) TrafficFollow() string {
-	return Catalog.Format(msgs.locale, "trafficFollow", nil)
 }
 
 // TrafficColID says "#"
@@ -5264,20 +5284,6 @@ func (msgs Messages) TrafficColURL() string {
 	return Catalog.Format(msgs.locale, "trafficColURL", nil)
 }
 
-// TrafficColType says "Type"
-// in the language the app shows.
-//
-// Column header: the response's media type.
-func TrafficColType() string { return In(i18n.Locale()).TrafficColType() }
-
-// TrafficColType says "Type"
-// in the language of msgs.
-//
-// Column header: the response's media type.
-func (msgs Messages) TrafficColType() string {
-	return Catalog.Format(msgs.locale, "trafficColType", nil)
-}
-
 // TrafficColSize says "Size"
 // in the language the app shows.
 //
@@ -5292,13 +5298,13 @@ func (msgs Messages) TrafficColSize() string {
 	return Catalog.Format(msgs.locale, "trafficColSize", nil)
 }
 
-// TrafficColDuration says "Time"
+// TrafficColDuration says "Duration"
 // in the language the app shows.
 //
 // Column header: how long the flow took.
 func TrafficColDuration() string { return In(i18n.Locale()).TrafficColDuration() }
 
-// TrafficColDuration says "Time"
+// TrafficColDuration says "Duration"
 // in the language of msgs.
 //
 // Column header: how long the flow took.
@@ -5516,18 +5522,46 @@ func (msgs Messages) TrafficReplay() string {
 	return Catalog.Format(msgs.locale, "trafficReplay", nil)
 }
 
-// TrafficTabOverview says "Overview"
+// TrafficTabSummary says "Summary"
 // in the language the app shows.
 //
-// Detail tab: everything about the flow in one place.
-func TrafficTabOverview() string { return In(i18n.Locale()).TrafficTabOverview() }
+// Request tab: everything about the flow in one place.
+func TrafficTabSummary() string { return In(i18n.Locale()).TrafficTabSummary() }
 
-// TrafficTabOverview says "Overview"
+// TrafficTabSummary says "Summary"
 // in the language of msgs.
 //
-// Detail tab: everything about the flow in one place.
-func (msgs Messages) TrafficTabOverview() string {
-	return Catalog.Format(msgs.locale, "trafficTabOverview", nil)
+// Request tab: everything about the flow in one place.
+func (msgs Messages) TrafficTabSummary() string {
+	return Catalog.Format(msgs.locale, "trafficTabSummary", nil)
+}
+
+// TrafficTabQuery says "Query"
+// in the language the app shows.
+//
+// Request tab: the parameters of the URL's query string.
+func TrafficTabQuery() string { return In(i18n.Locale()).TrafficTabQuery() }
+
+// TrafficTabQuery says "Query"
+// in the language of msgs.
+//
+// Request tab: the parameters of the URL's query string.
+func (msgs Messages) TrafficTabQuery() string {
+	return Catalog.Format(msgs.locale, "trafficTabQuery", nil)
+}
+
+// TrafficTabRaw says "Raw"
+// in the language the app shows.
+//
+// Message tab: the message as it went over the wire.
+func TrafficTabRaw() string { return In(i18n.Locale()).TrafficTabRaw() }
+
+// TrafficTabRaw says "Raw"
+// in the language of msgs.
+//
+// Message tab: the message as it went over the wire.
+func (msgs Messages) TrafficTabRaw() string {
+	return Catalog.Format(msgs.locale, "trafficTabRaw", nil)
 }
 
 // TrafficTabRequest says "Request"
@@ -5698,6 +5732,20 @@ func (msgs Messages) TrafficNoBody() string {
 	return Catalog.Format(msgs.locale, "trafficNoBody", nil)
 }
 
+// TrafficNoQuery says "No query"
+// in the language the app shows.
+//
+// Query tab of a URL with a question mark but no parameters after it.
+func TrafficNoQuery() string { return In(i18n.Locale()).TrafficNoQuery() }
+
+// TrafficNoQuery says "No query"
+// in the language of msgs.
+//
+// Query tab of a URL with a question mark but no parameters after it.
+func (msgs Messages) TrafficNoQuery() string {
+	return Catalog.Format(msgs.locale, "trafficNoQuery", nil)
+}
+
 // TrafficBodyTruncated says "The body was cut at {size} while capturing."
 // in the language the app shows.
 //
@@ -5740,6 +5788,22 @@ func TrafficImageBody(type_ string, size string) string {
 // Caption of an image body: its type and size.
 func (msgs Messages) TrafficImageBody(type_ string, size string) string {
 	return Catalog.Format(msgs.locale, "trafficImageBody", map[string]any{"type": type_, "size": size})
+}
+
+// TrafficBodyMeta says "{type} · {size}"
+// in the language the app shows.
+//
+// Caption above a message body: its media type and size.
+func TrafficBodyMeta(type_ string, size string) string {
+	return In(i18n.Locale()).TrafficBodyMeta(type_, size)
+}
+
+// TrafficBodyMeta says "{type} · {size}"
+// in the language of msgs.
+//
+// Caption above a message body: its media type and size.
+func (msgs Messages) TrafficBodyMeta(type_ string, size string) string {
+	return Catalog.Format(msgs.locale, "trafficBodyMeta", map[string]any{"type": type_, "size": size})
 }
 
 // TrafficBinaryBody says "{size} · {type}"
@@ -6152,34 +6216,6 @@ func TrafficGrantReason() string { return In(i18n.Locale()).TrafficGrantReason()
 // What the system's prompt says when it asks to allow packet capture.
 func (msgs Messages) TrafficGrantReason() string {
 	return Catalog.Format(msgs.locale, "trafficGrantReason", nil)
-}
-
-// TrafficView says "View"
-// in the language the app shows.
-//
-// Accessible name of the Flows and Rules tabs.
-func TrafficView() string { return In(i18n.Locale()).TrafficView() }
-
-// TrafficView says "View"
-// in the language of msgs.
-//
-// Accessible name of the Flows and Rules tabs.
-func (msgs Messages) TrafficView() string {
-	return Catalog.Format(msgs.locale, "trafficView", nil)
-}
-
-// TrafficViewFlows says "Flows"
-// in the language the app shows.
-//
-// Tab: the captured traffic.
-func TrafficViewFlows() string { return In(i18n.Locale()).TrafficViewFlows() }
-
-// TrafficViewFlows says "Flows"
-// in the language of msgs.
-//
-// Tab: the captured traffic.
-func (msgs Messages) TrafficViewFlows() string {
-	return Catalog.Format(msgs.locale, "trafficViewFlows", nil)
 }
 
 // TrafficViewRules says "Rules"
@@ -6952,20 +6988,6 @@ func TrafficCaptureStoppedNote() string { return In(i18n.Locale()).TrafficCaptur
 // Status note when a capture stops on its own.
 func (msgs Messages) TrafficCaptureStoppedNote() string {
 	return Catalog.Format(msgs.locale, "trafficCaptureStoppedNote", nil)
-}
-
-// TrafficFilterButton says "Filter"
-// in the language the app shows.
-//
-// Button that opens the popover of method, status and type choices.
-func TrafficFilterButton() string { return In(i18n.Locale()).TrafficFilterButton() }
-
-// TrafficFilterButton says "Filter"
-// in the language of msgs.
-//
-// Button that opens the popover of method, status and type choices.
-func (msgs Messages) TrafficFilterButton() string {
-	return Catalog.Format(msgs.locale, "trafficFilterButton", nil)
 }
 
 // TrafficMenuCopyCurl says "Copy as cURL"

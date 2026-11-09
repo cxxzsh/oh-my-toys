@@ -41,10 +41,21 @@ const (
 // glyphPower is the glyph of the button that starts and stops a capture.
 const glyphPower = "power_settings_new"
 
+// glyphSourcesOpen is the glyph that shows the sources, and
+// glyphSourcesClose the glyph that hides them.
+const (
+	glyphSourcesOpen  = "left_panel_open"
+	glyphSourcesClose = "left_panel_close"
+)
+
 // listSplitPercent is the flow list's share of the width beside the detail.
 // The list carries more columns than the detail, so it takes the larger
 // share; both panes grow with the window.
 const listSplitPercent = 58
+
+// listSplitVPercent is the flow list's share of the height above the detail
+// when the two stack; the detail takes the rest.
+const listSplitVPercent = 40
 
 // trafficKey names the inspector's state on its page element.
 type trafficKey struct{}
@@ -68,15 +79,19 @@ type trafficState struct {
 	trafficFilterState
 
 	view       int // the flows, or the rule book
+	sources    int // the sources column: by width, or shown or hidden by a person
+	total      int // the flows the log holds, before any filter narrows them
 	rules      ruleView
-	sel        int // the chosen row, -1 for none
-	selSeen    int // the choice of the last frame, to tell a new one
+	sel        int    // the chosen row, -1 for none
+	selID      uint64 // the chosen flow; sel is its row
 	list       ui.ListState
 	follow     bool
 	splitP     float32 // the list's share of the width beside the detail, percent
 	rulesSplit float32 // the rule list's width beside its form
-	splitH     float32 // the list's height above the detail
+	splitV     float32 // the list's share of the height above the detail, percent
 	detailTab  int
+	paneTab    [2]int // the tab each side of a flow last showed, indexed by detailSide; zero until picked
+	memo       map[memoKey]detailMemo
 	detail     tool.Flow
 	detailID   uint64
 	detailVer  uint64
@@ -122,6 +137,12 @@ type trafficState struct {
 	// procSel and hostSel are the program and host the list narrows to; empty means all.
 	procSel string
 	hostSel string
+
+	// Auto select and the row text cache: see selectNewest and textOf.
+	autoSelect bool
+	picked     bool
+	autoID     uint64
+	texts      map[uint64]rowText
 }
 
 // trafficOutcome is what one piece of background work reported.
@@ -190,8 +211,8 @@ func (st *trafficState) apply(o trafficOutcome) {
 // end, no row chosen, and the split at the design system's sizes.
 func newTrafficState() trafficState {
 	return trafficState{
-		sel: -1, selSeen: -1, follow: true,
-		splitP: listSplitPercent, splitH: ds.TrafficSplitH,
+		sel: -1, follow: true, autoSelect: true,
+		splitP: listSplitPercent, splitV: listSplitVPercent,
 		rulesSplit: ds.TrafficRulesList,
 	}
 }
@@ -219,11 +240,10 @@ func (a *App) trafficPage(c *ui.Context, t tool.Traffic) {
 		}
 		a.trafficSettings(c, t, st)
 		if st.view == viewRules {
-			a.trafficTabs(c, st)
 			a.rulesView(c, t, st)
 			return
 		}
-		a.trafficFilterBar(c, t, st)
+		a.trafficFilterBar(c, st)
 		a.trafficWorkspace(c, t, st)
 	})
 }
@@ -253,9 +273,12 @@ func (a *App) trafficLog(t tool.Traffic, st *trafficState) {
 		st.stop = nil
 	}
 	st.log = log
-	st.rows, st.fetched, st.sel = nil, false, -1
+	st.rows, st.fetched = nil, false
+	st.sel, st.selID = -1, 0
 	st.detailID, st.detail, st.hasDetail = 0, tool.Flow{}, false
 	st.list = ui.ListState{}
+	st.picked, st.autoID = false, 0
+	clear(st.texts)
 	a.trafficWatch(t, st, log)
 }
 
@@ -384,18 +407,34 @@ func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
 		a.trafficListPane(c, t, st)
 	}
 	detail := func() { a.trafficDetailPane(c, t, st) }
-	if w := a.trafficPanesWidth(c); w >= ds.TrafficWide {
+	if len(st.rows) == 0 && !st.hasDetail {
+		// With no flow to show, the empty detail box would only repeat the
+		// empty list: the list or the guide takes the whole pane instead.
+		ui.Column(c).Grow(1).FillWidth().FillHeight().Children(list)
+		return
+	}
+	if w := a.trafficPanesWidth(c, st); w >= ds.TrafficWide {
 		comp.SplitPercent(c, &st.splitP, list, detail).Grow(1).FillWidth()
 		return
 	}
-	comp.SplitVertical(c, &st.splitH, list, detail).Grow(1).FillWidth()
+	ui.SplitVerticalPercent(c, &st.splitV, list, detail).Grow(1).FillWidth()
 }
 
-// trafficWorkspace places the sidebar beside the list and the detail. The
-// sidebar keeps its fixed width; the panes take the rest.
+// The states of the sources column: by width until a person chooses, then
+// shown or hidden as chosen.
+const (
+	sourcesAuto   = iota // open on a wide page
+	sourcesOpen          // shown by a person
+	sourcesClosed        // hidden by a person
+)
+
+// trafficWorkspace places the sources column beside the list and the detail
+// when it is shown. The column keeps its fixed width; the panes take the rest.
 func (a *App) trafficWorkspace(c *ui.Context, t tool.Traffic, st *trafficState) {
 	ui.Row(c).Grow(1).FillWidth().Gap(ds.Space12).AlignItems(ui.Stretch).Children(func() {
-		a.trafficSidebar(c, t, st)
+		if a.trafficSourcesShown(c, st) {
+			a.trafficSidebar(c, t, st)
+		}
 		ui.Column(c).Grow(1).Basis(0).MinWidth(0).FillHeight().Children(func() {
 			a.trafficPanes(c, t, st)
 		})
@@ -403,9 +442,22 @@ func (a *App) trafficWorkspace(c *ui.Context, t tool.Traffic, st *trafficState) 
 }
 
 // trafficPanesWidth is the width the list and the detail share: the window
-// less the app sidebar and the traffic sidebar beside them.
-func (a *App) trafficPanesWidth(c *ui.Context) float32 {
-	return a.workbenchWidth(c) - trafficSidebarWidth - ds.Space12
+// less the app sidebar, and less the sources column when it is shown.
+func (a *App) trafficPanesWidth(c *ui.Context, st *trafficState) float32 {
+	w := a.workbenchWidth(c)
+	if a.trafficSourcesShown(c, st) {
+		w -= ds.TrafficSourcesWidth + ds.Space12
+	}
+	return w
+}
+
+// trafficSourcesShown reports whether the sources column is drawn. A pick made
+// with the toggle wins; until one is made, the column opens on a wide page.
+func (a *App) trafficSourcesShown(c *ui.Context, st *trafficState) bool {
+	if st.sources == sourcesAuto {
+		return a.workbenchWidth(c) >= ds.TrafficSourcesMin
+	}
+	return st.sources == sourcesOpen
 }
 
 // sync reads the log again when it or the filter changed, and keeps the
@@ -413,43 +465,48 @@ func (a *App) trafficPanesWidth(c *ui.Context) float32 {
 func (st *trafficState) sync() {
 	st.frames++
 	log := st.log
-	f := st.withFacets(st.narrowFilter(st.makeFilter()))
-	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) || st.rowsText != st.text {
-		st.filter, st.ver, st.fetched, st.rowsText = f, log.Version(), true, st.text
+	f := st.withFacets(st.makeFilter())
+	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) || st.rowsText != st.text || st.rowsChips != st.chips() {
+		st.filter, st.ver, st.fetched, st.rowsText, st.rowsChips = f, log.Version(), true, st.text, st.chips()
 		st.rows = st.narrowRows(log.Rows(f))
+		st.total = len(st.rows)
+		if st.filterActive() || st.procSel != "" || st.hostSel != "" {
+			st.total = len(log.Rows(tool.Filter{Source: f.Source}))
+		}
 	}
 	if st.pending != 0 {
 		st.selectID(st.pending)
 		st.pending = 0
+		st.picked = true
 	}
+	st.followChoice()
+	st.selectNewest()
 	st.keepChoice()
 }
 
-// keepChoice keeps the choice by flow, and loads the chosen flow again
-// while it is still arriving, so that a filter or a new arrival does not
-// quietly show another flow's detail.
+// keepChoice loads the chosen flow's detail, and loads it again while the
+// flow is still arriving, so that a filter or a new arrival does not quietly
+// show another flow's detail.
 func (st *trafficState) keepChoice() {
-	// A new choice wins over the flow the detail still shows: keeping the
-	// old flow by id is for rows moving under it, not for a click.
-	if st.sel != st.selSeen {
-		st.selSeen = st.sel
-		st.detailID, st.hasDetail = 0, false
-	}
-	if st.detailID != 0 {
-		if i := st.indexOf(st.detailID); i >= 0 {
-			st.sel = i
-		}
-	}
-	st.sel = max(-1, min(st.sel, len(st.rows)-1))
 	if st.sel < 0 {
 		st.hasDetail, st.detailID = false, 0
 		return
 	}
 	row := st.rows[st.sel]
-	open := row.State == tool.FlowOpen && st.detailVer != st.ver
-	if st.detailID != row.ID || open {
+	// The detail is loaded again once the log changed and the row differs
+	// from the flow the detail holds, so a flow that was still arriving shows
+	// its response when it completes.
+	stale := st.detailVer != st.ver && st.detailChanged(row)
+	if st.detailID != row.ID || stale {
 		st.loadDetail(row.ID)
 	}
+}
+
+// detailChanged reports whether a row differs from the flow the detail holds
+// in the fields the list shows: state, status, size or duration.
+func (st *trafficState) detailChanged(r tool.FlowRow) bool {
+	d := st.detail.FlowRow
+	return r.State != d.State || r.Status != d.Status || r.Size != d.Size || r.Duration != d.Duration
 }
 
 // loadDetail takes a copy of a flow for the detail pane.
@@ -459,6 +516,7 @@ func (st *trafficState) loadDetail(id uint64) {
 		st.hasDetail, st.detailID = false, 0
 		return
 	}
+	clear(st.memo) // the texts of the last flow do not outlive it
 	st.detail, st.detailID, st.detailVer, st.hasDetail = f, id, st.ver, true
 }
 
@@ -472,11 +530,36 @@ func (st *trafficState) indexOf(id uint64) int {
 	return -1
 }
 
-// selectID chooses a flow and brings its row into view, once the rows
-// hold it.
+// followChoice finds the chosen flow among the rows now, so that a filter or
+// a new arrival moves the choice with its flow. A flow the rows no longer
+// hold is let go, and Auto select may choose the newest row again.
+func (st *trafficState) followChoice() {
+	if st.selID == 0 {
+		st.sel = -1
+		return
+	}
+	if i := st.indexOf(st.selID); i >= 0 {
+		st.sel = i
+		return
+	}
+	st.setSel(-1)
+	st.autoID = 0
+}
+
+// setSel chooses row i and the flow it shows. An index with no row clears the
+// choice.
+func (st *trafficState) setSel(i int) {
+	if i < 0 || i >= len(st.rows) {
+		st.sel, st.selID = -1, 0
+		return
+	}
+	st.sel, st.selID = i, st.rows[i].ID
+}
+
+// selectID chooses a flow and brings its row into view, once the rows hold it.
 func (st *trafficState) selectID(id uint64) {
 	if i := st.indexOf(id); i >= 0 {
-		st.sel = i
+		st.setSel(i)
 		st.list.ScrollIntoView(i)
 		return
 	}

@@ -87,9 +87,29 @@ const (
 	HexDumpBytes     = 4 << 10   // hex dump of a binary body
 	HexRow           = 16        // bytes a hex dump row shows
 	HexGroup         = 8         // bytes before the gap in a hex dump row
-	TrafficSplitH    = 300       // the flow list's height above the detail
+	TrafficPaneMinH  = 200       // the least height a request or response pane takes when the two stack
 	TrafficRulesList = 360       // the rule list's width beside its form
 	TrafficWide      = 1300      // pane width from which the list and detail sit side by side; below it the detail goes under the list
+
+	TrafficDetailWide = 900 // detail pane width from which a flow's request and response sit side by side; below it they stack
+
+	TrafficSourcesWidth = 200  // the sources column beside the flow list
+	TrafficSourcesMin   = 1000 // page width from which the sources column opens by itself
+)
+
+// Widths of the flow list's fixed columns, in pixels, and the least the URL
+// column keeps. The URL takes what is left after them.
+const (
+	TrafficColID       = 50
+	TrafficColMethod   = 70
+	TrafficColStatus   = 70
+	TrafficColProgram  = 110
+	TrafficColTime     = 90
+	TrafficColDuration = 80
+	TrafficColSize     = 90
+	TrafficColProtocol = 72
+	TrafficColLength   = 88
+	TrafficURLMin      = 200
 )
 
 // Motion, from the design system's Motion section.

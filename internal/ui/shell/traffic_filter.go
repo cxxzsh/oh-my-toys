@@ -1,7 +1,6 @@
 package shell
 
 import (
-	"strconv"
 	"strings"
 
 	"github.com/egoist/mygo/ui"
@@ -12,154 +11,174 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// The methods the filter offers, in the order of their chips.
-const (
-	methodGET = iota
-	methodPOST
-	methodPUT
-	methodDELETE
-	methodHEAD
-	methodOPTIONS
-	methodPATCH
-	trafficMethodCount
-)
-
-// trafficClassCount is the status chips: none (no response), then 2xx to 5xx.
-const trafficClassCount = 5
-
-// The media types the filter offers, in the order of their chips.
+// The media types the type chips pick, in the order of the chips.
 const (
 	typeJSON = iota
-	typeHTML
+	typeForm
+	typeXML
 	typeJS
 	typeCSS
-	typeImage
+	typeDocument
+	typeMedia
 	typeOther
 	trafficTypeCount
 )
 
-// trafficFilterState is the filter that the search field and the Filter
-// popover set. It is embedded in trafficState, so its fields belong to the page.
+// The status chips are 2xx to 5xx, in order, so the chip at index i is the
+// hundreds trafficStatusFirst+i.
+const (
+	trafficStatusCount = 4
+	trafficStatusFirst = 2
+)
+
+// trafficStatusLabels are the labels of the status chips.
+var trafficStatusLabels = [trafficStatusCount]string{"2xx", "3xx", "4xx", "5xx"}
+
+// trafficFilterState is the filter that the chip strip and the search field
+// set. It is embedded in trafficState, so its fields belong to the page.
 type trafficFilterState struct {
-	text     string // the search text: the source of truth for the query tokens
-	failed   bool   // "Failed only"
-	methods  [trafficMethodCount]bool
-	classes  [trafficClassCount]bool
-	types    [trafficTypeCount]bool
-	search   ui.Handle // the search input
-	rowsText string    // the search text the rows were last narrowed with
-	menuOpen bool      // the Filter popover
+	text      string // the search text: the source of truth for the query tokens
+	failed    bool   // the Failed chip, which joins the status group
+	classes   [trafficStatusCount]bool
+	types     [trafficTypeCount]bool
+	search    ui.Handle    // the search input
+	rowsText  string       // the search text the rows were last narrowed with
+	rowsChips trafficChips // the chips the rows were last narrowed with
 }
 
-func trafficMethod(i int) string {
-	return [trafficMethodCount]string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS", "PATCH"}[i]
+// trafficChips are the chip choices. Being a value, two of them compare, so
+// the page can tell when the rows must be narrowed again.
+type trafficChips struct {
+	types   [trafficTypeCount]bool
+	classes [trafficStatusCount]bool
+	failed  bool
 }
 
-// trafficClass maps a chip index to a status class: index 0 is class 0 (no
-// response), index 1 is 2xx, and so on up to 5xx.
+// chips returns the current chip choices.
+func (st *trafficState) chips() trafficChips {
+	return trafficChips{types: st.types, classes: st.classes, failed: st.failed}
+}
+
+// trafficClass is the hundreds of the status chip at index i: 2 for 2xx.
 func trafficClass(i int) int {
-	if i == 0 {
-		return 0
-	}
-	return i + 1
+	return trafficStatusFirst + i
 }
 
-func trafficClassLabel(i int) string {
-	if i == 0 {
-		return "none"
-	}
-	return strconv.Itoa(trafficClass(i)) + "xx"
-}
-
+// trafficTypeLabel is the label of the type chip at index i.
 func trafficTypeLabel(i int) string {
-	return [trafficTypeCount]string{"JSON", "HTML", "JS", "CSS", "Image", "Other"}[i]
+	switch i {
+	case typeJSON:
+		return i18n.TrafficTypeJSON()
+	case typeForm:
+		return i18n.TrafficTypeForm()
+	case typeXML:
+		return i18n.TrafficTypeXML()
+	case typeJS:
+		return i18n.TrafficTypeJS()
+	case typeCSS:
+		return i18n.TrafficTypeCSS()
+	case typeDocument:
+		return i18n.TrafficTypeDocument()
+	case typeMedia:
+		return i18n.TrafficTypeMedia()
+	}
+	return i18n.TrafficTypeOther()
 }
 
-// trafficTypePrefixes are the media type prefixes a type chip matches.
+// trafficTypePrefixes are the media type prefixes a type chip matches. The
+// "Other" chip has none: it matches what the others do not.
 func trafficTypePrefixes(i int) []string {
 	switch i {
 	case typeJSON:
 		return []string{"application/json"}
-	case typeHTML:
-		return []string{"text/html"}
+	case typeForm:
+		return []string{"application/x-www-form-urlencoded", "multipart/form-data"}
+	case typeXML:
+		return []string{"application/xml", "text/xml"}
 	case typeJS:
 		return []string{"text/javascript", "application/javascript"}
 	case typeCSS:
 		return []string{"text/css"}
-	case typeImage:
-		return []string{"image/"}
+	case typeDocument:
+		return []string{"text/html", "application/pdf"}
+	case typeMedia:
+		return []string{"image/", "video/", "audio/"}
 	}
 	return nil
 }
 
-// makeFilter is the part of the filter the log can pick: the popover's
-// choices and the longest plain word. The query's tokens narrow the rows in
-// narrowRows, so the sidebar's pick and the tokens AND together there.
+// makeFilter is the part of the filter the log can pick: the longest plain
+// word of the search text. The chips and the query's tokens narrow the rows
+// in narrowRows, so the sidebar's pick and them all AND together there.
 func (st *trafficState) makeFilter() tool.Filter {
-	f := tool.Filter{
+	return tool.Filter{
 		Source: tool.FlowSource(st.mode),
 		Text:   parseQuery(st.text).logWord(),
-		Failed: st.failed,
 	}
-	for i := range st.methods {
-		if st.methods[i] {
-			f.Methods = append(f.Methods, trafficMethod(i))
-		}
-	}
-	for i := range st.classes {
-		if st.classes[i] {
-			f.StatusClasses = append(f.StatusClasses, trafficClass(i))
-		}
-	}
-	if !st.types[typeOther] {
-		for i := range st.types {
-			if st.types[i] {
-				f.Types = append(f.Types, trafficTypePrefixes(i)...)
-			}
-		}
-	}
-	return f
 }
 
-// narrowFilter drops the log's Types when "Other" is chosen: the log cannot
-// say "not one of the known types", so narrowRows does it.
-func (st *trafficState) narrowFilter(f tool.Filter) tool.Filter {
-	if st.types[typeOther] {
-		f.Types = nil
-	}
-	return f
-}
-
-// narrowRows keeps the rows that pass every token of the query and the
-// "Other" media type choice. The log has already applied the popover's choices.
+// narrowRows keeps the rows that pass every token of the query and the chips.
 func (st *trafficState) narrowRows(rows []tool.FlowRow) []tool.FlowRow {
 	q := parseQuery(st.text)
 	out := make([]tool.FlowRow, 0, len(rows))
 	for _, r := range rows {
-		if q.rowMatches(r) && (!st.types[typeOther] || st.typeMatch(r.Type)) && st.wordsMatch(q.words, r.ID) {
+		if q.rowMatches(r) && st.chipsMatch(r) && st.wordsMatch(q.words, r.ID) {
 			out = append(out, r)
 		}
 	}
 	return out
 }
 
-func (st *trafficState) typeMatch(media string) bool {
-	for i := range st.types {
-		if !st.types[i] || i == typeOther {
-			continue
-		}
-		for _, p := range trafficTypePrefixes(i) {
-			if strings.HasPrefix(media, p) {
-				return true
-			}
-		}
+// chipsMatch reports whether a row passes the chips. Chips of one group OR
+// together, and the type group and the status group AND together.
+func (st *trafficState) chipsMatch(r tool.FlowRow) bool {
+	if anyTrue(st.types[:]) && !st.typeMatch(r.Type) {
+		return false
 	}
-	return st.types[typeOther] && media != "" && !knownType(media)
+	return !st.statusChipsOn() || st.statusMatch(r)
 }
 
-// knownType reports whether a chip names a media type.
+// statusMatch reports whether a row is one of the status chips picked, or
+// failed when the Failed chip is on.
+func (st *trafficState) statusMatch(r tool.FlowRow) bool {
+	if st.failed && (r.State == tool.FlowFailed || r.State == tool.FlowBlocked) {
+		return true
+	}
+	for i, on := range st.classes {
+		if on && r.Status/100 == trafficClass(i) {
+			return true
+		}
+	}
+	return false
+}
+
+// typeMatch reports whether a media type is one of the type chips picked.
+func (st *trafficState) typeMatch(media string) bool {
+	for i, on := range st.types {
+		if on && trafficTypeMatches(i, media) {
+			return true
+		}
+	}
+	return false
+}
+
+// trafficTypeMatches reports whether a media type belongs to the chip at i.
+// "Other" takes any media type that no other chip names.
+func trafficTypeMatches(i int, media string) bool {
+	if i == typeOther {
+		return media != "" && !knownType(media)
+	}
+	for _, p := range trafficTypePrefixes(i) {
+		if strings.HasPrefix(media, p) {
+			return true
+		}
+	}
+	return false
+}
+
+// knownType reports whether a type chip other than "Other" names a media type.
 func knownType(media string) bool {
-	for i := range trafficTypeCount {
+	for i := range typeOther {
 		for _, p := range trafficTypePrefixes(i) {
 			if strings.HasPrefix(media, p) {
 				return true
@@ -169,10 +188,19 @@ func knownType(media string) bool {
 	return false
 }
 
+// statusChipsOn reports whether a status chip or Failed is picked.
+func (st *trafficState) statusChipsOn() bool {
+	return st.failed || anyTrue(st.classes[:])
+}
+
+// chipsOn reports whether any chip is picked.
+func (st *trafficState) chipsOn() bool {
+	return st.statusChipsOn() || anyTrue(st.types[:])
+}
+
 // filterActive reports whether anything narrows the list.
 func (st *trafficState) filterActive() bool {
-	return strings.TrimSpace(st.text) != "" || st.failed ||
-		anyTrue(st.methods[:]) || anyTrue(st.classes[:]) || anyTrue(st.types[:])
+	return strings.TrimSpace(st.text) != "" || st.chipsOn()
 }
 
 // anyTrue reports whether any of flags is set.
@@ -185,23 +213,30 @@ func anyTrue(flags []bool) bool {
 	return false
 }
 
-// clearFilter forgets the search text and every choice.
+// clearChips forgets every chip, and keeps the search text.
+func (st *trafficState) clearChips() {
+	st.failed = false
+	st.classes = [trafficStatusCount]bool{}
+	st.types = [trafficTypeCount]bool{}
+}
+
+// clearFilter forgets the search text and every chip.
 func (st *trafficState) clearFilter() {
-	st.text, st.failed = "", false
-	st.methods, st.classes, st.types = [trafficMethodCount]bool{}, [trafficClassCount]bool{}, [trafficTypeCount]bool{}
+	st.text = ""
+	st.clearChips()
 }
 
 // trafficSearchField is the query field of the traffic page: one pill with a
 // magnifier, the text, a clear button and the placeholder. The text is the
-// source of truth for the filter, so the toolbar only decides where it sits.
+// source of truth for the filter, so the bar only decides where it sits.
 func (a *App) trafficSearchField(c *ui.Context, st *trafficState) {
 	p := ds.P(c)
-	box := ui.Row(c).Width(ds.SearchWidth).MinWidth(ds.SearchMinWidth).Shrink(1).Height(ds.ControlLg).
+	box := ui.Row(c).MinWidth(trafficSearchMinWidth).MaxWidth(trafficSearchMaxWidth).Grow(1).Height(ds.ControlLg).
 		Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).Radius(ds.RadiusFull).Background(p.FillControl).
 		Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center)
 	box.Children(func() {
 		a.kit.Glyph(c, "search", ds.SearchGlyph, p.TextMuted)
-		in := ui.TextInputBase(c, &st.text).Bind(&st.search).Grow(1).Placeholder(i18n.TrafficSearch()).
+		in := ui.TextInputBase(c, &st.text).Bind(&st.search).Grow(1).Disabled(st.view == viewRules).Placeholder(i18n.TrafficSearch()).
 			PlaceholderColor(p.TextMuted).TextColor(p.TextPrimary).Label(i18n.TrafficSearch())
 		ds.Style(in, ds.Label)
 		if st.text != "" && ui.ButtonBase(c.Key("search-clear")).Label("×").Cursor(ui.CursorDefault).Clicked() {
@@ -216,47 +251,34 @@ func (a *App) trafficSearchField(c *ui.Context, st *trafficState) {
 	}
 }
 
-// trafficFilterBar is the one row under the toolbar: the Filter button with
-// its popover, the applied choices as chips, Failed only, and Follow at the end.
-func (a *App) trafficFilterBar(c *ui.Context, t tool.Traffic, st *trafficState) {
-	p := ds.P(c)
-	ui.Row(c).FillWidth().Height(ds.ControlLg).Gap(ds.Space6).AlignItems(ui.Center).Children(func() {
-		if t.Config().Mode == tool.ModeProxy {
-			a.trafficFilterButton(c, st)
-			a.trafficAppliedChips(c, st)
+// trafficFilterBar is the chip row under the toolbar: All, the type group, the
+// status group with Failed, then one chip per query token, which removes that
+// token. The chips wrap onto a new line when they do not fit, so none is cut off.
+func (a *App) trafficFilterBar(c *ui.Context, st *trafficState) {
+	ui.Row(c).FillWidth().Wrap().GapX(ds.Space6).GapY(ds.Space6).AlignItems(ui.Center).Children(func() {
+		if comp.Chip(c.Key("all"), i18n.All(), !st.chipsOn()).Clicked() {
+			st.clearChips()
 		}
-		ui.Spacer(c)
+		for i := range st.types {
+			if comp.Chip(c.Key("type:"+trafficTypeLabel(i)), trafficTypeLabel(i), st.types[i]).Clicked() {
+				st.types[i] = !st.types[i]
+			}
+		}
+		ui.Row(c).Width(ds.LineWidth).Height(ds.Glyph).Background(ds.P(c).LineHairline)
+		for i := range st.classes {
+			if comp.Chip(c.Key("class:"+trafficStatusLabels[i]), trafficStatusLabels[i], st.classes[i]).Clicked() {
+				st.classes[i] = !st.classes[i]
+			}
+		}
 		if comp.Chip(c.Key("failed"), i18n.TrafficFilterFailed(), st.failed).Clicked() {
 			st.failed = !st.failed
 		}
-		if st.filterActive() && a.kit.Button(c.Key("clear-filters"), i18n.TrafficClearFilters(), comp.ButtonOpts{Kind: comp.Ghost, Small: true}).Clicked() {
-			st.clearFilter()
-		}
-		comp.Text(c, i18n.TrafficFollow(), ds.Caption, p.TextSecondary)
-		if comp.SwitchCompact(c.Key("traffic-follow"), &st.follow, i18n.TrafficFollow()).Changed() && st.follow {
-			st.list.ScrollToEnd()
-		}
+		a.trafficAppliedChips(c, st)
 	})
 }
 
-// trafficFilterButton opens the popover with the method, status and type groups.
-func (a *App) trafficFilterButton(c *ui.Context, st *trafficState) {
-	btn := a.kit.Button(c.Key("filter-open"), i18n.TrafficFilterButton(), comp.ButtonOpts{Kind: comp.Secondary, Small: true, Glyph: "tune"})
-	if btn.Clicked() {
-		st.menuOpen = !st.menuOpen
-	}
-	ui.Popover(c, btn, &st.menuOpen, func() {
-		ui.Column(c).Padding(ds.Space12, ds.Space12).Gap(ds.Space10).Children(func() {
-			a.trafficMethodChips(c, st)
-			a.trafficClassChips(c, st)
-			a.trafficTypeChips(c, st)
-		})
-	})
-}
-
-// trafficAppliedChips shows what narrows the list: one chip per query token,
-// which removes that token from the text when clicked, and one chip per
-// choice in the popover, which clears it.
+// trafficAppliedChips shows one chip per query token. Clicking a chip removes
+// that token from the search text.
 func (a *App) trafficAppliedChips(c *ui.Context, st *trafficState) {
 	for _, tok := range parseQuery(st.text).tokens {
 		if comp.Chip(c.Key(tok.start), st.text[tok.start:tok.end]+" ×", true).Clicked() {
@@ -264,55 +286,4 @@ func (a *App) trafficAppliedChips(c *ui.Context, st *trafficState) {
 			return
 		}
 	}
-	for i := range st.methods {
-		if st.methods[i] && comp.Chip(c.Key("applied-method:"+trafficMethod(i)), trafficMethod(i)+" ×", true).Clicked() {
-			st.methods[i] = false
-		}
-	}
-	for i := range st.classes {
-		if st.classes[i] && comp.Chip(c.Key("applied-class:"+trafficClassLabel(i)), trafficClassLabel(i)+" ×", true).Clicked() {
-			st.classes[i] = false
-		}
-	}
-	for i := range st.types {
-		if st.types[i] && comp.Chip(c.Key("applied-type:"+trafficTypeLabel(i)), trafficTypeLabel(i)+" ×", true).Clicked() {
-			st.types[i] = false
-		}
-	}
-}
-
-// trafficGroup is one labelled group of checkable chips in the popover.
-func trafficGroup(c *ui.Context, title string, chips func()) {
-	comp.Eyebrow(c, title)
-	ui.Row(c).Gap(ds.Space6).AlignItems(ui.Center).Wrap().Children(chips)
-}
-
-func (a *App) trafficMethodChips(c *ui.Context, st *trafficState) {
-	trafficGroup(c, i18n.TrafficMethods(), func() {
-		for i := range st.methods {
-			if comp.Chip(c.Key("method:"+trafficMethod(i)), trafficMethod(i), st.methods[i]).Clicked() {
-				st.methods[i] = !st.methods[i]
-			}
-		}
-	})
-}
-
-func (a *App) trafficClassChips(c *ui.Context, st *trafficState) {
-	trafficGroup(c, i18n.StatusLabel(), func() {
-		for i := range st.classes {
-			if comp.Chip(c.Key("class:"+trafficClassLabel(i)), trafficClassLabel(i), st.classes[i]).Clicked() {
-				st.classes[i] = !st.classes[i]
-			}
-		}
-	})
-}
-
-func (a *App) trafficTypeChips(c *ui.Context, st *trafficState) {
-	trafficGroup(c, i18n.TrafficTypes(), func() {
-		for i := range st.types {
-			if comp.Chip(c.Key("type:"+trafficTypeLabel(i)), trafficTypeLabel(i), st.types[i]).Clicked() {
-				st.types[i] = !st.types[i]
-			}
-		}
-	})
 }

@@ -2,9 +2,8 @@ package shell
 
 import (
 	"context"
+	"runtime"
 	"slices"
-	"strconv"
-	"time"
 
 	"github.com/egoist/mygo/ui"
 
@@ -21,7 +20,6 @@ const (
 	cellMethod
 	cellURL
 	cellStatus
-	cellType
 	cellSize
 	cellDuration
 	cellProtocol
@@ -63,31 +61,30 @@ func (col trafficColumn) frame(c *ui.Context, key int) ui.Element {
 func (st *trafficState) trafficColumns(width float32) []trafficColumn {
 	if tool.CaptureMode(st.mode) == tool.ModePackets {
 		return trafficFit([]trafficColumn{
-			{label: i18n.TrafficColID, width: trafficWidthID, kind: cellID},
-			{label: i18n.TrafficColTime, width: trafficWidthTime, kind: cellTime},
-			{label: i18n.TrafficColProtocol, width: trafficWidthProtocol, kind: cellProtocol},
+			{label: i18n.TrafficColID, width: ds.TrafficColID, kind: cellID},
+			{label: i18n.TrafficColTime, width: ds.TrafficColTime, kind: cellTime},
+			{label: i18n.TrafficColProtocol, width: ds.TrafficColProtocol, kind: cellProtocol},
 			{label: i18n.TrafficColDestination, share: trafficShareDestination, kind: cellDestination},
 			{label: i18n.TrafficColInfo, share: trafficShareInfo, kind: cellInfo},
-			{label: i18n.TrafficColLength, width: trafficWidthLength, end: true, kind: cellLength},
+			{label: i18n.TrafficColLength, width: ds.TrafficColLength, end: true, kind: cellLength},
 		}, width)
 	}
 	return trafficFit([]trafficColumn{
-		{label: i18n.TrafficColID, width: trafficWidthID, kind: cellID},
-		{label: i18n.TrafficColProgram, width: trafficWidthProgram, kind: cellProgram},
-		{label: i18n.TrafficColTime, width: trafficWidthTime, kind: cellTime},
-		{label: i18n.TrafficColMethod, width: trafficWidthMethod, kind: cellMethod},
+		{label: i18n.TrafficColID, width: ds.TrafficColID, kind: cellID},
+		{label: i18n.TrafficColMethod, width: ds.TrafficColMethod, kind: cellMethod},
+		{label: i18n.StatusLabel, width: ds.TrafficColStatus, kind: cellStatus},
 		{label: i18n.TrafficColURL, share: trafficShareURL, kind: cellURL},
-		{label: i18n.TrafficColType, width: trafficWidthType, kind: cellType},
-		{label: i18n.StatusLabel, width: trafficWidthStatus, kind: cellStatus},
-		{label: i18n.TrafficColSize, width: trafficWidthSize, end: true, kind: cellSize},
-		{label: i18n.TrafficColDuration, width: trafficWidthDuration, end: true, kind: cellDuration},
+		{label: i18n.TrafficColProgram, width: ds.TrafficColProgram, kind: cellProgram},
+		{label: i18n.TrafficColTime, width: ds.TrafficColTime, kind: cellTime},
+		{label: i18n.TrafficColDuration, width: ds.TrafficColDuration, end: true, kind: cellDuration},
+		{label: i18n.TrafficColSize, width: ds.TrafficColSize, end: true, kind: cellSize},
 	}, width)
 }
 
 // trafficListWidth is the width the list gets: its share of the panes beside
 // the detail, or all of them when the detail sits under the list.
 func (a *App) trafficListWidth(c *ui.Context, st *trafficState) float32 {
-	panes := a.trafficPanesWidth(c)
+	panes := a.trafficPanesWidth(c, st)
 	if panes >= ds.TrafficWide {
 		return panes * st.splitP / percentScale
 	}
@@ -95,8 +92,8 @@ func (a *App) trafficListWidth(c *ui.Context, st *trafficState) float32 {
 }
 
 // trafficFit drops the columns that do not fit in width, in the order of
-// trafficDropOrder, until the URL has its minimum. The Program, the URL and
-// the Status are never dropped.
+// trafficDropOrder, until the URL has its minimum. #, Method, Status and the
+// URL are never dropped.
 func trafficFit(cols []trafficColumn, width float32) []trafficColumn {
 	for _, kind := range trafficDropOrder {
 		if trafficNeed(cols) <= width {
@@ -115,27 +112,12 @@ func trafficNeed(cols []trafficColumn) float32 {
 		if col.width > 0 {
 			need += col.width
 		} else {
-			need += trafficURLMin
+			need += ds.TrafficURLMin
 		}
 		need += float32(ds.Space4)
 	}
 	return need
 }
-
-// Widths of the fixed columns, in pixels. The URL takes what is left after
-// them, and the Program keeps a whole program name.
-const (
-	trafficWidthID       = 50
-	trafficWidthProgram  = 110
-	trafficWidthTime     = 90
-	trafficWidthMethod   = 70
-	trafficWidthType     = 70
-	trafficWidthStatus   = 70
-	trafficWidthSize     = 90
-	trafficWidthDuration = 80
-	trafficWidthProtocol = 72
-	trafficWidthLength   = 88
-)
 
 // Shares of the flexible columns. The URL is the only flexible column of the
 // proxy list; the packet capture splits its room between two columns.
@@ -145,43 +127,31 @@ const (
 	trafficShareInfo        = 1.65
 )
 
-// trafficURLMin is the least width the URL column keeps: the list drops
-// columns to give it this much before it squeezes the URL any narrower.
-const trafficURLMin = 200
-
 // percentScale turns the list's percent split into a fraction of the panes.
 const percentScale = 100
 
 // trafficDropOrder lists the columns dropped first when the list is narrow,
-// least needed first. Program, URL, Status and # are never dropped.
-var trafficDropOrder = []int{cellType, cellTime, cellSize, cellMethod, cellDuration}
+// least needed first. #, Method, Status and the URL are never dropped.
+var trafficDropOrder = []int{cellSize, cellTime, cellDuration, cellProgram}
 
-// trafficListPane is the list with its column headings.
+// trafficListPane is the list with its column headings. The columns are
+// worked out once here and shared by the headings and the rows.
 func (a *App) trafficListPane(c *ui.Context, t tool.Traffic, st *trafficState) {
+	cols := st.trafficColumns(a.trafficListWidth(c, st))
 	ui.Column(c).FillHeight().FillWidth().Gap(ds.Space4).Children(func() {
-		a.trafficListBar(c, t, st)
-		a.trafficColumnHead(c, st)
-		a.trafficList(c, t, st)
+		trafficColumnHead(c, cols)
+		a.trafficList(c, t, st, cols)
+		a.trafficBottom(c, t, st)
 	})
 }
 
-// trafficListBar is the strip above the list: the count of flows on the left,
-// and Clear and Export HAR on the right. The toolbar keeps only the capture
-// controls, so a long label cannot push Settings off the window.
-func (a *App) trafficListBar(c *ui.Context, t tool.Traffic, st *trafficState) {
-	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-		a.trafficCount(c, st)
-		ui.Row(c).Grow(1)
-		a.trafficClearExport(c, t, st)
-	})
-}
-
-// trafficColumnHead is the row of labels above the list.
-func (a *App) trafficColumnHead(c *ui.Context, st *trafficState) {
+// trafficColumnHead is the row of labels above the list, in the columns the
+// list draws.
+func trafficColumnHead(c *ui.Context, cols []trafficColumn) {
 	p := ds.P(c)
 	ui.Row(c).FillWidth().Height(ds.ControlSm).Padding(0, ds.TableCellPad).Gap(ds.Space4).AlignItems(ui.Center).
 		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.LineHairline).Children(func() {
-		for i, col := range st.trafficColumns(a.trafficListWidth(c, st)) {
+		for i, col := range cols {
 			col.frame(c, i).Children(func() {
 				comp.Text(c, col.label(), ds.Eyebrow, p.TextMuted).SingleLine().Ellipsis("…")
 			})
@@ -192,18 +162,24 @@ func (a *App) trafficColumnHead(c *ui.Context, st *trafficState) {
 // trafficList is the virtual list of flows: only the rows in view are
 // built, so a log of fifty thousand flows costs a frame no more than a
 // log of twenty.
-func (a *App) trafficList(c *ui.Context, t tool.Traffic, st *trafficState) {
+func (a *App) trafficList(c *ui.Context, t tool.Traffic, st *trafficState, cols []trafficColumn) {
 	if len(st.rows) == 0 {
 		a.trafficListEmpty(c, t, st)
 		return
 	}
 	st.list.Selected = &st.sel
-	st.list.Key = func(i int) any { return st.rows[i].ID }
-	st.list.Label = func(i int) string { return trafficRowLabel(st.rows[i]) }
+	if st.list.Key == nil {
+		st.list.Key = func(i int) any { return st.rows[i].ID }
+		st.list.Label = func(i int) string { return trafficRowLabel(st.rows[i]) }
+	}
 	st.list.FollowEnd = st.follow
-	cols := st.trafficColumns(a.trafficListWidth(c, st))
-	ui.List(c.Key("flows"), &st.list, len(st.rows), func(i int) { a.trafficRow(c, t, st, cols, i) }).
+	lst := ui.List(c.Key("flows"), &st.list, len(st.rows), func(i int) { a.trafficRow(c, t, st, cols, i) }).
 		Grow(1).FillWidth()
+	st.listKeys(lst)
+	if lst.Changed() {
+		st.picked = true
+		st.setSel(st.sel)
+	}
 	// Scrolling up is how a person stops following the end; the list
 	// reports it once it has settled.
 	if st.follow && st.frames > 2 && !st.list.AtEnd() {
@@ -211,21 +187,30 @@ func (a *App) trafficList(c *ui.Context, t tool.Traffic, st *trafficState) {
 	}
 }
 
-// trafficRow is one flow, the chosen one in the design system's accent.
+// trafficRow is one flow. The chosen one carries the design system's accent
+// and selection fill; a failed one carries a red mark on its left edge.
 func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols []trafficColumn, i int) {
 	p := ds.P(c)
 	r := st.rows[i]
+	txt := st.textOf(r)
 	chosen := i == st.sel
-	b := ui.ButtonBase(c.Key(r.ID)).Label(trafficRowLabel(r)).Cursor(ui.CursorDefault)
+	b := ui.ButtonBase(c.Key(r.ID)).Label(txt.label).Cursor(ui.CursorDefault)
 	if b.Clicked() {
-		st.sel = i
+		st.choose(i)
 	}
 	b.ContextMenu(func(m *ui.Menu) { a.trafficFlowMenu(m, c, t, st, r) })
 	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Gap(ds.Space4).Background(p.BgCard).
 		AlignItems(ui.Center)
-	if chosen {
-		b.BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(p.AccentStrong)
-	} else if b.Hovered() {
+	// The marker's width is always kept, so a marked row does not shift its
+	// text; only its colour changes.
+	b.BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(ui.Transparent)
+	switch {
+	case chosen:
+		b.BorderColor(p.AccentStrong)
+	case r.State == tool.FlowFailed:
+		b.BorderColor(p.Danger)
+	}
+	if !chosen && b.Hovered() {
 		b.Background(p.FillControl)
 	}
 	b.Children(func() {
@@ -233,31 +218,30 @@ func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols [
 			listSelection(c)
 		}
 		for j, col := range cols {
-			col.frame(c, j).Children(func() { a.trafficCell(c, r, col.kind) })
+			col.frame(c, j).Children(func() { a.trafficCell(c, r, txt, col.kind) })
 		}
 	})
 }
 
-// trafficCell draws one cell of a flow.
-func (a *App) trafficCell(c *ui.Context, r tool.FlowRow, kind int) {
+// trafficCell draws one cell of a flow. The text of the cell comes from txt,
+// which is made once for the flow rather than on every frame.
+func (a *App) trafficCell(c *ui.Context, r tool.FlowRow, txt rowText, kind int) {
 	p := ds.P(c)
 	switch kind {
 	case cellID:
-		comp.Value(c, strconv.FormatUint(r.ID, 10), p.TextMuted).Ellipsis("…")
+		comp.Value(c, txt.id, p.TextMuted).Ellipsis("…")
 	case cellTime:
-		comp.Value(c, r.Started.Format(time.TimeOnly), p.TextMuted).Ellipsis("…")
+		comp.Value(c, txt.time, p.TextMuted).Ellipsis("…")
 	case cellMethod:
-		comp.Value(c, r.Method, p.TextPrimary).Ellipsis("…")
+		comp.Value(c, r.Method, methodColor(p, r.Method)).Ellipsis("…")
 	case cellURL:
 		trafficURL(c, r)
 	case cellStatus:
-		a.trafficStatus(c, r)
-	case cellType:
-		comp.Value(c, shortType(r.Type), p.TextSecondary).Ellipsis("…").Shrink(1)
+		a.trafficStatus(c, r, txt.status)
 	case cellSize:
-		comp.Value(c, trafficSize(r.Size), p.TextSecondary).Ellipsis("…")
+		comp.Value(c, txt.size, p.TextSecondary).Ellipsis("…")
 	case cellDuration:
-		comp.Value(c, trafficTook(r.Duration), p.TextMuted).Ellipsis("…")
+		comp.Value(c, txt.took, p.TextMuted).Ellipsis("…")
 	case cellProtocol:
 		comp.Value(c, r.Proto, p.TextSecondary).Ellipsis("…")
 	case cellDestination:
@@ -265,7 +249,7 @@ func (a *App) trafficCell(c *ui.Context, r tool.FlowRow, kind int) {
 	case cellInfo:
 		comp.Value(c, r.Info, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
 	case cellLength:
-		comp.Value(c, trafficSize(r.Size), p.TextMuted).Ellipsis("…")
+		comp.Value(c, txt.size, p.TextMuted).Ellipsis("…")
 	case cellProgram:
 		comp.Value(c, r.Process.Name, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
 	}
@@ -281,26 +265,24 @@ func trafficURL(c *ui.Context, r tool.FlowRow) {
 	})
 }
 
-// trafficStatus is the state of a flow: its status in the colour of what
-// it means, or the word for a failure, a block or a response still on its
-// way. A rule that changed the flow is marked before it.
-func (a *App) trafficStatus(c *ui.Context, r tool.FlowRow) {
+// trafficStatus is the state of a flow: its status text in the colour of
+// what it means, or the word for a failure, a block or a response still on
+// its way. A rule that changed the flow is marked before it.
+func (a *App) trafficStatus(c *ui.Context, r tool.FlowRow, text string) {
 	if r.Ruled {
 		a.kit.Glyph(c, "tune", ds.GlyphSm, ds.P(c).TextMuted)
 	}
 	switch r.State {
-	case tool.FlowBlocked:
-		comp.Badge(c, i18n.TrafficBlocked(), comp.ToneDanger)
-	case tool.FlowFailed:
-		comp.Badge(c, i18n.TrafficFailed(), comp.ToneDanger)
+	case tool.FlowBlocked, tool.FlowFailed:
+		comp.Badge(c, text, comp.ToneDanger)
 	case tool.FlowDone:
-		comp.Badge(c, strconv.Itoa(r.Status), statusTone(r.Status))
+		comp.Badge(c, text, statusTone(r.Status))
 	case tool.FlowOpen:
 		if r.Status > 0 {
-			comp.Badge(c, strconv.Itoa(r.Status), statusTone(r.Status))
+			comp.Badge(c, text, statusTone(r.Status))
 			return
 		}
-		comp.Badge(c, i18n.TrafficOpen(), comp.ToneAccent)
+		comp.Badge(c, text, comp.ToneAccent)
 	}
 }
 
@@ -352,4 +334,65 @@ func (a *App) trafficReplay(t tool.Traffic, st *trafficState, id uint64) {
 		newID, err := t.Replay(ctx, id)
 		a.tell(st, trafficOutcome{err: err, replay: newID})
 	})
+}
+
+// methodColor is the colour of a request's method: the common verbs read at
+// a glance, and the others stay in the text colour.
+func methodColor(p *ds.Palette, method string) ui.Color {
+	switch method {
+	case "GET":
+		return p.Success
+	case "POST":
+		return p.AccentText
+	case "PUT":
+		return p.Warning
+	case "DELETE":
+		return p.Danger
+	}
+	return p.TextPrimary
+}
+
+// choose makes row i the choice, brings it into view, and marks it as picked
+// by hand, so that Auto select stops taking the choice away.
+func (st *trafficState) choose(i int) {
+	i = max(0, min(i, len(st.rows)-1))
+	st.setSel(i)
+	st.picked = true
+	st.list.ScrollIntoView(i)
+}
+
+// listKeys handles the keys the list leaves to the page: Esc clears the
+// choice. On macOS the list scrolls by a page on PageUp and PageDown instead
+// of moving the choice, so the page moves it here.
+func (st *trafficState) listKeys(lst ui.Element) {
+	switch {
+	case lst.Shortcut(0, ui.KeyEscape):
+		st.setSel(-1)
+		st.picked = false
+	case runtime.GOOS == "darwin" && lst.Shortcut(0, ui.KeyPageDown):
+		st.choose(max(0, st.sel) + st.pageRows())
+	case runtime.GOOS == "darwin" && lst.Shortcut(0, ui.KeyPageUp):
+		st.choose(st.sel - st.pageRows())
+	}
+}
+
+// pageRows is how many rows a page key moves the choice: the rows in view.
+func (st *trafficState) pageRows() int {
+	first, last := st.list.Visible()
+	return max(1, last-first)
+}
+
+// selectNewest chooses the newest flow as it arrives, while Auto select is on
+// and no row was picked by hand. Each flow is chosen once, so an Esc that
+// clears the choice stays cleared until the next flow arrives.
+func (st *trafficState) selectNewest() {
+	if !st.autoSelect || st.picked || len(st.rows) == 0 {
+		return
+	}
+	last := len(st.rows) - 1
+	if st.rows[last].ID == st.autoID {
+		return
+	}
+	st.autoID = st.rows[last].ID
+	st.setSel(last)
 }
