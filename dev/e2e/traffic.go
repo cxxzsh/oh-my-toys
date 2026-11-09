@@ -32,18 +32,23 @@ const (
 	trafficFolder  = "traffic"
 	configFileName = "config.json"
 	// paletteKey opens the app's command palette; Escape closes it again.
-	paletteKey     = "CmdOrCtrl+K"
-	escapeKey      = "Escape"
-	trafficConfig  = `{"Mode":0,"ProxyPort":19099,"SystemProxy":false,"Decrypt":false,"Bypass":null,"Interface":"","Upstream":""}` + "\n"
-	trafficProxy   = "http://127.0.0.1:19099"
-	actionPress    = "press"
-	paramAction    = "action"
-	stateExpanded  = "expanded"
-	stateChecked   = "checked"
-	langCount      = 2 // English and Chinese: the languages both(...) returns
-	readHeaderWait = 10 * time.Second
-	linuxOS        = "linux"
-	darwinOS       = "darwin"
+	paletteKey    = "CmdOrCtrl+K"
+	escapeKey     = "Escape"
+	trafficConfig = `{"Mode":0,"ProxyPort":19099,"SystemProxy":false,"Decrypt":false,"Bypass":null,"Interface":"","Upstream":""}` + "\n"
+	// settingsFileName is the app's settings file in the data folder. Pinning
+	// Traffic puts its row at the top of the sidebar, where a short window
+	// still shows it, so the scenario does not depend on scrolling.
+	settingsFileName = "settings.json"
+	prepSettings     = `{"version":1,"pinned":["traffic"],"recent":[],"collapsed":[]}` + "\n"
+	trafficProxy     = "http://127.0.0.1:19099"
+	actionPress      = "press"
+	paramAction      = "action"
+	stateExpanded    = "expanded"
+	stateChecked     = "checked"
+	langCount        = 2 // English and Chinese: the languages both(...) returns
+	readHeaderWait   = 10 * time.Second
+	linuxOS          = "linux"
+	darwinOS         = "darwin"
 	// openWait bounds the whole open step across its routes: a route that
 	// cannot work must not hold the run for a poll deadline each.
 	openWait = 40 * time.Second
@@ -123,6 +128,9 @@ func prepareTraffic(exe string) error {
 	}
 	cfg := filepath.Join(dir, portableData, trafficFolder)
 	if err := os.MkdirAll(cfg, privateDir); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(dir, portableData, settingsFileName), []byte(prepSettings), privateFile); err != nil {
 		return err
 	}
 	return os.WriteFile(filepath.Join(cfg, configFileName), []byte(trafficConfig), privateFile)
@@ -516,8 +524,6 @@ func (r *trafficRun) pressHeader(labels []string) error {
 // the result. Each language's name is tried in turn, since the palette
 // matches the names of the app's current language.
 func (r *trafficRun) openFromPalette() error {
-	// The palette may be a button that opens its field, so this press is optional.
-	_ = r.c.press(r.win, roleButton, both(i18n.Messages.PaletteHint)...)
 	return r.openPaletteResult()
 }
 

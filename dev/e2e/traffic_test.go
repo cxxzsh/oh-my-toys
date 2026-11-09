@@ -58,6 +58,19 @@ func TestPrepareTrafficWritesStartSettings(t *testing.T) {
 	if got["ProxyPort"] != float64(19099) || got["SystemProxy"] != false || got["Decrypt"] != false || got["Mode"] != float64(0) {
 		t.Fatalf("config = %v", got)
 	}
+	s, err := os.ReadFile(filepath.Join(dir, "data", "settings.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var settings struct {
+		Pinned []string `json:"pinned"`
+	}
+	if err := json.Unmarshal(s, &settings); err != nil {
+		t.Fatal(err)
+	}
+	if len(settings.Pinned) != 1 || settings.Pinned[0] != "traffic" {
+		t.Fatalf("pinned = %v", settings.Pinned)
+	}
 }
 
 func TestMatchFlowFindsRequestRow(t *testing.T) {
