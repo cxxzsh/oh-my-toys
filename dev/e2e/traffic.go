@@ -661,7 +661,6 @@ func toolbarWants() []want {
 	return []want{
 		{"record", roleButton, both(i18n.Messages.SwitchStart)},
 		{"sources", roleButton, append(both(i18n.Messages.TrafficSourcesShow), both(i18n.Messages.TrafficSourcesHide)...)},
-		{"mode", "", append(both(i18n.Messages.TrafficModeProxy), both(i18n.Messages.TrafficModePackets)...)},
 		{"search", roleField, both(i18n.Messages.TrafficSearch)},
 		{"rules", roleButton, both(i18n.Messages.TrafficViewRules)},
 		{"terminal", roleButton, both(i18n.Messages.TrafficTerminal)},
