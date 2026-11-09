@@ -3,7 +3,7 @@ package terminal
 import (
 	"encoding/base64"
 	"fmt"
-	"path/filepath"
+	"path"
 	"regexp"
 	"slices"
 	"strings"
@@ -64,7 +64,7 @@ func darwinScript(vars []Var, self string) (string, error) {
 		"#!/bin/sh",
 		`cd -- "${HOME:-/}" 2>/dev/null`,
 		"rm -f -- "+shellQuote(self),
-		"rmdir -- "+shellQuote(filepath.Dir(self))+" 2>/dev/null",
+		"rmdir -- "+shellQuote(path.Dir(self))+" 2>/dev/null",
 	)
 	lines = append(lines, exportCommands(vars)...)
 	lines = append(lines, `exec "${SHELL:-`+darwinFallbackSh+`}" -l`)
