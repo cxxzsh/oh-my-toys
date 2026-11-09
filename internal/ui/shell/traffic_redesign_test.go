@@ -41,13 +41,16 @@ func clickOK(t *testing.T, tt *ui.Tester, label string) {
 	}
 }
 
+// sourcesWidth is a window wide enough for the sources column to open by itself.
+const sourcesWidth = 1400
+
 // TestTrafficSidebarNarrowsByProgram: a click on a program in the sidebar
 // keeps the flows of that program and no others.
 func TestTrafficSidebarNarrowsByProgram(t *testing.T) {
 	f := newTestTraffic()
 	f.proxy.add(testFrom(testGET("api.example.com", "/alpha-path", 200), "alpha-app"))
 	f.proxy.add(testFrom(testGET("api.example.com", "/beta-path", 200), "beta-app"))
-	tt := openTraffic(t, f)
+	tt := openTrafficAt(t, f, sourcesWidth)
 	clickOK(t, tt, "beta-app")
 	waitUntil(t, tt, func() bool { return !tt.HasText("/alpha-path") }, "the alpha flow to leave the list")
 	if !tt.HasText("/beta-path") {
@@ -61,7 +64,7 @@ func TestTrafficScopeChipClears(t *testing.T) {
 	f := newTestTraffic()
 	f.cfg.Scope = []string{"alpha-app"}
 	f.proxy.add(testFrom(testGET("api.example.com", "/alpha-path", 200), "alpha-app"))
-	tt := openTraffic(t, f)
+	tt := openTrafficAt(t, f, sourcesWidth)
 	label := i18n.TrafficScopeChip("alpha-app")
 	if !tt.HasText(label) {
 		t.Fatalf("the scope chip %q is not shown: %q", label, tt.Texts())
@@ -75,8 +78,7 @@ func TestTrafficOpenTerminalRuns(t *testing.T) {
 	f := newTestTraffic()
 	f.on = true
 	tt := openTraffic(t, f)
-	clickOK(t, tt, i18n.TrafficSettings())
-	clickOK(t, tt, i18n.TrafficOpenTerminal())
+	clickOK(t, tt, i18n.TrafficTerminal())
 	waitUntil(t, tt, func() bool {
 		f.mu.Lock()
 		defer f.mu.Unlock()
@@ -89,8 +91,7 @@ func TestTrafficOpenTerminalRuns(t *testing.T) {
 func TestTrafficOpenTerminalNeedsProxy(t *testing.T) {
 	f := newTestTraffic()
 	tt := openTraffic(t, f)
-	clickOK(t, tt, i18n.TrafficSettings())
-	clickOK(t, tt, i18n.TrafficOpenTerminal())
+	clickOK(t, tt, i18n.TrafficTerminal())
 	waitUntil(t, tt, func() bool { return tt.HasText(i18n.TrafficErrNotRunningTitle()) }, "the not-running problem")
 }
 
@@ -178,14 +179,13 @@ func TestTrafficProgramNameFullAtWideWidth(t *testing.T) {
 	}
 	prog := headerX(t, tt, i18n.TrafficColProgram())
 	started := headerX(t, tt, i18n.TrafficColTime())
-	if d := started - prog - trafficWidthProgram; d < 0 || d > float32(ds.Space4) {
-		t.Errorf("Program column is %v px, want %d px", started-prog, trafficWidthProgram)
+	if d := started - prog - ds.TrafficColProgram; d < 0 || d > float32(ds.Space4) {
+		t.Errorf("Program column is %v px, want %d px", started-prog, ds.TrafficColProgram)
 	}
-	// At this width every column is shown, so Type's header must be on the page.
-	headerX(t, tt, i18n.TrafficColType())
+	// At this width every column is shown, so Method's header must be on the page.
+	headerX(t, tt, i18n.TrafficColMethod())
 	url := headerX(t, tt, i18n.TrafficColURL())
-	status := headerX(t, tt, i18n.StatusLabel())
-	if w := status - url; w < wideURLWidth {
+	if w := prog - url; w < wideURLWidth {
 		t.Errorf("URL column is %v px, want at least %d px", w, wideURLWidth)
 	}
 }
@@ -201,16 +201,23 @@ func headerX(t *testing.T, tt *ui.Tester, label string) float32 {
 }
 
 // TestTrafficDetailBesideListAtWideWindow checks that a window wide enough for
-// side-by-side panes leaves the detail pane at least 400 px wide. Its empty
-// state text starts at the pane's left edge, so the distance from there to the
-// window's right edge bounds the pane's width from below.
+// side-by-side panes leaves the detail pane at least 400 px wide. The request
+// tab's label sits a few pixels in from the detail pane's left edge, so the
+// distance from there to the window's right edge bounds the pane's width from
+// below. With no flow yet, there is no detail pane at all.
 func TestTrafficDetailBesideListAtWideWindow(t *testing.T) {
 	const width = 2200
 	const minDetail = 400
-	tt := openTrafficAt(t, newTestTraffic(), width)
-	r, ok := tt.Find(i18n.TrafficNoSelection())
+	if tt := openTrafficAt(t, newTestTraffic(), width); tt.HasText(i18n.TrafficNoSelection()) {
+		t.Errorf("the empty detail box shows on an empty log")
+	}
+	f := newTestTraffic()
+	f.proxy.add(testFrom(testGET("api.example.com", "/detail", 200), "curl"))
+	tt := openTrafficAt(t, f, width)
+	waitUntil(t, tt, func() bool { return tt.HasText(i18n.TrafficTabRequest()) }, "the request tab")
+	r, ok := tt.Find(i18n.TrafficTabRequest())
 	if !ok {
-		t.Fatalf("detail empty state is not on the page")
+		t.Fatalf("the request tab is not on the page")
 	}
 	if got := width - r.X; got < minDetail {
 		t.Errorf("detail pane is about %v px wide, want at least %d px", got, minDetail)
@@ -218,7 +225,7 @@ func TestTrafficDetailBesideListAtWideWindow(t *testing.T) {
 }
 
 // TestTrafficURLKeepsMinimumAtNarrowWidth checks that a single flow in a
-// 1024 px window keeps the URL column at least trafficURLMin wide, and that the
+// 1024 px window keeps the URL column at least ds.TrafficURLMin wide, and that the
 // host and path are shown whole in it.
 func TestTrafficURLKeepsMinimumAtNarrowWidth(t *testing.T) {
 	const host = "127.0.0.1:65409"
@@ -231,8 +238,19 @@ func TestTrafficURLKeepsMinimumAtNarrowWidth(t *testing.T) {
 	if !ok {
 		t.Fatalf("the URL cell does not show %q", host)
 	}
-	status := headerX(t, tt, i18n.StatusLabel())
-	if w := status - url.X; w < trafficURLMin {
-		t.Errorf("URL column is %v px, want at least %d px", w, trafficURLMin)
+	program := headerX(t, tt, i18n.TrafficColProgram())
+	if w := program - url.X; w < ds.TrafficURLMin {
+		t.Errorf("URL column is %v px, want at least %d px", w, ds.TrafficURLMin)
+	}
+}
+
+// TestTrafficSourcesGlyphsExist checks that both glyphs of the sources button
+// are in the design system's glyph set, so the button never falls back.
+func TestTrafficSourcesGlyphsExist(t *testing.T) {
+	kit := newTestApp(t, false).kit
+	for _, name := range []string{glyphSourcesOpen, glyphSourcesClose} {
+		if !kit.HasGlyph(name) {
+			t.Errorf("glyph %q is not in the kit", name)
+		}
 	}
 }

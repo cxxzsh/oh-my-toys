@@ -432,9 +432,6 @@ func TestTrafficPageRowsAndDetail(t *testing.T) {
 	if !tt.HasText("https://api.example.com/v1/items") {
 		t.Errorf("the detail does not show the URL: %q", tt.Texts())
 	}
-	if err := tt.Click(i18n.TrafficTabResponse()); err != nil {
-		t.Fatal(err)
-	}
 	tt.Frame()
 	if !tt.HasText(`"name": "Widget"`) {
 		t.Errorf("the response is not shown pretty-printed: %q", tt.Texts())
@@ -478,10 +475,9 @@ func trafficFrameTime(tt *ui.Tester) time.Duration {
 	return frames[len(frames)/2]
 }
 
-// TestTrafficFiltersNarrow: the Failed only chip and the search field each
-// take flows out of the list. The method chips sit in the Filter popover,
-// where a row's own method text would be clicked instead, so they are not
-// used here.
+// TestTrafficFiltersNarrow: the Failed chip and the search field each take
+// flows out of the list, and All puts every flow back. The chips sit in one
+// row under the toolbar.
 func TestTrafficFiltersNarrow(t *testing.T) {
 	f := newTestTraffic()
 	f.proxy.add(testGET("api.example.com", "/get", 200))
@@ -491,17 +487,18 @@ func TestTrafficFiltersNarrow(t *testing.T) {
 	broken.State = tool.FlowFailed
 	f.proxy.add(broken)
 	tt := openTraffic(t, f)
+	tt.SetSize(1600, 800) // narrower, the chip row scrolls and hides Failed
 	if !tt.HasText("/post") || !tt.HasText("/docs") || !tt.HasText("/broken") {
 		t.Fatalf("the rows are not there: %q", tt.Texts())
 	}
-	if err := tt.Click("Failed only"); err != nil {
+	if err := tt.Click(i18n.TrafficFilterFailed()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
 	if tt.HasText("/docs") || !tt.HasText("/broken") {
 		t.Errorf("the failed filter did not narrow the list: %q", tt.Texts())
 	}
-	if err := tt.Click(i18n.TrafficClearFilters()); err != nil {
+	if err := tt.Click(i18n.All()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
@@ -515,6 +512,23 @@ func TestTrafficFiltersNarrow(t *testing.T) {
 	}
 }
 
+// TestTrafficSearchMethodPOST: a method:POST token in the search field keeps
+// only the POST rows.
+func TestTrafficSearchMethodPOST(t *testing.T) {
+	f := newTestTraffic()
+	f.proxy.add(testGET("api.example.com", "/get", 200))
+	f.proxy.add(testPOST("www.example.com", "/post"))
+	tt := openTraffic(t, f)
+	if err := tt.Click(i18n.TrafficSearch()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Type("method:POST")
+	tt.Frame()
+	if tt.HasText("/get") || !tt.HasText("/post") {
+		t.Errorf("method:POST did not narrow to POST rows: %q", tt.Texts())
+	}
+}
+
 // TestTrafficModeSwitchesColumns: packets are rows of their own, with the
 // protocol and what the packet is.
 func TestTrafficModeSwitchesColumns(t *testing.T) {
@@ -523,6 +537,9 @@ func TestTrafficModeSwitchesColumns(t *testing.T) {
 	packet := testPacket("SYN 52114 → 443")
 	packet.ID = f.packets.add(packet)
 	tt := openTraffic(t, f)
+	if err := tt.Click(i18n.TrafficSettings()); err != nil {
+		t.Fatal(err)
+	}
 	if err := tt.Click(i18n.TrafficModePackets()); err != nil {
 		t.Fatal(err)
 	}
@@ -609,7 +626,7 @@ func TestTrafficFollowKeepsEnd(t *testing.T) {
 	f.proxy.add(later)
 	tt.Frame()
 	tt.Frame()
-	if tt.HasText("/later") {
+	if _, ok := tt.Find(trafficRowLabel(later.FlowRow)); ok {
 		t.Errorf("the list followed after scrolling up: %q", tt.Texts())
 	}
 }

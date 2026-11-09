@@ -128,3 +128,31 @@ func TestErrorTitlesAreNonEmpty(t *testing.T) {
 		}
 	}
 }
+
+func TestHasStatusRowMatchesWholeWord(t *testing.T) {
+	const addr = "127.0.0.1:9/hello"
+	ok := []node{{Role: roleButton, Label: "#1 GET " + addr + " 200 JSON"}}
+	if !hasStatusRow(ok, addr, "200") {
+		t.Fatal("a 200 row must match status 200")
+	}
+	wrong := []node{{Role: roleButton, Label: "#2 GET " + addr + " 2000 X"}}
+	if hasStatusRow(wrong, addr, "200") {
+		t.Fatal("status 2000 must not match 200")
+	}
+}
+
+func TestDetailShowsURLAndStatus(t *testing.T) {
+	const addr = "127.0.0.1:9/hello"
+	shown := []node{{Role: roleText, Label: "http://" + addr}, {Role: roleText, Label: "200 OK"}}
+	if !detailShows(shown, addr) {
+		t.Fatal("a detail with the URL and status must match")
+	}
+	noStatus := []node{{Role: roleText, Label: "http://" + addr}}
+	if detailShows(noStatus, addr) {
+		t.Fatal("a detail without a status must not match")
+	}
+	rowOnly := []node{{Role: roleButton, Label: "#1 GET " + addr + " 200 JSON"}}
+	if detailShows(rowOnly, addr) {
+		t.Fatal("a flow row is not the detail pane")
+	}
+}

@@ -76,7 +76,6 @@ func (a *App) trafficGuideCertAction(c *ui.Context, t tool.Traffic, st *trafficS
 // other way in: a program started through the proxy needs no system setting.
 func (a *App) trafficGuideProxyAction(c *ui.Context, t tool.Traffic, st *trafficState) {
 	a.trafficSwitch(c, "guide-sysproxy", &st.systemProxy, i18n.TrafficSystemProxy(), t, st)
-	comp.Hint(c, i18n.TrafficGuideOr())
 }
 
 // trafficGuideStartAction starts the capture off the UI thread.

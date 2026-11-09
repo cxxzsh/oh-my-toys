@@ -78,21 +78,36 @@ func TestHostFacetAndTokenIntersect(t *testing.T) {
 	}
 }
 
-// TestMakeFilterFromChoices: the popover's choices go to the log, and the
-// plain words become the log's text.
-func TestMakeFilterFromChoices(t *testing.T) {
+// TestMakeFilterKeepsOnlyText: the log gets the plain words of the search
+// text. The chips and the query's tokens narrow the rows, not the log.
+func TestMakeFilterKeepsOnlyText(t *testing.T) {
 	st := &trafficState{text: "login status:4xx program:Safari"}
-	st.methods[1] = true // POST
-	st.classes[3] = true // 4xx
 	f := st.makeFilter()
-	if !reflect.DeepEqual(f.Methods, []string{"POST"}) {
-		t.Errorf("Methods = %v, want [POST]", f.Methods)
-	}
-	if !reflect.DeepEqual(f.StatusClasses, []int{4}) {
-		t.Errorf("StatusClasses = %v, want [4]", f.StatusClasses)
-	}
 	if f.Text != "login" {
 		t.Errorf("Text = %q, want %q", f.Text, "login")
+	}
+	if len(f.Methods) != 0 || len(f.StatusClasses) != 0 {
+		t.Errorf("the log got choices: %v %v", f.Methods, f.StatusClasses)
+	}
+}
+
+// TestChipsNarrow: the status chips and the type chips narrow the rows. Chips
+// of one group OR together, and the two groups AND together.
+func TestChipsNarrow(t *testing.T) {
+	rows := []tool.FlowRow{
+		{ID: 1, Status: 404, Type: "application/json"},
+		{ID: 2, Status: 404, Type: "text/html"},
+		{ID: 3, Status: 200, Type: "application/json"},
+	}
+	st := &trafficState{}
+	st.classes[2] = true // 4xx
+	st.types[typeJSON] = true
+	if got := st.narrowRows(rows); len(got) != 1 || got[0].ID != 1 {
+		t.Errorf("4xx and JSON: got %v, want only a", got)
+	}
+	st.types[typeDocument] = true
+	if got := st.narrowRows(rows); len(got) != 2 {
+		t.Errorf("4xx and JSON or Document: got %d rows, want 2", len(got))
 	}
 }
 

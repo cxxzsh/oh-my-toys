@@ -54,8 +54,9 @@ const (
 	openWait = 40 * time.Second
 	// routeWait bounds how long one route may take to show the Traffic page.
 	routeWait = 15 * time.Second
-	// trafficMarker names the element that proves the Traffic page is shown.
-	trafficMarker = "Filter"
+	// trafficMarker names the element that proves the Traffic page is shown: the
+	// search field, which only the Traffic toolbar has.
+	trafficMarker = "search field"
 	// sidebarPointerX places the wheel inside the sidebar, away from its edge.
 	sidebarPointerX = 100
 	// sidebarPointerInset lifts the wheel above the window's bottom edge.
@@ -90,10 +91,18 @@ const (
 	sidebarProgram = "curl"
 	flowPrefix     = "#"
 	noProgramQuery = "program:nothing"
-	shotIdle       = "traffic-idle.png"
-	shotFlows      = "traffic-flows.png"
-	shotFilter     = "traffic-filter.png"
-	shotSettings   = "traffic-settings.png"
+	// statusOK and statusClientErr are the status text a flow row shows for the
+	// request and the 4xx filter chip, which narrows to failed requests.
+	statusOK        = "200"
+	statusClientErr = "4xx"
+	// urlScheme starts the request URL the detail pane shows in full; the row
+	// labels carry only host and path.
+	urlScheme    = "http://"
+	shotIdle     = "traffic-idle.png"
+	shotFlows    = "traffic-flows.png"
+	shotDetail   = "traffic-detail.png"
+	shotFilter   = "traffic-filter.png"
+	shotSettings = "traffic-settings.png"
 )
 
 var errTimeout = errors.New("timed out")
@@ -432,10 +441,10 @@ func (r *trafficRun) tryRoute(rt openRoute, openDeadline time.Time) error {
 	return nil
 }
 
-// onTrafficPage reports whether the Traffic page is on screen. The Filter
-// button sits only in the Traffic toolbar, so its label marks the page.
+// onTrafficPage reports whether the Traffic page is on screen. The search
+// field sits only in the Traffic toolbar, so its label marks the page.
 func onTrafficPage(nodes []node) bool {
-	return hasLabel(nodes, both(i18n.Messages.TrafficFilterButton))
+	return hasLabel(nodes, both(i18n.Messages.TrafficSearch))
 }
 
 // openRoute is one way to reach the Traffic tool, with its name in the JSON.
@@ -645,12 +654,17 @@ func labelList(nodes []node) []string {
 	return out
 }
 
-// toolbarWants are the controls the Traffic page must show before a capture.
+// toolbarWants are the controls the one-row Traffic toolbar must show before a
+// capture: the sources toggle, Start, the search field, Rules, Terminal and the
+// settings gear. The toggle's label is either "Show" or "Hide", so both count.
 func toolbarWants() []want {
 	return []want{
 		{"record", roleButton, both(i18n.Messages.SwitchStart)},
-		{"mode", "", both(i18n.Messages.TrafficModeProxy)},
+		{"sources", roleButton, append(both(i18n.Messages.TrafficSourcesShow), both(i18n.Messages.TrafficSourcesHide)...)},
+		{"mode", "", append(both(i18n.Messages.TrafficModeProxy), both(i18n.Messages.TrafficModePackets)...)},
 		{"search", roleField, both(i18n.Messages.TrafficSearch)},
+		{"rules", roleButton, both(i18n.Messages.TrafficViewRules)},
+		{"terminal", roleButton, both(i18n.Messages.TrafficTerminal)},
 		{"settings", roleButton, both(i18n.Messages.TrafficSettings)},
 	}
 }
@@ -720,8 +734,9 @@ func (r *trafficRun) start() error {
 	return nil
 }
 
-// flows sends one request through the proxy with the real curl and checks
-// that its flow shows up in the list.
+// flows sends one request through the proxy with the real curl, then checks
+// that its row is listed with status 200 and that the detail pane, which
+// selects the newest flow by itself, shows the request's URL and status.
 func (r *trafficRun) flows() error {
 	ln, err := (&net.ListenConfig{}).Listen(context.Background(), "tcp", "127.0.0.1:0")
 	if err != nil {
@@ -746,12 +761,56 @@ func (r *trafficRun) flows() error {
 		}
 		r.c.idle(r.win)
 		r.obs["rows_seen"] = flowRows(nodes)
-		return matchFlow(nodes, r.addr), nil
+		return matchFlow(nodes, r.addr) && hasStatusRow(nodes, r.addr, statusOK), nil
 	})
 	if err != nil {
 		return err
 	}
-	return r.shot(shotFlows)
+	if err := r.shot(shotFlows); err != nil {
+		return err
+	}
+	if err := r.waitDetail(); err != nil {
+		return err
+	}
+	return r.shot(shotDetail)
+}
+
+// waitDetail waits until the detail pane shows the request's URL and status.
+func (r *trafficRun) waitDetail() error {
+	return r.wait("detail", func() (bool, error) {
+		nodes, err := r.c.treeErr(r.win)
+		if err != nil {
+			return false, err
+		}
+		r.c.idle(r.win)
+		return detailShows(nodes, r.addr), nil
+	})
+}
+
+// hasStatusRow reports whether the flow row for want shows status. The row
+// label is "#ID METHOD host/path STATUS TYPE", so the status is a whole word.
+func hasStatusRow(nodes []node, want, status string) bool {
+	for _, n := range nodes {
+		if n.Role == roleButton && strings.HasPrefix(n.Label, flowPrefix) && strings.Contains(n.Label, want) &&
+			strings.Contains(" "+n.Label+" ", " "+status+" ") {
+			return true
+		}
+	}
+	return false
+}
+
+// detailShows reports whether the detail pane shows the request's full URL,
+// with its scheme (the row labels carry only host and path), and its status.
+func detailShows(nodes []node, want string) bool {
+	url, status := false, false
+	for _, n := range nodes {
+		if n.Role != roleText {
+			continue
+		}
+		url = url || strings.Contains(n.Label, urlScheme+want)
+		status = status || n.Label == statusOK || strings.HasPrefix(n.Label, statusOK+" ")
+	}
+	return url && status
 }
 
 // curl fetches url through the proxy and returns the body it got back.
@@ -778,21 +837,20 @@ func (r *trafficRun) curl(url string) (string, error) {
 	return got, nil
 }
 
-// filter selects the curl program, then narrows the list with a search that
-// matches nothing and clears it again.
+// filter opens the sources column when it is closed, selects the curl program,
+// narrows the list with the 4xx chip and with a search that matches nothing,
+// and returns to All each time, so the flow is listed again at the end.
 func (r *trafficRun) filter() error {
-	nodes, err := r.c.treeErr(r.win)
-	if err != nil {
+	if err := r.openSources(); err != nil {
 		return err
 	}
-	row, ok := programRow(nodes)
-	if !ok {
-		return fmt.Errorf("sidebar program row %q: %w", sidebarProgram, errNoNode)
-	}
-	if err := r.c.pressNode(r.win, row.ID); err != nil {
+	if err := r.selectProgram(); err != nil {
 		return err
 	}
 	if err := r.expectFlow("flow after program", true); err != nil {
+		return err
+	}
+	if err := r.chipFilter(); err != nil {
 		return err
 	}
 	if err := r.setField(both(i18n.Messages.TrafficSearch), noProgramQuery); err != nil {
@@ -808,6 +866,54 @@ func (r *trafficRun) filter() error {
 		return err
 	}
 	return r.shot(shotFilter)
+}
+
+// openSources presses the sources toggle when the column is closed, which the
+// toggle labels "Show sources"; an open column is left alone.
+func (r *trafficRun) openSources() error {
+	nodes, err := r.c.treeErr(r.win)
+	if err != nil {
+		return err
+	}
+	if _, closed := findNode(nodes, roleButton, both(i18n.Messages.TrafficSourcesShow)); !closed {
+		return nil
+	}
+	return r.c.press(r.win, roleButton, both(i18n.Messages.TrafficSourcesShow)...)
+}
+
+// selectProgram presses the curl program row of the sources column. The
+// column lays out after it opens, so the row is polled for.
+func (r *trafficRun) selectProgram() error {
+	var row node
+	err := r.wait("program row", func() (bool, error) {
+		nodes, err := r.c.treeErr(r.win)
+		if err != nil {
+			return false, err
+		}
+		r.c.idle(r.win)
+		var ok bool
+		row, ok = programRow(nodes)
+		return ok, nil
+	})
+	if err != nil {
+		return fmt.Errorf("sidebar program row %q: %w", sidebarProgram, err)
+	}
+	return r.c.pressNode(r.win, row.ID)
+}
+
+// chipFilter narrows the list to failed requests with the 4xx chip, then
+// returns to the All chip, where the flow is listed again.
+func (r *trafficRun) chipFilter() error {
+	if err := r.c.press(r.win, roleButton, statusClientErr); err != nil {
+		return err
+	}
+	if err := r.expectFlow("flow hidden by 4xx", false); err != nil {
+		return err
+	}
+	if err := r.c.press(r.win, roleButton, both(i18n.Messages.All)...); err != nil {
+		return err
+	}
+	return r.expectFlow("flow back under All", true)
 }
 
 // setField types text into the search field, trying each label in turn.
@@ -834,9 +940,9 @@ func (r *trafficRun) expectFlow(name string, shown bool) error {
 	})
 }
 
-// settings opens Traffic Settings and checks the capture section, copies the
-// proxy environment, and closes the dialog. Open Terminal is never pressed:
-// it would open a terminal window.
+// settings opens Traffic Settings, waits for its Copy environment button, copies
+// the proxy environment, and closes the dialog. The toolbar's Terminal button is
+// never pressed: it would open a terminal window.
 func (r *trafficRun) settings() error {
 	if err := r.c.press(r.win, roleButton, both(i18n.Messages.TrafficSettings)...); err != nil {
 		return err
@@ -847,9 +953,9 @@ func (r *trafficRun) settings() error {
 			return false, err
 		}
 		r.c.idle(r.win)
-		_, term := findNode(nodes, roleButton, both(i18n.Messages.TrafficOpenTerminal))
 		_, env := findNode(nodes, roleButton, both(i18n.Messages.TrafficCopyEnv))
-		return term && env, nil
+		_, done := findNode(nodes, roleButton, both(i18n.Messages.TrafficSettingsDone))
+		return env && done, nil
 	})
 	if err != nil {
 		return err

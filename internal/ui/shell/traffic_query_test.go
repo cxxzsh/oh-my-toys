@@ -36,7 +36,7 @@ func TestParseQuery(t *testing.T) {
 		{name: "unknown key is a word", text: "color:red", words: []string{"color:red"}},
 		{name: "empty value is a word", text: "host:", words: []string{"host:"}},
 		{name: "bad status value is a word", text: "status:banana", words: []string{"status:banana"}},
-		{name: "unknown type name is a word", text: "type:xml", words: []string{"type:xml"}},
+		{name: "unknown type name is a word", text: "type:nope", words: []string{"type:nope"}},
 		{name: "known type name is a token", text: "type:json", tokens: 1},
 		{
 			name:     "mixed tokens and words in order",

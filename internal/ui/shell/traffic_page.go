@@ -41,6 +41,13 @@ const (
 // glyphPower is the glyph of the button that starts and stops a capture.
 const glyphPower = "power_settings_new"
 
+// glyphSourcesOpen is the glyph that shows the sources, and
+// glyphSourcesClose the glyph that hides them.
+const (
+	glyphSourcesOpen  = "left_panel_open"
+	glyphSourcesClose = "left_panel_close"
+)
+
 // listSplitPercent is the flow list's share of the width beside the detail.
 // The list carries more columns than the detail, so it takes the larger
 // share; both panes grow with the window.
@@ -68,6 +75,8 @@ type trafficState struct {
 	trafficFilterState
 
 	view       int // the flows, or the rule book
+	sources    int // the sources column: by width, or shown or hidden by a person
+	total      int // the flows the log holds, before any filter narrows them
 	rules      ruleView
 	sel        int // the chosen row, -1 for none
 	selSeen    int // the choice of the last frame, to tell a new one
@@ -77,6 +86,8 @@ type trafficState struct {
 	rulesSplit float32 // the rule list's width beside its form
 	splitH     float32 // the list's height above the detail
 	detailTab  int
+	paneTab    [2]int // the tab each side of a flow last showed, indexed by detailSide; zero until picked
+	memo       map[memoKey]detailMemo
 	detail     tool.Flow
 	detailID   uint64
 	detailVer  uint64
@@ -122,6 +133,12 @@ type trafficState struct {
 	// procSel and hostSel are the program and host the list narrows to; empty means all.
 	procSel string
 	hostSel string
+
+	// Auto select and the row text cache: see selectNewest and textOf.
+	autoSelect bool
+	picked     bool
+	autoID     uint64
+	texts      map[uint64]rowText
 }
 
 // trafficOutcome is what one piece of background work reported.
@@ -190,7 +207,7 @@ func (st *trafficState) apply(o trafficOutcome) {
 // end, no row chosen, and the split at the design system's sizes.
 func newTrafficState() trafficState {
 	return trafficState{
-		sel: -1, selSeen: -1, follow: true,
+		sel: -1, selSeen: -1, follow: true, autoSelect: true,
 		splitP: listSplitPercent, splitH: ds.TrafficSplitH,
 		rulesSplit: ds.TrafficRulesList,
 	}
@@ -219,11 +236,10 @@ func (a *App) trafficPage(c *ui.Context, t tool.Traffic) {
 		}
 		a.trafficSettings(c, t, st)
 		if st.view == viewRules {
-			a.trafficTabs(c, st)
 			a.rulesView(c, t, st)
 			return
 		}
-		a.trafficFilterBar(c, t, st)
+		a.trafficFilterBar(c, st)
 		a.trafficWorkspace(c, t, st)
 	})
 }
@@ -256,6 +272,8 @@ func (a *App) trafficLog(t tool.Traffic, st *trafficState) {
 	st.rows, st.fetched, st.sel = nil, false, -1
 	st.detailID, st.detail, st.hasDetail = 0, tool.Flow{}, false
 	st.list = ui.ListState{}
+	st.picked, st.autoID = false, 0
+	clear(st.texts)
 	a.trafficWatch(t, st, log)
 }
 
@@ -384,18 +402,34 @@ func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
 		a.trafficListPane(c, t, st)
 	}
 	detail := func() { a.trafficDetailPane(c, t, st) }
-	if w := a.trafficPanesWidth(c); w >= ds.TrafficWide {
+	if len(st.rows) == 0 && !st.hasDetail {
+		// With no flow to show, the empty detail box would only repeat the
+		// empty list: the list or the guide takes the whole pane instead.
+		ui.Column(c).Grow(1).FillWidth().FillHeight().Children(list)
+		return
+	}
+	if w := a.trafficPanesWidth(c, st); w >= ds.TrafficWide {
 		comp.SplitPercent(c, &st.splitP, list, detail).Grow(1).FillWidth()
 		return
 	}
 	comp.SplitVertical(c, &st.splitH, list, detail).Grow(1).FillWidth()
 }
 
-// trafficWorkspace places the sidebar beside the list and the detail. The
-// sidebar keeps its fixed width; the panes take the rest.
+// The states of the sources column: by width until a person chooses, then
+// shown or hidden as chosen.
+const (
+	sourcesAuto   = iota // open on a wide page
+	sourcesOpen          // shown by a person
+	sourcesClosed        // hidden by a person
+)
+
+// trafficWorkspace places the sources column beside the list and the detail
+// when it is shown. The column keeps its fixed width; the panes take the rest.
 func (a *App) trafficWorkspace(c *ui.Context, t tool.Traffic, st *trafficState) {
 	ui.Row(c).Grow(1).FillWidth().Gap(ds.Space12).AlignItems(ui.Stretch).Children(func() {
-		a.trafficSidebar(c, t, st)
+		if a.trafficSourcesShown(c, st) {
+			a.trafficSidebar(c, t, st)
+		}
 		ui.Column(c).Grow(1).Basis(0).MinWidth(0).FillHeight().Children(func() {
 			a.trafficPanes(c, t, st)
 		})
@@ -403,9 +437,22 @@ func (a *App) trafficWorkspace(c *ui.Context, t tool.Traffic, st *trafficState) 
 }
 
 // trafficPanesWidth is the width the list and the detail share: the window
-// less the app sidebar and the traffic sidebar beside them.
-func (a *App) trafficPanesWidth(c *ui.Context) float32 {
-	return a.workbenchWidth(c) - trafficSidebarWidth - ds.Space12
+// less the app sidebar, and less the sources column when it is shown.
+func (a *App) trafficPanesWidth(c *ui.Context, st *trafficState) float32 {
+	w := a.workbenchWidth(c)
+	if a.trafficSourcesShown(c, st) {
+		w -= ds.TrafficSourcesWidth + ds.Space12
+	}
+	return w
+}
+
+// trafficSourcesShown reports whether the sources column is drawn. A pick made
+// with the toggle wins; until one is made, the column opens on a wide page.
+func (a *App) trafficSourcesShown(c *ui.Context, st *trafficState) bool {
+	if st.sources == sourcesAuto {
+		return a.workbenchWidth(c) >= ds.TrafficSourcesMin
+	}
+	return st.sources == sourcesOpen
 }
 
 // sync reads the log again when it or the filter changed, and keeps the
@@ -413,15 +460,21 @@ func (a *App) trafficPanesWidth(c *ui.Context) float32 {
 func (st *trafficState) sync() {
 	st.frames++
 	log := st.log
-	f := st.withFacets(st.narrowFilter(st.makeFilter()))
-	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) || st.rowsText != st.text {
-		st.filter, st.ver, st.fetched, st.rowsText = f, log.Version(), true, st.text
+	f := st.withFacets(st.makeFilter())
+	if !st.fetched || log.Version() != st.ver || !sameFilter(f, st.filter) || st.rowsText != st.text || st.rowsChips != st.chips() {
+		st.filter, st.ver, st.fetched, st.rowsText, st.rowsChips = f, log.Version(), true, st.text, st.chips()
 		st.rows = st.narrowRows(log.Rows(f))
+		st.total = len(st.rows)
+		if st.filterActive() || st.procSel != "" || st.hostSel != "" {
+			st.total = len(log.Rows(tool.Filter{Source: f.Source}))
+		}
 	}
 	if st.pending != 0 {
 		st.selectID(st.pending)
 		st.pending = 0
+		st.picked = true
 	}
+	st.selectNewest()
 	st.keepChoice()
 }
 
@@ -459,6 +512,7 @@ func (st *trafficState) loadDetail(id uint64) {
 		st.hasDetail, st.detailID = false, 0
 		return
 	}
+	clear(st.memo) // the texts of the last flow do not outlive it
 	st.detail, st.detailID, st.detailVer, st.hasDetail = f, id, st.ver, true
 }
 

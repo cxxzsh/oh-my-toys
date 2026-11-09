@@ -30,6 +30,7 @@ func (a *App) trafficSettings(c *ui.Context, t tool.Traffic, st *trafficState) {
 			comp.Text(c, i18n.TrafficSettingsTitle(), ds.Headline, p.TextStrong)
 			a.trafficProblem(c, st)
 			a.trafficNote(c, t)
+			a.trafficModeRow(c, t, st)
 			a.trafficControls(c, t, st)
 			a.trafficCapture(c, t, st)
 			ui.Row(c).FillWidth().Justify(ui.End).Children(func() {
@@ -42,8 +43,9 @@ func (a *App) trafficSettings(c *ui.Context, t tool.Traffic, st *trafficState) {
 	})
 }
 
-// trafficCapture starts a terminal, or copies its environment, so that a
-// program ignoring the system proxy can still be captured.
+// trafficCapture copies the proxy environment as a script, so that a program
+// ignoring the system proxy can still be captured. The terminal itself opens
+// from the toolbar.
 func (a *App) trafficCapture(c *ui.Context, t tool.Traffic, st *trafficState) {
 	if t.Config().Mode != tool.ModeProxy {
 		return
@@ -51,13 +53,20 @@ func (a *App) trafficCapture(c *ui.Context, t tool.Traffic, st *trafficState) {
 	comp.Eyebrow(c, i18n.TrafficCaptureTitle())
 	comp.Hint(c, i18n.TrafficCaptureHint())
 	ui.Row(c).FillWidth().Gap(ds.Space8).Children(func() {
-		open := comp.ButtonOpts{Kind: comp.Primary, Small: true, Disabled: a.trafficBusy(st)}
-		if a.kit.Button(c.Key("traffic-terminal"), i18n.TrafficOpenTerminal(), open).Clicked() {
-			a.trafficOpenTerminal(t, st)
-		}
 		copyEnv := comp.ButtonOpts{Kind: comp.Secondary, Small: true}
 		if a.kit.Button(c.Key("traffic-env"), i18n.TrafficCopyEnv(), copyEnv).Clicked() {
 			a.trafficCopyEnv(c, t, st)
+		}
+	})
+}
+
+// trafficModeRow picks between the proxy and the packet capture. It applies at
+// once, as the rest of the mode's settings do.
+func (a *App) trafficModeRow(c *ui.Context, t tool.Traffic, st *trafficState) {
+	modes := []string{i18n.TrafficModeProxy(), i18n.TrafficModePackets()}
+	ui.Row(c).FillWidth().Children(func() {
+		if comp.Segmented(c.Key("traffic-mode"), &st.mode, modes, i18n.ModeLabel()).Changed() {
+			a.trafficApplyNow(t, st)
 		}
 	})
 }

@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	trafficSidebarWidth = 200
 	// trafficHostLimit caps the host list: a busy log can name thousands of
 	// hosts, and the busiest ones are what the sidebar is for.
 	trafficHostLimit = 200
@@ -44,14 +43,13 @@ func (st *trafficState) withFacets(f tool.Filter) tool.Filter {
 	return f
 }
 
-// trafficSidebar holds the Flows and Rules switch at its top, then the
-// programs and hosts of the log. A click narrows the list to one of them;
-// clicking it again widens it back.
+// trafficSidebar is the sources column beside the flow list: the scope chip
+// when one is set, then the programs and hosts of the log. A click narrows the
+// list to one of them; clicking it again widens it back.
 func (a *App) trafficSidebar(c *ui.Context, t tool.Traffic, st *trafficState) {
 	p := ds.P(c)
-	ui.Column(c).Width(trafficSidebarWidth).FillHeight().Padding(ds.Space8).Gap(ds.Space4).
+	ui.Column(c).Width(ds.TrafficSourcesWidth).FillHeight().Padding(ds.Space8).Gap(ds.Space4).
 		Background(p.FillControl).Radius(ds.RadiusMd).Clip().Children(func() {
-		a.trafficTabs(c, st)
 		a.trafficScope(c, t, st)
 		comp.Eyebrow(c, i18n.TrafficPrograms())
 		if a.trafficAllRow(c, i18n.TrafficAllPrograms()) {

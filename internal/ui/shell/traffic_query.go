@@ -33,11 +33,13 @@ const (
 
 // queryTypeNames are the words a type: token picks, by media type chip.
 var queryTypeNames = [trafficTypeCount]string{
-	typeJSON:  "json",
-	typeHTML:  "html",
-	typeJS:    "js",
-	typeCSS:   "css",
-	typeImage: "image",
+	typeJSON:     "json",
+	typeForm:     "form",
+	typeXML:      "xml",
+	typeJS:       "js",
+	typeCSS:      "css",
+	typeDocument: "html",
+	typeMedia:    "image",
 }
 
 // queryToken is a piece of the search text that reads as a key and a value.

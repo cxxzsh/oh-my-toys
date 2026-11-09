@@ -37,3 +37,5 @@ Interface glyphs: Material Symbols Outlined, weight 400, unfilled, optical size 
 | `chevron_right` | Settings row that opens a sub-page |
 | `keep` | Pin a tool (keep-filled when pinned) |
 | `apps` | Fallback for a tool without a known glyph; Home |
+| `left_panel_open` | Traffic: show the sources |
+| `left_panel_close` | Traffic: hide the sources |

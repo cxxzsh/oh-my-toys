@@ -12,34 +12,17 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
-// The views of the detail pane. Which of them are offered depends on the
-// mode: a proxied flow has a request and a response, a packet has layers
-// and bytes.
+// The views of a packet's detail pane: its protocol layers and its bytes.
+// A proxied flow shows its request and response instead; see
+// traffic_detail_msg.go.
 const (
-	tabOverview = iota
-	tabRequest
-	tabResponse
-	tabLayers
+	tabLayers = iota
 	tabHex
 )
 
-// detailTabs are the tabs of the mode in progress.
-func detailTabs(mode tool.CaptureMode) []int {
-	if mode == tool.ModePackets {
-		return []int{tabLayers, tabHex}
-	}
-	return []int{tabOverview, tabRequest, tabResponse}
-}
-
-// detailTabLabel names one tab.
+// detailTabLabel names one packet tab.
 func detailTabLabel(tab int) string {
 	switch tab {
-	case tabOverview:
-		return i18n.TrafficTabOverview()
-	case tabRequest:
-		return i18n.TrafficTabRequest()
-	case tabResponse:
-		return i18n.TrafficTabResponse()
 	case tabLayers:
 		return i18n.TrafficTabLayers()
 	case tabHex:
@@ -47,10 +30,6 @@ func detailTabLabel(tab int) string {
 	}
 	return ""
 }
-
-// headersShare is the most of the detail pane the header lines of a
-// message take before they scroll: the body keeps the rest.
-const headersShare = 40
 
 // trafficDetailPane is what the chosen flow carried.
 func (a *App) trafficDetailPane(c *ui.Context, t tool.Traffic, st *trafficState) {
@@ -61,72 +40,106 @@ func (a *App) trafficDetailPane(c *ui.Context, t tool.Traffic, st *trafficState)
 			return
 		}
 		a.trafficDetailHead(c, t, st)
-		a.trafficDetailTabs(c, st)
+		if tool.CaptureMode(st.mode) == tool.ModePackets {
+			a.trafficPacketTabs(c, st)
+			return
+		}
+		a.trafficExchange(c, st)
 	})
 }
 
-// trafficDetailHead is the flow's number and line, and the way to send its
-// request again.
+// trafficDetailWidth is the width the detail pane takes: its share of the
+// panes beside the list, or all of them when the detail goes under the list.
+func (a *App) trafficDetailWidth(c *ui.Context, st *trafficState) float32 {
+	w := a.trafficPanesWidth(c, st)
+	if w >= ds.TrafficWide {
+		return w * (100 - st.splitP) / 100
+	}
+	return w
+}
+
+// trafficDetailHead is the flow's number and summary line, and for a proxied
+// flow its time, size and the ways to act on the request.
 func (a *App) trafficDetailHead(c *ui.Context, t tool.Traffic, st *trafficState) {
 	p := ds.P(c)
 	f := st.detail
 	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-		comp.BadgeRimmed(c, "#"+strconv.FormatUint(f.ID, 10))
-		comp.Text(c, trafficDetailLine(f), ds.Label, p.TextStrong).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+		comp.BadgeRimmed(c, "#"+strconv.FormatUint(f.ID, 10)).Shrink(0)
+		if f.Source == tool.SourceProxy {
+			a.trafficSummaryLine(c, f)
+		} else {
+			comp.Text(c, trafficDetailLine(f), ds.Label, p.TextStrong).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+		}
 		ui.Spacer(c)
 		if f.Source != tool.SourceProxy {
 			return
 		}
-		fromFlow := a.kit.Button(c.Key("detail-rule"), i18n.TrafficNewRule(), comp.ButtonOpts{Kind: comp.Secondary, Small: true})
-		fromFlow.Menu(func(m *ui.Menu) { a.flowRuleMenu(m, t, st, f.FlowRow) })
-		opts := comp.ButtonOpts{Kind: comp.Secondary, Small: true, Disabled: a.trafficBusy(st)}
-		if a.kit.Button(c.Key("detail-replay"), i18n.TrafficReplay(), opts).Clicked() {
-			a.trafficReplay(t, st, f.ID)
-		}
+		comp.Text(c, trafficTook(f.Duration), ds.Caption, p.TextInactive).NoWrap()
+		comp.Text(c, trafficSize(f.Size), ds.Caption, p.TextInactive).NoWrap()
+		a.trafficActions(c, t, st)
 	})
 }
 
-// trafficDetailLine is a flow in one line: the request for a proxied flow,
-// what the packet is for a packet.
-func trafficDetailLine(f tool.Flow) string {
-	if f.Source == tool.SourcePacket {
-		return strings.Join([]string{f.Proto, f.Host, f.Info}, " ")
-	}
-	return strings.TrimSpace(f.Method + " " + f.URL)
+// trafficSummaryLine is a proxied flow in one line: its method, its URL and
+// its status.
+func (a *App) trafficSummaryLine(c *ui.Context, f tool.Flow) {
+	p := ds.P(c)
+	comp.Text(c, f.Method, ds.Label, methodColor(p, f.Method)).NoWrap()
+	comp.Text(c, f.URL, ds.Label, p.TextStrong).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
+	a.trafficStatus(c, f.FlowRow, trafficStatusText(f))
 }
 
-// trafficDetailTabs chooses between the views of the flow.
-func (a *App) trafficDetailTabs(c *ui.Context, st *trafficState) {
-	kinds := detailTabs(tool.CaptureMode(st.mode))
+// trafficActions are the buttons on a proxied flow: a new rule from it, and
+// its replay.
+func (a *App) trafficActions(c *ui.Context, t tool.Traffic, st *trafficState) {
+	f := st.detail
+	fromFlow := a.kit.Button(c.Key("detail-rule"), i18n.TrafficNewRule(), comp.ButtonOpts{Kind: comp.Secondary, Small: true})
+	fromFlow.Menu(func(m *ui.Menu) { a.flowRuleMenu(m, t, st, f.FlowRow) })
+	opts := comp.ButtonOpts{Kind: comp.Secondary, Small: true, Disabled: a.trafficBusy(st)}
+	if a.kit.Button(c.Key("detail-replay"), i18n.TrafficReplay(), opts).Clicked() {
+		a.trafficReplay(t, st, f.ID)
+	}
+}
+
+// trafficDetailLine is what a packet is for, in one line.
+func trafficDetailLine(f tool.Flow) string {
+	return strings.Join([]string{f.Proto, f.Host, f.Info}, " ")
+}
+
+// trafficPacketTabs chooses between a packet's layers and its bytes.
+func (a *App) trafficPacketTabs(c *ui.Context, st *trafficState) {
+	kinds := []int{tabLayers, tabHex}
 	labels := make([]string, len(kinds))
 	for i, kind := range kinds {
 		labels[i] = detailTabLabel(kind)
 	}
 	st.detailTab = max(0, min(st.detailTab, len(kinds)-1))
 	comp.Tabs(c.Key("detail-tabs"), &st.detailTab, i18n.TrafficDetail(), labels...)
-	a.trafficDetailView(c, st, kinds[st.detailTab])
-}
-
-// trafficDetailView is the chosen view of the flow.
-func (a *App) trafficDetailView(c *ui.Context, st *trafficState, tab int) {
-	f := st.detail
-	switch tab {
-	case tabOverview:
-		a.trafficOverview(c, st, f)
-	case tabRequest:
-		a.trafficMessage(c, f.Request)
-	case tabResponse:
-		a.trafficMessage(c, f.Response)
-	case tabLayers:
-		a.trafficLayers(c, f)
-	case tabHex:
-		a.trafficHex(c, f)
+	if kinds[st.detailTab] == tabHex {
+		a.trafficHex(c, st.detail)
+		return
 	}
+	a.trafficLayers(c, st.detail)
 }
 
-// trafficOverview is everything the flow is, in a scroll so that a long
-// URL and a list of rules both fit.
-func (a *App) trafficOverview(c *ui.Context, st *trafficState, f tool.Flow) {
+// trafficStatusText is a flow's status as words when it has no code.
+func trafficStatusText(f tool.Flow) string {
+	switch {
+	case f.State == tool.FlowBlocked:
+		return i18n.TrafficBlocked()
+	case f.State == tool.FlowFailed:
+		return i18n.TrafficFailed()
+	case f.Status > 0:
+		return strconv.Itoa(f.Status) + " " + f.Info
+	case f.State == tool.FlowOpen:
+		return i18n.TrafficOpen()
+	}
+	return ""
+}
+
+// trafficFacts is everything the flow is, in a scroll so that a long URL and
+// a list of rules both fit. It is the summary tab of the request.
+func (a *App) trafficFacts(c *ui.Context, st *trafficState, f tool.Flow) {
 	ui.Scroll(c).Grow(1).FillWidth().Children(func() {
 		ui.Column(c).FillWidth().Gap(ds.Space4).Children(func() {
 			a.trafficFact(c, i18n.TrafficURL(), f.URL)
@@ -146,22 +159,7 @@ func (a *App) trafficOverview(c *ui.Context, st *trafficState, f tool.Flow) {
 	})
 }
 
-// trafficStatusText is a flow's status as words when it has no code.
-func trafficStatusText(f tool.Flow) string {
-	switch {
-	case f.State == tool.FlowBlocked:
-		return i18n.TrafficBlocked()
-	case f.State == tool.FlowFailed:
-		return i18n.TrafficFailed()
-	case f.Status > 0:
-		return strconv.Itoa(f.Status) + " " + f.Info
-	case f.State == tool.FlowOpen:
-		return i18n.TrafficOpen()
-	}
-	return ""
-}
-
-// trafficFact is one labelled value of the overview. A value that is not
+// trafficFact is one labelled value of the summary. A value that is not
 // there is left out rather than shown empty.
 func (a *App) trafficFact(c *ui.Context, label, value string) {
 	if value == "" {
@@ -174,61 +172,6 @@ func (a *App) trafficFact(c *ui.Context, label, value string) {
 		comp.Text(c, label, ds.Caption, p.TextInactive).Width(ds.SelectMinWidth).Shrink(0)
 		comp.Text(c, value, mono, p.TextPrimary).Grow(1).Shrink(1).MinWidth(0).Selectable()
 	})
-}
-
-// trafficMessage is one side of a flow: its header lines over its body.
-func (a *App) trafficMessage(c *ui.Context, m tool.HTTPMessage) {
-	ui.Column(c).Grow(1).FillWidth().Gap(ds.Space6).Children(func() {
-		a.trafficHeaders(c, m.Headers)
-		a.trafficBody(c, m.Body)
-	})
-}
-
-// trafficHeaders are a message's header lines, in the order they were
-// sent; they scroll when a message carries many.
-func (a *App) trafficHeaders(c *ui.Context, headers []tool.Header) {
-	if len(headers) == 0 {
-		return
-	}
-	p := ds.P(c)
-	_, windowH := c.Size()
-	height := min(float32(len(headers))*ds.TableRow+2*ds.Space4, windowH*headersShare/100)
-	ui.ScrollBoth(c).FillWidth().Height(height).Shrink(0).Padding(ds.Space4).Radius(ds.RadiusXs).
-		Background(p.FillControl).Selectable().Children(func() {
-		ui.Column(c).FillWidth().Children(func() {
-			for i, h := range headers {
-				ui.Row(c.Key(i)).FillWidth().Height(ds.TableRow).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-					comp.Value(c, h.Name, p.TextSecondary).NoWrap()
-					ui.Text(c, h.Value).NoWrap().TextColor(p.TextPrimary)
-				})
-			}
-		})
-	})
-}
-
-// trafficBody is a message's body: pretty JSON, text as it is, a form's
-// pairs, the name of an image, or the bytes of anything else.
-func (a *App) trafficBody(c *ui.Context, b tool.Body) {
-	p := ds.P(c)
-	text, kind := comp.FormatBody(b)
-	note := ""
-	if b.Truncated {
-		note = i18n.TrafficBodyTruncated(trafficSize(b.Size))
-	}
-	opts := comp.CodeViewOpts{Label: i18n.TrafficBody(), Note: note, Capped: i18n.TrafficBodyCapped(trafficSize(ds.CodeMaxBytes))}
-	switch kind {
-	case comp.BodyEmpty:
-		comp.Text(c, i18n.TrafficNoBody(), ds.Caption, p.TextInactive)
-	case comp.BodyImage:
-		comp.Text(c, i18n.TrafficImageBody(b.Type, trafficSize(b.Size)), ds.Caption, p.TextInactive)
-	case comp.BodyBinary:
-		comp.Text(c, i18n.TrafficBinaryBody(trafficSize(b.Size), b.Type), ds.Caption, p.TextInactive)
-		opts.Copy = i18n.CopyValue()
-		a.kit.CodeView(c, text, opts)
-	default:
-		opts.Copy = i18n.CopyValue()
-		a.kit.CodeView(c, text, opts)
-	}
 }
 
 // trafficLayers is a packet's protocol layers as a tree: each layer, and
@@ -248,9 +191,8 @@ func (a *App) trafficLayers(c *ui.Context, f tool.Flow) {
 					})
 					ui.Column(c).FillWidth().Padding(0, 0, 0, ds.Space16).
 						BorderWidth(0, 0, 0, ds.LineWidth).BorderColor(p.LineHairline).Children(func() {
-						for j, field := range layer.Fields {
+						for _, field := range layer.Fields {
 							a.trafficFact(c, field.Name, field.Value)
-							_ = j
 						}
 					})
 				})
