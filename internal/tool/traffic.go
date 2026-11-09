@@ -23,6 +23,8 @@ var (
 	ErrCertNotTrusted = errors.New("root certificate not trusted")
 	// ErrUnsupportedHere: the thing asked for does not exist on this OS.
 	ErrUnsupportedHere = errors.New("not supported on this system")
+	// ErrNotRunning: the thing asked for needs the capture to be running.
+	ErrNotRunning = errors.New("capture not running")
 )
 
 // CaptureMode is how a traffic tool sees the network.
@@ -61,6 +63,11 @@ type CaptureConfig struct {
 	// proxy out. When it is empty and SystemProxy is on, the capture uses
 	// the proxy the system had before it changed the setting.
 	Upstream string
+	// Scope lists the names of the programs whose traffic is recorded; the
+	// traffic of every other program passes through the proxy without
+	// being opened or logged. Empty records every program. It applies to
+	// ModeProxy only.
+	Scope []string
 }
 
 // FlowSource is what recorded a flow.
@@ -141,6 +148,37 @@ type FlowRow struct {
 	Info string
 	// Ruled is whether a rule changed or answered the flow.
 	Ruled bool
+	// Process is the program that opened the connection, when the system
+	// could tell; the zero value when it could not.
+	Process Program
+}
+
+// Program is the program that owns a connection.
+type Program struct {
+	// PID is the process id; 0 when there is no process.
+	PID int
+	// Name is what a person calls the program: "Safari", "curl".
+	Name string
+	// Path is the executable's path, when known.
+	Path string
+}
+
+// Facet is a value of a field and how many flows have it, for the lists a
+// person narrows the log by.
+type Facet struct {
+	Name  string
+	Count int
+}
+
+// Environment is what a program needs to go through the running proxy.
+type Environment struct {
+	// Vars are the variables, in the order they are set.
+	Vars []Header
+	// Script sets them in a shell: export lines for a POSIX shell, $env
+	// lines for PowerShell.
+	Script string
+	// Shell names the syntax of Script: "sh" or "powershell".
+	Shell string
 }
 
 // Layer is one protocol layer of a packet, as a tree for the detail pane.
@@ -195,6 +233,9 @@ type Filter struct {
 	StatusClasses []int
 	// Failed shows only flows that failed or were blocked.
 	Failed bool
+	// Processes match the Process.Name of a flow, ignoring case; any of
+	// them. Empty matches every program.
+	Processes []string
 }
 
 // FlowLog is what a traffic tool has recorded. It is safe for use from
@@ -213,6 +254,13 @@ type FlowLog interface {
 	// OnChange calls fn after the log changes, at most every 100 ms, and
 	// off the UI thread. stop ends it.
 	OnChange(fn func()) (stop func())
+	// Processes returns the programs that opened the flows of the log, and
+	// how many flows each opened, most flows first, then by name. Flows
+	// with no known program are left out.
+	Processes() []Facet
+	// Hosts returns the hosts of the flows of the log with their counts,
+	// most flows first, then by name.
+	Hosts() []Facet
 }
 
 // RuleKind is what a rule does to the flows it matches.
@@ -345,4 +393,13 @@ type Traffic interface {
 	// them when ids is empty, as HAR 1.2.
 	ExportHAR(w io.Writer, ids []uint64) error
 	Interfaces() ([]NetInterface, error)
+	// Environment returns what a program needs to send its traffic through
+	// the running proxy and to trust its certificate, as variables and as
+	// the text to paste into a shell (POSIX or PowerShell, by system). It
+	// fails with ErrNotRunning when the proxy is not running and with
+	// ErrUnsupportedHere in packet mode.
+	Environment() (Environment, error)
+	// OpenTerminal opens a terminal window with that environment set, so a
+	// program started in it is captured. It fails as Environment does.
+	OpenTerminal(ctx context.Context) error
 }

@@ -278,6 +278,8 @@ func (f *fakeTraffic) RemoveCert(context.Context) error               { return n
 func (f *fakeTraffic) Interfaces() ([]tool.NetInterface, error)       { return nil, nil }
 func (f *fakeTraffic) Replay(context.Context, uint64) (uint64, error) { return 0, nil }
 func (f *fakeTraffic) ExportHAR(io.Writer, []uint64) error            { return nil }
+func (f *fakeTraffic) Environment() (tool.Environment, error)         { return tool.Environment{}, nil }
+func (f *fakeTraffic) OpenTerminal(context.Context) error             { return nil }
 
 // TestSwitchIPCRefusesACapture: the command line and MCP are told no, and
 // the capture does not start.
