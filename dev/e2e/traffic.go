@@ -47,6 +47,17 @@ const (
 	// openWait bounds the whole open step across its routes: a route that
 	// cannot work must not hold the run for a poll deadline each.
 	openWait = 40 * time.Second
+	// routeWait bounds how long one route may take to show the Traffic page.
+	routeWait = 15 * time.Second
+	// trafficMarker names the element that proves the Traffic page is shown.
+	trafficMarker = "Filter"
+	// sidebarPointerX places the wheel inside the sidebar, away from its edge.
+	sidebarPointerX = 100
+	// sidebarPointerInset lifts the wheel above the window's bottom edge.
+	sidebarPointerInset = 80
+	// wheelSteps and wheelDelta scroll the sidebar a few rows down.
+	wheelSteps = 5
+	wheelDelta = 400
 	// curlRefused is curl's exit code for a failed connection: what the proxy
 	// port answers when the app read another port from its settings.
 	curlRefused = 7
@@ -243,9 +254,19 @@ func runTraffic(c *client, win int, shots string) (map[string]any, []string) {
 // shows the window the sidebar was laid out in. It is nil when the window
 // list does not answer.
 func windowContent(c *client, win int) any {
-	r, err := c.call("windows", nil)
+	b, err := windowContentBounds(c, win)
 	if err != nil {
 		return nil
+	}
+	return b
+}
+
+// windowContentBounds reads the content rectangle of window win from the
+// window list, so the wheel can be placed inside the sidebar.
+func windowContentBounds(c *client, win int) (*rect, error) {
+	r, err := c.call("windows", nil)
+	if err != nil {
+		return nil, err
 	}
 	var w struct {
 		Windows []struct {
@@ -253,15 +274,15 @@ func windowContent(c *client, win int) any {
 			ContentBounds *rect `json:"contentBounds"`
 		}
 	}
-	if json.Unmarshal(r, &w) != nil {
-		return nil
+	if err := json.Unmarshal(r, &w); err != nil {
+		return nil, err
 	}
 	for _, x := range w.Windows {
-		if x.ID == win {
-			return x.ContentBounds
+		if x.ID == win && x.ContentBounds != nil {
+			return x.ContentBounds, nil
 		}
 	}
-	return nil
+	return nil, errors.New("window has no content bounds")
 }
 
 // run executes the steps in order. A failed step stops the run, after
@@ -343,11 +364,10 @@ func (c *client) menu(path []string) error {
 	return err
 }
 
-// open reaches the Traffic tool and records which route worked. The sidebar
-// may fold the Traffic row out of the tree (a short window clips it), so the
-// routes run in order: the sidebar row, the Network header that unfolds it,
-// the app's menu bar, the macOS keyboard shortcut, and the command palette.
-// They share one deadline, so a route that cannot work does not hold the run.
+// open reaches the Traffic page and records which route worked. A route
+// counts only when the page is really on screen (see onTrafficPage): the menu
+// call can return without switching pages, and a row may be clipped out of a
+// short sidebar. Routes run in order and share one deadline.
 func (r *trafficRun) open() error {
 	deadline := time.Now().Add(openWait)
 	routes := []openRoute{
@@ -356,6 +376,7 @@ func (r *trafficRun) open() error {
 		}},
 		{"network-header", r.openFromNetwork},
 		{"menu", r.openFromMenu},
+		{"scroll-sidebar", r.openFromScroll},
 	}
 	if runtime.GOOS == darwinOS {
 		routes = append(routes, openRoute{"keyboard", r.openFromKeyboard})
@@ -367,16 +388,46 @@ func (r *trafficRun) open() error {
 			failures = append(failures, rt.name+": out of time")
 			break
 		}
-		err := rt.fn()
-		if err == nil {
-			r.obs["open_path"] = rt.name
-			return nil
+		if err := r.tryRoute(rt, deadline); err != nil {
+			failures = append(failures, rt.name+": "+err.Error())
+			continue
 		}
-		failures = append(failures, rt.name+": "+err.Error())
+		r.obs["open_path"] = rt.name
+		return nil
 	}
 	r.obs["open_failures"] = failures
 	r.obs["open_tree"] = r.treeSnapshot()
 	return fmt.Errorf("open: no route reached Traffic: %s", strings.Join(failures, "; "))
+}
+
+// tryRoute runs one route, then waits for the Traffic page to appear within
+// the route's own deadline or the open deadline, whichever is earlier.
+func (r *trafficRun) tryRoute(rt openRoute, openDeadline time.Time) error {
+	if err := rt.fn(); err != nil {
+		return err
+	}
+	limit := time.Now().Add(routeWait)
+	if openDeadline.Before(limit) {
+		limit = openDeadline
+	}
+	_, err := pollUntil(time.Until(limit), trafficPoll, func() (bool, error) {
+		nodes, err := r.c.treeErr(r.win)
+		if err != nil {
+			return false, err
+		}
+		r.c.idle(r.win)
+		return onTrafficPage(nodes), nil
+	})
+	if err != nil {
+		return fmt.Errorf("no Traffic marker (%s) on screen: %w", trafficMarker, err)
+	}
+	return nil
+}
+
+// onTrafficPage reports whether the Traffic page is on screen. The Filter
+// button sits only in the Traffic toolbar, so its label marks the page.
+func onTrafficPage(nodes []node) bool {
+	return hasLabel(nodes, both(i18n.Messages.TrafficFilterButton))
 }
 
 // openRoute is one way to reach the Traffic tool, with its name in the JSON.
@@ -385,17 +436,42 @@ type openRoute struct {
 	fn   func() error
 }
 
-// openFromMenu chooses Tools > Traffic from the app's menu bar. It does not
-// depend on how much of the sidebar the window shows.
+// openFromMenu chooses Tools > Traffic from the app's menu bar in both
+// languages. Each call's answer is recorded: the call can succeed without the
+// page switching, so the caller verifies the page.
 func (r *trafficRun) openFromMenu() error {
+	var answers []string
 	for _, tools := range both(i18n.Messages.MenuTools) {
 		for _, name := range both(i18n.Messages.TrafficName) {
-			if err := r.c.menu([]string{tools, name}); err == nil {
+			err := r.c.menu([]string{tools, name})
+			if err == nil {
 				return nil
 			}
+			answers = append(answers, tools+" > "+name+": "+err.Error())
 		}
 	}
-	return errors.New("no Tools > Traffic menu item was chosen")
+	return fmt.Errorf("menu calls failed: %s", strings.Join(answers, "; "))
+}
+
+// openFromScroll wheels the sidebar so a row clipped at the bottom comes into
+// view, then presses the Traffic row. The pointer goes inside the sidebar,
+// near its bottom, where the clipped rows are.
+func (r *trafficRun) openFromScroll() error {
+	bounds, err := windowContentBounds(r.c, r.win)
+	if err != nil {
+		return err
+	}
+	x := bounds.X + sidebarPointerX
+	y := bounds.Y + bounds.Height - sidebarPointerInset
+	for range wheelSteps {
+		if _, err := r.c.call("input", map[string]any{paramWindow: r.win, "events": []map[string]any{
+			{"type": "wheel", "x": x, "y": y, "dx": 0, "dy": wheelDelta},
+		}}); err != nil {
+			return err
+		}
+		r.c.idle(r.win)
+	}
+	return r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...)
 }
 
 // treeSnapshot is the window's full tree as roles and labels, for a failure
