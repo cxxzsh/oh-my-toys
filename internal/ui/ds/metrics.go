@@ -73,7 +73,6 @@ const (
 	SideHeadHeight   = 24  // collapsible section header in the sidebar
 	ChevronClosed    = -90 // degrees: a closed section's chevron points right
 	HeaderMetaGap    = 2   // between a page title and its description
-	StatusDotPing    = 2   // the ping grows the dot to this scale
 	PageMaxWidth     = 0   // pages fill the workbench; there is no cap
 	LineWidth        = 1   // every hairline and border
 	FocusRingWidth   = 2   // keyboard focus ring and selection borders
@@ -97,6 +96,5 @@ const (
 const (
 	FadeDuration = 120 * time.Millisecond // tray panel, palette, tooltip fade
 	EaseDuration = 150 * time.Millisecond // colour, border and knob changes
-	PingDuration = time.Second            // live dots
 	TooltipDelay = 600 * time.Millisecond
 )

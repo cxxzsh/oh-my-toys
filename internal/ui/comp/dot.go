@@ -25,16 +25,13 @@ const (
 // DotOpts describe a status dot.
 type DotOpts struct {
 	Tone  DotTone
-	Pulse bool   // running right now: a 1s ping
 	Large bool   // 8pt instead of 6pt
 	Label string // the accessible name of a dot that stands alone
 }
 
-// pingStart is the share of the ping after which it has faded out.
-const pingShare = 0.75
-
-// StatusDot is a 6pt dot (8pt large) for live state. The ping stops under
-// reduced motion.
+// StatusDot is a 6pt dot (8pt large) for live state. It never animates: a
+// looping animation makes the window draw every frame for as long as the dot
+// shows, and a running tool shows one for hours.
 func StatusDot(c *ui.Context, o DotOpts) ui.Element {
 	p := ds.P(c)
 	col := p.Live
@@ -57,15 +54,7 @@ func StatusDot(c *ui.Context, o DotOpts) ui.Element {
 	if o.Label != "" {
 		dot.Label(o.Label)
 	}
-	if !o.Pulse || c.Preferences().ReduceMotion {
-		return dot
-	}
-	t := min(dot.Loop("ping", ds.PingDuration, ui.Linear)/pingShare, 1)
-	scale := 1 + (ds.StatusDotPing-1)*t
-	return dot.Children(func() {
-		ui.Box(c).Absolute().Top(0).Left(0).Size(size, size).Radius(ds.RadiusFull).Background(col).
-			Scale(scale, scale).Opacity(pingShare * (1 - t)).PassThrough()
-	})
+	return dot
 }
 
 // CategoryColors is a category's label and fill: cat-<id> on cat-<id>-soft.

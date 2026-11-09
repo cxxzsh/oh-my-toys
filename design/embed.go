@@ -14,7 +14,7 @@ import (
 
 //go:embed fonts/Geist-Variable.ttf fonts/JetBrainsMono-Variable.ttf
 //go:embed assets/glyphs/*.svg assets/tray-icon/*.svg assets/process-icon/*.svg
-//go:embed assets/app-icon/*.png assets/tool-icons/*.png
+//go:embed assets/app-icon/*-128.png
 var files embed.FS
 
 // Read returns an embedded file of the design system.

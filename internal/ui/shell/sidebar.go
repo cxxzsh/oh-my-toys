@@ -289,7 +289,7 @@ func (a *App) drawNavPill(c *ui.Context, r navRow) {
 func (a *App) navTrailing(c *ui.Context, r navRow, sel bool) {
 	switch {
 	case r.running:
-		comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive, Pulse: true, Label: i18n.Running()})
+		comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive, Label: i18n.Running()})
 	case sel:
 		tone := comp.DotAccent
 		if !a.active() {

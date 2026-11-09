@@ -106,8 +106,6 @@
 .dot.muted { background: var(--text-muted); }
 .dot.warning { background: var(--warning); }
 .dot.danger { background: var(--danger); }
-.dot.pulse::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: inherit; opacity: .75; animation: ping 1s cubic-bezier(0, 0, .2, 1) infinite; }
-@keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
 .cat { display: inline-flex; align-items: center; gap: var(--space-4); height: 20px; padding: 0 var(--space-8); border-radius: var(--radius-full); font: 600 11px/14px var(--font-sans); letter-spacing: .06em; text-transform: uppercase; }
 
 /* Progress */

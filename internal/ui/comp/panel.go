@@ -184,7 +184,7 @@ func DaemonCard(c *ui.Context, name, state, version, pid string, running bool) u
 		Background(p.BgCard).Border(ds.LineWidth, p.LineHairline), ds.S(c).ShadowXs)
 	return b.Children(func() {
 		ui.Row(c).FillWidth().Padding(0, ds.Space4).AlignItems(ui.Center).Children(func() {
-			StatusDot(c, DotOpts{Tone: tone, Pulse: running})
+			StatusDot(c, DotOpts{Tone: tone})
 			Text(c, name, ds.Numeric, p.TextStrong).SingleLine().Margin(0, 0, 0, ds.Space8)
 			ui.Spacer(c)
 			Text(c, state, ds.Badge, stateInk).SingleLine()

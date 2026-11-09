@@ -1,13 +1,12 @@
 package core
 
 import (
+	"cmp"
 	"slices"
 	"strings"
 	"unicode"
 
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
-
-	"github.com/mozillazg/go-pinyin"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 )
@@ -76,13 +75,11 @@ func newIndex(tools []tool.Tool) *Index {
 
 func newEntry(t tool.Tool, a *tool.QuickAction, lang, title string, kw []string) entry {
 	e := entry{owner: t, action: a, lang: lang, title: title, lower: strings.ToLower(title), keywords: kw}
-	args := pinyin.NewArgs()
-	args.Heteronym = true // 重 is zhong and chong: "plcmm" finds 批量重命名
 	for i, r := range []rune(title) {
 		switch {
 		case unicode.Is(unicode.Han, r):
-			if readings := pinyin.SinglePinyin(r, args); len(readings) > 0 {
-				e.syllable = append(e.syllable, slices.Compact(readings))
+			if readings := hanReadings(r); len(readings) > 0 {
+				e.syllable = append(e.syllable, readings)
 				e.sylRune = append(e.sylRune, i)
 			}
 		case r < unicode.MaxASCII && (unicode.IsLetter(r) || unicode.IsDigit(r)):
@@ -91,6 +88,20 @@ func newEntry(t tool.Tool, a *tool.QuickAction, lang, title string, kw []string)
 		}
 	}
 	return e
+}
+
+//go:generate go run ../../dev/genpinyin
+
+// hanReadings returns the tone-less readings of a Han character, or nil when
+// the catalogs have none. pinyin_table.go is generated from the catalogs.
+func hanReadings(r rune) []string {
+	i, ok := slices.BinarySearchFunc(pinyinTable, r, func(e hanEntry, r rune) int {
+		return cmp.Compare(e.r, r)
+	})
+	if !ok {
+		return nil
+	}
+	return pinyinTable[i].readings
 }
 
 // Result is one match: a tool, or a quick action of a tool. Match is the

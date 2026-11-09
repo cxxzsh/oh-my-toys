@@ -24,9 +24,8 @@ type Kit struct {
 }
 
 const (
-	appIconLight = "assets/app-icon/app-icon-light.png"
-	appIconDark  = "assets/app-icon/app-icon-dark.png"
-	toolIconDir  = "assets/tool-icons/"
+	appIconLight = "assets/app-icon/app-icon-light-128.png"
+	appIconDark  = "assets/app-icon/app-icon-dark-128.png"
 )
 
 // NewKit loads the glyphs, the images and the default process icons.
@@ -48,16 +47,10 @@ func NewKit() (*Kit, error) {
 	return k, nil
 }
 
+// loadBitmaps decodes the images the views draw: the app icon, light and
+// dark. A tool's icon is a glyph on a tile, so no tool art is loaded.
 func (k *Kit) loadBitmaps() error {
-	names := []string{appIconLight, appIconDark}
-	arts, err := design.Names(toolIconDir)
-	if err != nil {
-		return fmt.Errorf("list tool icons: %w", err)
-	}
-	for _, a := range arts {
-		names = append(names, toolIconDir+a+".png")
-	}
-	for _, n := range names {
+	for _, n := range []string{appIconLight, appIconDark} {
 		data, err := design.Read(n)
 		if err != nil {
 			return err
