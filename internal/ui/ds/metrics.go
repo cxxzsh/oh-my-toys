@@ -87,7 +87,7 @@ const (
 	HexDumpBytes     = 4 << 10   // hex dump of a binary body
 	HexRow           = 16        // bytes a hex dump row shows
 	HexGroup         = 8         // bytes before the gap in a hex dump row
-	TrafficSplitH    = 300       // the flow list's height above the detail
+	TrafficPaneMinH  = 200       // the least height a request or response pane takes when the two stack
 	TrafficRulesList = 360       // the rule list's width beside its form
 	TrafficWide      = 1300      // pane width from which the list and detail sit side by side; below it the detail goes under the list
 

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"os"
@@ -67,6 +68,9 @@ const (
 	// curlRefused is curl's exit code for a failed connection: what the proxy
 	// port answers when the app read another port from its settings.
 	curlRefused = 7
+	// xTolerance is how far, in pixels, a control may differ between two reads
+	// of its position: Windows reports fractions of a pixel for the same place.
+	xTolerance = 0.5
 )
 
 // Waits and file modes of the Traffic scenario.
@@ -727,7 +731,7 @@ func (r *trafficRun) start() error {
 		return err
 	}
 	r.obs["settings_x_after"] = after
-	if before != after {
+	if math.Abs(before-after) > xTolerance {
 		return fmt.Errorf("the settings button moved from x=%v to x=%v when the capture started", before, after)
 	}
 	return nil

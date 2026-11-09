@@ -35,6 +35,7 @@ type testTraffic struct {
 	startErr  error
 	proxy     *testLog
 	packets   *testLog
+	live      tool.FlowLog // the log Log returns instead of the canned ones, when set
 	replays   []uint64
 	harIDs    []uint64
 	rules     []tool.Rule
@@ -108,6 +109,9 @@ func (f *testTraffic) SetConfig(cfg tool.CaptureConfig) error {
 }
 
 func (f *testTraffic) Log() tool.FlowLog {
+	if f.live != nil {
+		return f.live
+	}
 	if f.Config().Mode == tool.ModePackets {
 		return f.packets
 	}

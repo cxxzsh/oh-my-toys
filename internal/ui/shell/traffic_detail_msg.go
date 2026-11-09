@@ -65,9 +65,11 @@ func (a *App) trafficExchange(c *ui.Context, st *trafficState) {
 		})
 		return
 	}
-	ui.Column(c).Grow(1).FillWidth().Gap(ds.Space12).Children(func() {
-		ui.Column(c).Grow(1).FillWidth().Children(request)
-		ui.Column(c).Grow(1).FillWidth().Children(response)
+	ui.Scroll(c).Grow(1).FillWidth().Children(func() {
+		ui.Column(c).FillWidth().FillHeight().Gap(ds.Space12).Children(func() {
+			ui.Column(c).Grow(1).FillWidth().MinHeight(ds.TrafficPaneMinH).Children(request)
+			ui.Column(c).Grow(1).FillWidth().MinHeight(ds.TrafficPaneMinH).Children(response)
+		})
 	})
 }
 

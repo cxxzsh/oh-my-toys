@@ -53,6 +53,10 @@ const (
 // share; both panes grow with the window.
 const listSplitPercent = 58
 
+// listSplitVPercent is the flow list's share of the height above the detail
+// when the two stack; the detail takes the rest.
+const listSplitVPercent = 40
+
 // trafficKey names the inspector's state on its page element.
 type trafficKey struct{}
 
@@ -84,7 +88,7 @@ type trafficState struct {
 	follow     bool
 	splitP     float32 // the list's share of the width beside the detail, percent
 	rulesSplit float32 // the rule list's width beside its form
-	splitH     float32 // the list's height above the detail
+	splitV     float32 // the list's share of the height above the detail, percent
 	detailTab  int
 	paneTab    [2]int // the tab each side of a flow last showed, indexed by detailSide; zero until picked
 	memo       map[memoKey]detailMemo
@@ -208,7 +212,7 @@ func (st *trafficState) apply(o trafficOutcome) {
 func newTrafficState() trafficState {
 	return trafficState{
 		sel: -1, selSeen: -1, follow: true, autoSelect: true,
-		splitP: listSplitPercent, splitH: ds.TrafficSplitH,
+		splitP: listSplitPercent, splitV: listSplitVPercent,
 		rulesSplit: ds.TrafficRulesList,
 	}
 }
@@ -412,7 +416,7 @@ func (a *App) trafficPanes(c *ui.Context, t tool.Traffic, st *trafficState) {
 		comp.SplitPercent(c, &st.splitP, list, detail).Grow(1).FillWidth()
 		return
 	}
-	comp.SplitVertical(c, &st.splitH, list, detail).Grow(1).FillWidth()
+	ui.SplitVerticalPercent(c, &st.splitV, list, detail).Grow(1).FillWidth()
 }
 
 // The states of the sources column: by width until a person chooses, then
@@ -499,10 +503,20 @@ func (st *trafficState) keepChoice() {
 		return
 	}
 	row := st.rows[st.sel]
-	open := row.State == tool.FlowOpen && st.detailVer != st.ver
-	if st.detailID != row.ID || open {
+	// The detail is loaded again once the log changed and the row differs
+	// from the flow the detail holds, so a flow that was still arriving shows
+	// its response when it completes.
+	stale := st.detailVer != st.ver && st.detailChanged(row)
+	if st.detailID != row.ID || stale {
 		st.loadDetail(row.ID)
 	}
+}
+
+// detailChanged reports whether a row differs from the flow the detail holds
+// in the fields the list shows: state, status, size or duration.
+func (st *trafficState) detailChanged(r tool.FlowRow) bool {
+	d := st.detail.FlowRow
+	return r.State != d.State || r.Status != d.Status || r.Size != d.Size || r.Duration != d.Duration
 }
 
 // loadDetail takes a copy of a flow for the detail pane.
