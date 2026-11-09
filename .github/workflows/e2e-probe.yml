@@ -1,0 +1,64 @@
+name: E2E probe
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Probe (${{ matrix.os }})
+    if: github.event.pull_request.draft == false
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos, windows, ubuntu]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Linux display and libraries
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libx11-6 libxkbcommon0 libgl1 libegl1 mesa-vulkan-drivers libwayland-client0 libgtk-3-0
+      - name: Build the e2e app
+        shell: bash
+        run: go build -tags e2e -o omt-e2e ./cmd/oh-my-toys
+      - name: First frame
+        continue-on-error: true
+        shell: bash
+        run: |
+          if [ "${{ matrix.os }}" = ubuntu ]; then
+            timeout 60 xvfb-run -a ./omt-e2e -exit-after-first-frame 2>&1 | tail -20
+          else
+            timeout 60 ./omt-e2e -exit-after-first-frame 2>&1 | tail -20
+          fi
+      - name: Drive the app
+        continue-on-error: true
+        shell: bash
+        run: |
+          sock="$RUNNER_TEMP/omt.sock"
+          if [ "${{ matrix.os }}" = windows ]; then sock="$(cygpath -m "$RUNNER_TEMP")/omt.sock"; fi
+          if [ "${{ matrix.os }}" = ubuntu ]; then
+            MYGO_AUTOMATION="$sock" xvfb-run -a ./omt-e2e > app.log 2>&1 &
+          else
+            MYGO_AUTOMATION="$sock" ./omt-e2e > app.log 2>&1 &
+          fi
+          sleep 10
+          cat app.log | tail -20
+          timeout 120 go run ./dev/e2e -socket "$sock" -out e2e-result.json || echo "e2e exited $?"
+          cat e2e-result.json 2>/dev/null | head -40
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probe-${{ matrix.os }}
+          path: |
+            app.log
+            e2e-result.json
+          if-no-files-found: ignore
