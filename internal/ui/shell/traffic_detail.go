@@ -86,7 +86,9 @@ func (a *App) trafficSummaryLine(c *ui.Context, f tool.Flow) {
 	p := ds.P(c)
 	comp.Text(c, f.Method, ds.Label, methodColor(p, f.Method)).NoWrap()
 	comp.Text(c, f.URL, ds.Label, p.TextStrong).SingleLine().Ellipsis("…").Shrink(1).MinWidth(0)
-	a.trafficStatus(c, f.FlowRow, trafficStatusText(f))
+	ui.Row(c).Shrink(0).AlignItems(ui.Center).Gap(ds.Space4).Children(func() {
+		a.trafficStatus(c, f.FlowRow, trafficStatusText(f))
+	})
 }
 
 // trafficActions are the buttons on a proxied flow: a new rule from it, and
