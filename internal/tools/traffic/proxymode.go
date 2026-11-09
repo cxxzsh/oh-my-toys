@@ -67,6 +67,8 @@ func (t *Tool) startProxy(ctx context.Context, cfg tool.CaptureConfig, policy ro
 		Authority:     authority,
 		Decrypt:       decrypting,
 		Bypass:        cfg.Bypass,
+		Scope:         cfg.Scope,
+		Program:       t.programHook(want),
 		Log:           t.proxylog,
 		Rules:         t.rules,
 		Dial:          via.dial,

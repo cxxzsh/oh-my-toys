@@ -506,17 +506,14 @@ func (a *App) ruleFormError(c *ui.Context, st *trafficState) {
 	})
 }
 
-// flowRules are the rules a chosen flow can become: a menu of the four
-// things a person reaches for while looking at traffic.
+// flowRuleMenu holds the entries that open the rule editor for a chosen flow:
+// the things a person reaches for besides the row's own actions.
 func (a *App) flowRuleMenu(m *ui.Menu, t tool.Traffic, st *trafficState, f tool.FlowRow) {
 	if m.Item(i18n.TrafficMockThis()).Chosen() {
 		a.ruleFromFlow(t, st, f.ID, ruleForMock)
 	}
 	if m.Item(i18n.TrafficBlockThisURL()).Chosen() {
 		a.ruleFromFlow(t, st, f.ID, ruleForBlockURL)
-	}
-	if m.Item(i18n.TrafficBlockThisHost()).Chosen() {
-		a.ruleFromFlow(t, st, f.ID, ruleForBlockHost)
 	}
 	if m.Item(i18n.TrafficRuleRewriteResponse()).Chosen() {
 		a.ruleFromFlow(t, st, f.ID, ruleForRewrite)

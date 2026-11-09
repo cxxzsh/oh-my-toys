@@ -61,20 +61,21 @@ func sameFilter(a, b tool.Filter) bool {
 		slices.Equal(a.Hosts, b.Hosts) &&
 		slices.Equal(a.Methods, b.Methods) &&
 		slices.Equal(a.Types, b.Types) &&
-		slices.Equal(a.StatusClasses, b.StatusClasses)
+		slices.Equal(a.StatusClasses, b.StatusClasses) &&
+		slices.Equal(a.Processes, b.Processes)
 }
 
 // copyFilter copies the lists of f, so a caller that reuses its filter
 // cannot change a cached key behind the log's back.
 func copyFilter(f tool.Filter) tool.Filter {
 	return tool.Filter{
-		Source:        f.Source,
-		Text:          f.Text,
-		Hosts:         slices.Clone(f.Hosts),
-		Methods:       slices.Clone(f.Methods),
-		Types:         slices.Clone(f.Types),
-		StatusClasses: slices.Clone(f.StatusClasses),
-		Failed:        f.Failed,
+		Source:    f.Source,
+		Text:      f.Text,
+		Hosts:     slices.Clone(f.Hosts),
+		Methods:   slices.Clone(f.Methods),
+		Types:     slices.Clone(f.Types),
+		Processes: slices.Clone(f.Processes),
+		Failed:    f.Failed,
 	}
 }
 

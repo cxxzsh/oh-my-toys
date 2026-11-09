@@ -26,6 +26,8 @@ func trafficProblemText(err error) (title, steps string) {
 		return i18n.TrafficErrCertTitle(), i18n.TrafficErrCertSteps()
 	case errors.Is(err, tool.ErrUnsupportedHere):
 		return i18n.TrafficErrUnsupportedTitle(), i18n.TrafficErrUnsupportedSteps()
+	case errors.Is(err, tool.ErrNotRunning):
+		return i18n.TrafficErrNotRunningTitle(), i18n.TrafficErrNotRunningSteps()
 	}
 	return i18n.TrafficErrTitle(), i18n.TrafficErrDetail()
 }

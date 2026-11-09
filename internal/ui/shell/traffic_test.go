@@ -41,6 +41,11 @@ type testTraffic struct {
 	rulesErr  error
 	ruleBooks [][]tool.Rule
 	note      string
+
+	// termErr is what OpenTerminal fails with, when a test sets it.
+	termErr error
+	// terminals counts the terminals a test has opened.
+	terminals int
 }
 
 func newTestTraffic() *testTraffic {
@@ -234,17 +239,94 @@ func (l *testLog) Clear() {
 
 func (l *testLog) OnChange(func()) func() { return func() {} }
 
-// testMatch is the filter the contract describes, for the tests' log.
-func testMatch(f tool.Flow, filter tool.Filter) bool {
-	if f.Source != filter.Source {
-		return false
-	}
-	if filter.Text != "" {
-		text := strings.ToLower(filter.Text)
-		if !strings.Contains(strings.ToLower(f.URL+" "+f.Info+" "+string(f.Request.Body.Data)+" "+string(f.Response.Body.Data)), text) {
-			return false
+// Processes counts the flows of each program, the way the contract orders them.
+func (l *testLog) Processes() []tool.Facet {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	counts := map[string]int{}
+	for _, f := range l.flows {
+		if f.Process.Name != "" {
+			counts[f.Process.Name]++
 		}
 	}
+	return testFacets(counts)
+}
+
+// Hosts counts the flows to each host.
+func (l *testLog) Hosts() []tool.Facet {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	counts := map[string]int{}
+	for _, f := range l.flows {
+		if f.Host != "" {
+			counts[f.Host]++
+		}
+	}
+	return testFacets(counts)
+}
+
+// testFacets orders counts most flows first, then by name.
+func testFacets(counts map[string]int) []tool.Facet {
+	out := make([]tool.Facet, 0, len(counts))
+	for name, n := range counts {
+		out = append(out, tool.Facet{Name: name, Count: n})
+	}
+	slices.SortFunc(out, func(a, b tool.Facet) int {
+		if a.Count != b.Count {
+			return b.Count - a.Count
+		}
+		return strings.Compare(a.Name, b.Name)
+	})
+	return out
+}
+
+// Environment is the proxy environment of a running proxy, as a shell script.
+func (f *testTraffic) Environment() (tool.Environment, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.on {
+		return tool.Environment{}, tool.ErrNotRunning
+	}
+	const proxy = "http://127.0.0.1:9099"
+	vars := []tool.Header{{Name: "http_proxy", Value: proxy}, {Name: "https_proxy", Value: proxy}}
+	script := "export http_proxy=" + proxy + " https_proxy=" + proxy
+	return tool.Environment{Vars: vars, Script: script, Shell: "/bin/zsh"}, nil
+}
+
+// OpenTerminal counts a terminal opened with the proxy, or fails as the
+// test asks.
+func (f *testTraffic) OpenTerminal(context.Context) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if !f.on {
+		return tool.ErrNotRunning
+	}
+	if f.termErr != nil {
+		return f.termErr
+	}
+	f.terminals++
+	return nil
+}
+
+// testMatch is the filter the contract describes, for the tests' log.
+func testMatch(f tool.Flow, filter tool.Filter) bool {
+	if f.Source != filter.Source || !testMatchText(f, filter.Text) || !testMatchFields(f, filter) {
+		return false
+	}
+	return !filter.Failed || f.State == tool.FlowFailed || f.State == tool.FlowBlocked
+}
+
+// testMatchText is the free-text part of the filter: URL, info and bodies.
+func testMatchText(f tool.Flow, text string) bool {
+	if text == "" {
+		return true
+	}
+	all := f.URL + " " + f.Info + " " + string(f.Request.Body.Data) + " " + string(f.Response.Body.Data)
+	return strings.Contains(strings.ToLower(all), strings.ToLower(text))
+}
+
+// testMatchFields is the list-valued part of the filter, one field each.
+func testMatchFields(f tool.Flow, filter tool.Filter) bool {
 	if len(filter.Hosts) > 0 && !slices.Contains(filter.Hosts, f.Host) {
 		return false
 	}
@@ -257,7 +339,9 @@ func testMatch(f tool.Flow, filter tool.Filter) bool {
 	if len(filter.StatusClasses) > 0 && !slices.Contains(filter.StatusClasses, f.Status/100) {
 		return false
 	}
-	return !filter.Failed || f.State == tool.FlowFailed || f.State == tool.FlowBlocked
+	return len(filter.Processes) == 0 || slices.ContainsFunc(filter.Processes, func(n string) bool {
+		return strings.EqualFold(n, f.Process.Name)
+	})
 }
 
 // testGET is a proxied GET that answered JSON.
@@ -265,6 +349,7 @@ func testGET(host, path string, status int) tool.Flow {
 	row := tool.FlowRow{
 		Source: tool.SourceProxy, Started: time.Now(), Method: "GET", Host: host, Path: path,
 		Proto: "h2", Status: status, Type: "application/json", Size: 12, State: tool.FlowDone,
+		Duration: time.Second,
 	}
 	return tool.Flow{
 		FlowRow: row, URL: "https://" + host + path,
@@ -297,6 +382,12 @@ func testPacket(info string) tool.Flow {
 // openTraffic opens the inspector of f in a window of its own.
 func openTraffic(t *testing.T, f *testTraffic) *ui.Tester {
 	t.Helper()
+	return openTrafficAt(t, f, ds.WindowWidth)
+}
+
+// openTrafficAt opens the inspector of f in a window of the given width.
+func openTrafficAt(t *testing.T, f *testTraffic, width int) *ui.Tester {
+	t.Helper()
 	a := newTestApp(t, false)
 	reg, err := core.NewRegistry(f)
 	if err != nil {
@@ -304,7 +395,7 @@ func openTraffic(t *testing.T, f *testTraffic) *ui.Tester {
 	}
 	a.reg = reg
 	a.open(trafficTestID)
-	tt := ui.NewTester(a.mainView, ds.WindowWidth, 1000)
+	tt := ui.NewTester(a.mainView, width, 1000)
 	tt.Frame()
 	return tt
 }
@@ -387,23 +478,28 @@ func trafficFrameTime(tt *ui.Tester) time.Duration {
 	return frames[len(frames)/2]
 }
 
-// TestTrafficFiltersNarrow: a method chip and the search field each take
-// flows out of the list.
+// TestTrafficFiltersNarrow: the Failed only chip and the search field each
+// take flows out of the list. The method chips sit in the Filter popover,
+// where a row's own method text would be clicked instead, so they are not
+// used here.
 func TestTrafficFiltersNarrow(t *testing.T) {
 	f := newTestTraffic()
 	f.proxy.add(testGET("api.example.com", "/get", 200))
 	f.proxy.add(testPOST("api.example.com", "/post"))
 	f.proxy.add(testGET("www.example.com", "/docs", 200))
+	broken := testGET("www.example.com", "/broken", 500)
+	broken.State = tool.FlowFailed
+	f.proxy.add(broken)
 	tt := openTraffic(t, f)
-	if !tt.HasText("/post") || !tt.HasText("/docs") {
+	if !tt.HasText("/post") || !tt.HasText("/docs") || !tt.HasText("/broken") {
 		t.Fatalf("the rows are not there: %q", tt.Texts())
 	}
-	if err := tt.Click("POST"); err != nil {
+	if err := tt.Click("Failed only"); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if tt.HasText("/docs") || !tt.HasText("/post") {
-		t.Errorf("the method chip did not narrow the list: %q", tt.Texts())
+	if tt.HasText("/docs") || !tt.HasText("/broken") {
+		t.Errorf("the failed filter did not narrow the list: %q", tt.Texts())
 	}
 	if err := tt.Click(i18n.TrafficClearFilters()); err != nil {
 		t.Fatal(err)
@@ -523,6 +619,9 @@ func TestTrafficFollowKeepsEnd(t *testing.T) {
 func TestTrafficFieldsCheckInput(t *testing.T) {
 	f := newTestTraffic()
 	tt := openTraffic(t, f)
+	if err := tt.Click(i18n.TrafficSettings()); err != nil {
+		t.Fatal(err)
+	}
 	clickField(t, tt, i18n.TrafficPort())
 	tt.Type("9")
 	tt.Frame()
@@ -573,11 +672,14 @@ func hasUpstreamError(tt *ui.Tester) bool {
 }
 
 // TestTrafficPageShowsTheStatusNote: what the tool says beside its state,
-// as a system proxy that apps do not read, is on the page.
+// as a system proxy that apps do not read, is in the Settings dialog.
 func TestTrafficPageShowsTheStatusNote(t *testing.T) {
 	f := newTestTraffic()
 	f.note = "apps read another service's proxy"
 	tt := openTraffic(t, f)
+	if err := tt.Click(i18n.TrafficSettings()); err != nil {
+		t.Fatal(err)
+	}
 	if !tt.HasText(f.note) {
 		t.Errorf("the page does not show %q", f.note)
 	}

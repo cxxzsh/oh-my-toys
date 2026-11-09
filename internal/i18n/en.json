@@ -1552,6 +1552,124 @@
   "@trafficSummary": {
     "description": "Tool summary."
   },
+  "trafficSettings": "Traffic Settings",
+  "@trafficSettings": {
+    "description": "Toolbar button that opens the traffic settings."
+  },
+  "trafficSettingsTitle": "Traffic Settings",
+  "@trafficSettingsTitle": {
+    "description": "Title of the traffic settings dialog."
+  },
+  "trafficSettingsDone": "Done",
+  "@trafficSettingsDone": {
+    "description": "Button that closes the traffic settings dialog."
+  },
+  "trafficCaptureTitle": "Capture a Program",
+  "@trafficCaptureTitle": {
+    "description": "Section title for capturing one program's traffic."
+  },
+  "trafficCaptureHint": "Programs that ignore the system proxy send nothing here. Open a terminal with the proxy set, and start them from it.",
+  "@trafficCaptureHint": {
+    "description": "Explains why some programs need a terminal started with the proxy."
+  },
+  "trafficOpenTerminal": "Open Terminal with Proxy",
+  "@trafficOpenTerminal": {
+    "description": "Button that opens a terminal whose environment routes through the proxy."
+  },
+  "trafficCopyEnv": "Copy Proxy Environment",
+  "@trafficCopyEnv": {
+    "description": "Button that copies the proxy environment variables."
+  },
+  "trafficEnvCopied": "Copied the proxy environment",
+  "@trafficEnvCopied": {
+    "description": "Toast after the proxy environment is copied."
+  },
+  "trafficPrograms": "Programs",
+  "@trafficPrograms": {
+    "description": "Sidebar section listing the programs that sent traffic."
+  },
+  "trafficHosts": "Hosts",
+  "@trafficHosts": {
+    "description": "Sidebar section listing the hosts that received traffic."
+  },
+  "trafficAllPrograms": "All Programs",
+  "@trafficAllPrograms": {
+    "description": "Sidebar entry that shows flows of every program."
+  },
+  "trafficAllHosts": "All Hosts",
+  "@trafficAllHosts": {
+    "description": "Sidebar entry that shows flows to every host."
+  },
+  "trafficShowOnly": "Show Only This Program",
+  "@trafficShowOnly": {
+    "description": "Menu item that narrows the list to one program."
+  },
+  "trafficCaptureOnly": "Capture Only This Program",
+  "@trafficCaptureOnly": {
+    "description": "Menu item that records only one program's traffic."
+  },
+  "trafficHostsMore": "Showing the top {shown} of {total} hosts",
+  "@trafficHostsMore": {
+    "description": "Hint under a truncated host list.",
+    "placeholders": {
+      "shown": {},
+      "total": {}
+    }
+  },
+  "trafficScopeChip": "Capturing {names}",
+  "@trafficScopeChip": {
+    "description": "Toolbar chip naming the programs being captured.",
+    "placeholders": {
+      "names": {}
+    }
+  },
+  "trafficScopeClear": "Capture All Programs",
+  "@trafficScopeClear": {
+    "description": "Tooltip on the scope chip that clears the scope."
+  },
+  "trafficFlowCount": "{count, plural, =0 {No flows} one {# flow} other {# flows}}",
+  "@trafficFlowCount": {
+    "description": "Flow count in the toolbar.",
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "trafficColProgram": "Program",
+  "@trafficColProgram": {
+    "description": "Column header for the program that opened a flow."
+  },
+  "trafficGuideTitle": "Capture Your First Request",
+  "@trafficGuideTitle": {
+    "description": "Title of the first-run guide."
+  },
+  "trafficGuideBody": "Requests appear here once a program sends traffic through the proxy.",
+  "@trafficGuideBody": {
+    "description": "Body text of the first-run guide."
+  },
+  "trafficGuideCert": "Install and trust the certificate",
+  "@trafficGuideCert": {
+    "description": "First-run guide step: certificate trusted."
+  },
+  "trafficGuideProxy": "Set the system proxy",
+  "@trafficGuideProxy": {
+    "description": "First-run guide step: system proxy set."
+  },
+  "trafficGuideStart": "Start the capture",
+  "@trafficGuideStart": {
+    "description": "First-run guide step: capture running."
+  },
+  "trafficGuideOr": "or start a program from Settings",
+  "@trafficGuideOr": {
+    "description": "First-run guide hint: the other way to capture, from Settings."
+  },
+  "trafficErrNotRunningTitle": "The capture is not running",
+  "@trafficErrNotRunningTitle": {
+    "description": "Problem title when a terminal is requested while the proxy is off."
+  },
+  "trafficErrNotRunningSteps": "1. Press Start in the toolbar. 2. Open the terminal again.",
+  "@trafficErrNotRunningSteps": {
+    "description": "Problem steps when a terminal is requested while the proxy is off."
+  },
   "trafficModeProxy": "Proxy",
   "@trafficModeProxy": {
     "description": "Capture mode: a local HTTP(S) proxy."
@@ -1731,7 +1849,7 @@
   "@trafficColID": {
     "description": "Column header of a flow's number."
   },
-  "trafficColTime": "Time",
+  "trafficColTime": "Started",
   "@trafficColTime": {
     "description": "Column header: when the flow started."
   },
@@ -1739,13 +1857,9 @@
   "@trafficColMethod": {
     "description": "Column header: the HTTP method."
   },
-  "trafficColHost": "Host",
-  "@trafficColHost": {
-    "description": "Column header: the host of the request."
-  },
-  "trafficColPath": "Path",
-  "@trafficColPath": {
-    "description": "Column header: the path and query of the request."
+  "trafficColURL": "URL",
+  "@trafficColURL": {
+    "description": "Column header: the host and path of the request."
   },
   "trafficColType": "Type",
   "@trafficColType": {
@@ -1755,7 +1869,7 @@
   "@trafficColSize": {
     "description": "Column header: the bytes of the response or packet."
   },
-  "trafficColDuration": "Took",
+  "trafficColDuration": "Time",
   "@trafficColDuration": {
     "description": "Column header: how long the flow took."
   },
@@ -2278,10 +2392,6 @@
   "@trafficBlockThisURL": {
     "description": "Menu item: a block rule for this URL."
   },
-  "trafficBlockThisHost": "Block This Host",
-  "@trafficBlockThisHost": {
-    "description": "Menu item: a block rule for this host."
-  },
   "trafficRuleRewriteResponse": "Rewrite Response…",
   "@trafficRuleRewriteResponse": {
     "description": "Menu item: a rewrite rule from the chosen flow."
@@ -2297,5 +2407,41 @@
   "trafficCaptureStoppedNote": "The capture stopped. See the log for the reason.",
   "@trafficCaptureStoppedNote": {
     "description": "Status note when a capture stops on its own."
+  },
+  "trafficFilterButton": "Filter",
+  "@trafficFilterButton": {
+    "description": "Button that opens the popover of method, status and type choices."
+  },
+  "trafficMenuCopyCurl": "Copy as cURL",
+  "@trafficMenuCopyCurl": {
+    "description": "Row menu item: copies the request as a cURL command."
+  },
+  "trafficMenuFilterProgram": "Filter to This Program",
+  "@trafficMenuFilterProgram": {
+    "description": "Row menu item: adds a program: token to the search text."
+  },
+  "trafficMenuBlockHost": "Block This Host",
+  "@trafficMenuBlockHost": {
+    "description": "Row menu item: adds a block rule for the flow's host."
+  },
+  "trafficMenuDecrypt": "Do Not Decrypt This Host",
+  "@trafficMenuDecrypt": {
+    "description": "Row menu item: never decrypt traffic to the flow's host."
+  },
+  "trafficMenuCaptureProgram": "Capture Only This Program",
+  "@trafficMenuCaptureProgram": {
+    "description": "Row menu item: record only the traffic of the flow's program."
+  },
+  "trafficMenuBlocked": "Blocking {host}",
+  "@trafficMenuBlocked": {
+    "description": "Toast after a block rule for a host was added or already existed. {host} is the host name."
+  },
+  "trafficMenuBypassed": "Not decrypting {host}",
+  "@trafficMenuBypassed": {
+    "description": "Toast after a host was added to the never-decrypt list. {host} is the host name."
+  },
+  "trafficMenuScoped": "Capturing only {name}",
+  "@trafficMenuScoped": {
+    "description": "Toast after the capture was scoped to one program. {name} is the program name."
   }
 }

@@ -62,8 +62,10 @@ func TestProxyForwardsHTTP(t *testing.T) {
 			t.Errorf("%s = %#v, want %#v", check.name, check.got, check.want)
 		}
 	}
-	if flow.Duration <= 0 {
-		t.Error("duration is not positive")
+	// A loopback exchange can finish within one tick of a coarse clock
+	// (Windows), so zero is a valid duration; only a negative one is wrong.
+	if flow.Duration < 0 {
+		t.Errorf("duration = %v, want it not negative", flow.Duration)
 	}
 	if flow.ServerAddr == "" {
 		t.Error("server address is empty")

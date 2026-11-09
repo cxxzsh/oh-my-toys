@@ -2,10 +2,10 @@ package shell
 
 import (
 	"context"
+	"slices"
 	"strconv"
 	"time"
 
-	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
@@ -19,8 +19,7 @@ const (
 	cellID = iota
 	cellTime
 	cellMethod
-	cellHost
-	cellPath
+	cellURL
 	cellStatus
 	cellType
 	cellSize
@@ -29,62 +28,149 @@ const (
 	cellDestination
 	cellInfo
 	cellLength
+	cellProgram
 )
 
-// trafficColumn is one column of the list: its heading, the share of the
-// width it takes, and the cell it draws.
+// trafficColumn is one column of the list: its heading, its width, and the
+// cell it draws. A column with a width keeps that many pixels; the others
+// share what is left, in proportion to their share.
 type trafficColumn struct {
 	label func() string
+	width float32
 	share float32
 	end   bool
 	kind  int
 }
 
-// trafficColumns are the columns of the mode in progress: whole requests
-// and responses for the proxy, one packet a row for the packet capture.
-func (st *trafficState) trafficColumns() []trafficColumn {
-	if tool.CaptureMode(st.mode) == tool.ModePackets {
-		return []trafficColumn{
-			{label: i18n.TrafficColID, share: trafficShareID, kind: cellID},
-			{label: i18n.TrafficColTime, share: trafficShareTime, kind: cellTime},
-			{label: i18n.TrafficColProtocol, share: trafficShareMethod, kind: cellProtocol},
-			{label: i18n.TrafficColDestination, share: trafficShareHost, kind: cellDestination},
-			{label: i18n.TrafficColInfo, share: trafficSharePath, kind: cellInfo},
-			{label: i18n.TrafficColLength, share: trafficShareSize, end: true, kind: cellLength},
-		}
+// frame is the box a column's cell sits in. The heading and every row use the
+// same box, so the labels line up with the values under them.
+func (col trafficColumn) frame(c *ui.Context, key int) ui.Element {
+	cell := ui.Row(c.Key(key)).AlignItems(ui.Center)
+	if col.width > 0 {
+		cell.Width(col.width)
+	} else {
+		cell.Grow(col.share).Basis(0).MinWidth(0)
 	}
-	return []trafficColumn{
-		{label: i18n.TrafficColID, share: trafficShareID, kind: cellID},
-		{label: i18n.TrafficColTime, share: trafficShareTime, kind: cellTime},
-		{label: i18n.TrafficColMethod, share: trafficShareMethod, kind: cellMethod},
-		{label: i18n.TrafficColHost, share: trafficShareHost, kind: cellHost},
-		{label: i18n.TrafficColPath, share: trafficSharePath, kind: cellPath},
-		{label: i18n.StatusLabel, share: trafficShareStatus, kind: cellStatus},
-		{label: i18n.TrafficColType, share: trafficShareType, kind: cellType},
-		{label: i18n.TrafficColSize, share: trafficShareSize, end: true, kind: cellSize},
-		{label: i18n.TrafficColDuration, share: trafficShareDuration, end: true, kind: cellDuration},
+	if col.end {
+		cell.Justify(ui.End)
 	}
+	return cell
 }
 
-// How the list's width is shared out: the path and the host give way
-// first, the number and the time keep their room.
+// trafficColumns are the columns of the mode in progress, cut down to what
+// fits a list of the given width: whole requests and responses for the
+// proxy, one packet a row for the packet capture.
+func (st *trafficState) trafficColumns(width float32) []trafficColumn {
+	if tool.CaptureMode(st.mode) == tool.ModePackets {
+		return trafficFit([]trafficColumn{
+			{label: i18n.TrafficColID, width: trafficWidthID, kind: cellID},
+			{label: i18n.TrafficColTime, width: trafficWidthTime, kind: cellTime},
+			{label: i18n.TrafficColProtocol, width: trafficWidthProtocol, kind: cellProtocol},
+			{label: i18n.TrafficColDestination, share: trafficShareDestination, kind: cellDestination},
+			{label: i18n.TrafficColInfo, share: trafficShareInfo, kind: cellInfo},
+			{label: i18n.TrafficColLength, width: trafficWidthLength, end: true, kind: cellLength},
+		}, width)
+	}
+	return trafficFit([]trafficColumn{
+		{label: i18n.TrafficColID, width: trafficWidthID, kind: cellID},
+		{label: i18n.TrafficColProgram, width: trafficWidthProgram, kind: cellProgram},
+		{label: i18n.TrafficColTime, width: trafficWidthTime, kind: cellTime},
+		{label: i18n.TrafficColMethod, width: trafficWidthMethod, kind: cellMethod},
+		{label: i18n.TrafficColURL, share: trafficShareURL, kind: cellURL},
+		{label: i18n.TrafficColType, width: trafficWidthType, kind: cellType},
+		{label: i18n.StatusLabel, width: trafficWidthStatus, kind: cellStatus},
+		{label: i18n.TrafficColSize, width: trafficWidthSize, end: true, kind: cellSize},
+		{label: i18n.TrafficColDuration, width: trafficWidthDuration, end: true, kind: cellDuration},
+	}, width)
+}
+
+// trafficListWidth is the width the list gets: its share of the panes beside
+// the detail, or all of them when the detail sits under the list.
+func (a *App) trafficListWidth(c *ui.Context, st *trafficState) float32 {
+	panes := a.trafficPanesWidth(c)
+	if panes >= ds.TrafficWide {
+		return panes * st.splitP / percentScale
+	}
+	return panes
+}
+
+// trafficFit drops the columns that do not fit in width, in the order of
+// trafficDropOrder. The Program, the URL and the Status are never dropped.
+func trafficFit(cols []trafficColumn, width float32) []trafficColumn {
+	for _, kind := range trafficDropOrder {
+		if trafficNeed(cols) <= width {
+			break
+		}
+		cols = slices.DeleteFunc(cols, func(col trafficColumn) bool { return col.kind == kind })
+	}
+	return cols
+}
+
+// trafficNeed is the width the columns ask for: their fixed widths, a minimum
+// for each flexible column, and the gap and padding that go with each.
+func trafficNeed(cols []trafficColumn) float32 {
+	need := 2 * float32(ds.TableCellPad)
+	for _, col := range cols {
+		if col.width > 0 {
+			need += col.width
+		} else {
+			need += trafficMinFlex
+		}
+		need += float32(ds.Space4)
+	}
+	return need
+}
+
+// Widths of the fixed columns, in pixels. The URL takes what is left after
+// them, and the Program keeps a whole program name.
 const (
-	trafficShareID       = 0.55
-	trafficShareTime     = 1.15
-	trafficShareMethod   = 1.15
-	trafficShareHost     = 1.35
-	trafficSharePath     = 1.65
-	trafficShareStatus   = 1.45
-	trafficShareType     = 0.8
-	trafficShareSize     = 0.95
-	trafficShareDuration = 0.85
+	trafficWidthID       = 50
+	trafficWidthProgram  = 110
+	trafficWidthTime     = 90
+	trafficWidthMethod   = 70
+	trafficWidthType     = 70
+	trafficWidthStatus   = 70
+	trafficWidthSize     = 90
+	trafficWidthDuration = 80
+	trafficWidthProtocol = 72
+	trafficWidthLength   = 88
 )
+
+// Shares of the flexible columns. The URL is the only flexible column of the
+// proxy list; the packet capture splits its room between two columns.
+const (
+	trafficShareURL         = 1.0
+	trafficShareDestination = 1.35
+	trafficShareInfo        = 1.65
+)
+
+// trafficMinFlex is the least room a flexible column needs before a column is
+// dropped to make space for it.
+const trafficMinFlex = 120
+
+// percentScale turns the list's percent split into a fraction of the panes.
+const percentScale = 100
+
+// trafficDropOrder lists the columns dropped first when the list is narrow.
+var trafficDropOrder = []int{cellType, cellTime}
 
 // trafficListPane is the list with its column headings.
 func (a *App) trafficListPane(c *ui.Context, t tool.Traffic, st *trafficState) {
 	ui.Column(c).FillHeight().FillWidth().Gap(ds.Space4).Children(func() {
+		a.trafficListBar(c, t, st)
 		a.trafficColumnHead(c, st)
 		a.trafficList(c, t, st)
+	})
+}
+
+// trafficListBar is the strip above the list: the count of flows on the left,
+// and Clear and Export HAR on the right. The toolbar keeps only the capture
+// controls, so a long label cannot push Settings off the window.
+func (a *App) trafficListBar(c *ui.Context, t tool.Traffic, st *trafficState) {
+	ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		a.trafficCount(c, st)
+		ui.Row(c).Grow(1)
+		a.trafficClearExport(c, t, st)
 	})
 }
 
@@ -93,12 +179,8 @@ func (a *App) trafficColumnHead(c *ui.Context, st *trafficState) {
 	p := ds.P(c)
 	ui.Row(c).FillWidth().Height(ds.ControlSm).Padding(0, ds.TableCellPad).Gap(ds.Space4).AlignItems(ui.Center).
 		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.LineHairline).Children(func() {
-		for i, col := range st.trafficColumns() {
-			cell := ui.Row(c.Key(i)).Grow(col.share).Basis(0).MinWidth(0)
-			if col.end {
-				cell.Justify(ui.End)
-			}
-			cell.Children(func() {
+		for i, col := range st.trafficColumns(a.trafficListWidth(c, st)) {
+			col.frame(c, i).Children(func() {
 				comp.Text(c, col.label(), ds.Eyebrow, p.TextMuted).SingleLine().Ellipsis("…")
 			})
 		}
@@ -117,7 +199,7 @@ func (a *App) trafficList(c *ui.Context, t tool.Traffic, st *trafficState) {
 	st.list.Key = func(i int) any { return st.rows[i].ID }
 	st.list.Label = func(i int) string { return trafficRowLabel(st.rows[i]) }
 	st.list.FollowEnd = st.follow
-	cols := st.trafficColumns()
+	cols := st.trafficColumns(a.trafficListWidth(c, st))
 	ui.List(c.Key("flows"), &st.list, len(st.rows), func(i int) { a.trafficRow(c, t, st, cols, i) }).
 		Grow(1).FillWidth()
 	// Scrolling up is how a person stops following the end; the list
@@ -136,7 +218,7 @@ func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols [
 	if b.Clicked() {
 		st.sel = i
 	}
-	b.ContextMenu(func(m *ui.Menu) { a.trafficRowMenu(m, c, t, st, r) })
+	b.ContextMenu(func(m *ui.Menu) { a.trafficFlowMenu(m, c, t, st, r) })
 	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Gap(ds.Space4).Background(p.BgCard).
 		AlignItems(ui.Center)
 	if chosen {
@@ -149,11 +231,7 @@ func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols [
 			listSelection(c)
 		}
 		for j, col := range cols {
-			cell := ui.Row(c.Key(j)).Grow(col.share).Basis(0).MinWidth(0).AlignItems(ui.Center)
-			if col.end {
-				cell.Justify(ui.End)
-			}
-			cell.Children(func() { a.trafficCell(c, r, col.kind) })
+			col.frame(c, j).Children(func() { a.trafficCell(c, r, col.kind) })
 		}
 	})
 }
@@ -168,10 +246,8 @@ func (a *App) trafficCell(c *ui.Context, r tool.FlowRow, kind int) {
 		comp.Value(c, r.Started.Format(time.TimeOnly), p.TextMuted).Ellipsis("…")
 	case cellMethod:
 		comp.Value(c, r.Method, p.TextPrimary).Ellipsis("…")
-	case cellHost:
-		comp.Value(c, r.Host, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
-	case cellPath:
-		comp.Value(c, r.Path, p.TextPrimary).Ellipsis("…").Shrink(1).MinWidth(0)
+	case cellURL:
+		trafficURL(c, r)
 	case cellStatus:
 		a.trafficStatus(c, r)
 	case cellType:
@@ -188,7 +264,19 @@ func (a *App) trafficCell(c *ui.Context, r tool.FlowRow, kind int) {
 		comp.Value(c, r.Info, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
 	case cellLength:
 		comp.Value(c, trafficSize(r.Size), p.TextMuted).Ellipsis("…")
+	case cellProgram:
+		comp.Value(c, r.Process.Name, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
 	}
+}
+
+// trafficURL draws a request's host and its path as one line. The host keeps
+// its colour; the path says less, so it is muted and gives way first.
+func trafficURL(c *ui.Context, r tool.FlowRow) {
+	p := ds.P(c)
+	ui.Row(c).FillWidth().Clip().AlignItems(ui.Center).Children(func() {
+		comp.Value(c, r.Host, p.TextPrimary).Ellipsis("…").Shrink(1).MinWidth(0)
+		comp.Value(c, r.Path, p.TextMuted).Ellipsis("…").Shrink(2).MinWidth(0)
+	})
 }
 
 // trafficStatus is the state of a flow: its status in the colour of what
@@ -248,44 +336,6 @@ func (st *trafficState) emptyNext(t tool.Traffic) string {
 		return i18n.TrafficEmptyPackets()
 	}
 	return i18n.TrafficEmptyProxy()
-}
-
-// trafficRowMenu is what a person can do with one flow besides looking at
-// it.
-func (a *App) trafficRowMenu(m *ui.Menu, c *ui.Context, t tool.Traffic, st *trafficState, r tool.FlowRow) {
-	if r.Source == tool.SourceProxy && m.Item(i18n.TrafficReplay()).Chosen() {
-		a.trafficReplay(t, st, r.ID)
-	}
-	url := st.urlOf(r.ID)
-	if m.Item(i18n.TrafficCopyURL()).Disabled(url == "").Chosen() {
-		mygo.Clipboard.WriteText(url)
-		c.Toast(i18n.Copied(url))
-	}
-	if m.Item(i18n.TrafficCopyRow()).Chosen() {
-		mygo.Clipboard.WriteText(trafficRowText(r))
-		c.Toast(i18n.Copied(trafficRowLabel(r)))
-	}
-	m.Separator()
-	if m.Item(i18n.TrafficFilterHost()).Disabled(r.Host == "").Chosen() {
-		st.text = r.Host
-	}
-	m.Separator()
-	a.flowRuleMenu(m, t, st, r)
-}
-
-// urlOf returns a flow's whole URL, asking the log when the detail has not
-// been read yet.
-func (st *trafficState) urlOf(id uint64) string {
-	if st.hasDetail && st.detailID == id && st.detail.URL != "" {
-		return st.detail.URL
-	}
-	if st.log == nil {
-		return ""
-	}
-	if f, ok := st.log.Get(id); ok {
-		return f.URL
-	}
-	return ""
 }
 
 // trafficReplay sends a request again and shows the new flow, off the UI

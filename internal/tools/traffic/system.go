@@ -4,12 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/cxxzsh/oh-my-toys/internal/platform/pcap"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/procnet"
 	"github.com/cxxzsh/oh-my-toys/internal/platform/sysproxy"
+	"github.com/cxxzsh/oh-my-toys/internal/platform/terminal"
 	"github.com/cxxzsh/oh-my-toys/internal/platform/trust"
 )
 
@@ -42,6 +45,13 @@ type system struct {
 	trust    trustStore
 	pcap     packetSource
 	now      func() time.Time
+	// owner finds the program that owns a client connection of the proxy.
+	owner func(local, remote netip.AddrPort) (procnet.Process, error)
+	// openTerminal opens a terminal whose environment carries vars.
+	openTerminal func(ctx context.Context, vars []terminal.Var) error
+	// caBundles are the files that hold the system's CA bundle, in the order
+	// to look for them. A machine with none gets no replacing variables.
+	caBundles []string
 }
 
 // proxySettings is the system proxy of the machine.
@@ -94,7 +104,10 @@ func realSystem() system {
 			defaultOne: pcap.DefaultInterface,
 			grant:      pcap.Grant,
 		},
-		now: time.Now,
+		now:          time.Now,
+		owner:        procnet.Owner,
+		openTerminal: terminal.Open,
+		caBundles:    systemCABundles,
 	}
 }
 
@@ -110,6 +123,11 @@ func writeJSON(path string, v any) error {
 	if err != nil {
 		return fmt.Errorf("encode %s: %w", filepath.Base(path), err)
 	}
+	return writeBytes(path, b)
+}
+
+// writeBytes writes b to path in one step; see writeJSON.
+func writeBytes(path string, b []byte) error {
 	dir := filepath.Dir(path)
 	if err := os.MkdirAll(dir, folderMode); err != nil {
 		return fmt.Errorf("create %s: %w", dir, err)

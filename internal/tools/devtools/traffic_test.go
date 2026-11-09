@@ -2,7 +2,9 @@ package devtools
 
 import (
 	"context"
+	"errors"
 	"slices"
+	"strings"
 	"testing"
 	"time"
 
@@ -166,5 +168,66 @@ func TestFakeTrafficSeeds(t *testing.T) {
 	}
 	if len(tr.packets.Rows(tool.Filter{Source: tool.SourcePacket})) < 10 {
 		t.Error("no canned packets")
+	}
+}
+
+// TestFakeTrafficProcessFacets checks the made-up log's program and host
+// counts, and that the process filter narrows the rows by name.
+func TestFakeTrafficProcessFacets(t *testing.T) {
+	l := newFakeLog()
+	l.add(tool.Flow{FlowRow: tool.FlowRow{Source: tool.SourceProxy, Host: "a.example.com", Process: tool.Program{Name: "Safari"}}})
+	l.add(tool.Flow{FlowRow: tool.FlowRow{Source: tool.SourceProxy, Host: "A.example.com", Process: tool.Program{Name: "safari"}}})
+	l.add(tool.Flow{FlowRow: tool.FlowRow{Source: tool.SourceProxy, Host: "b.example.com", Process: tool.Program{Name: "Slack"}}})
+	if got, want := l.Processes(), []tool.Facet{{Name: "Safari", Count: 2}, {Name: "Slack", Count: 1}}; !slices.Equal(got, want) {
+		t.Fatalf("Processes() = %+v, want %+v", got, want)
+	}
+	if got, want := l.Hosts(), []tool.Facet{{Name: "a.example.com", Count: 2}, {Name: "b.example.com", Count: 1}}; !slices.Equal(got, want) {
+		t.Fatalf("Hosts() = %+v, want %+v", got, want)
+	}
+	rows := l.Rows(tool.Filter{Source: tool.SourceProxy, Processes: []string{"SLACK"}})
+	if len(rows) != 1 || rows[0].Host != "b.example.com" {
+		t.Fatalf("process filter rows = %+v", rows)
+	}
+}
+
+// TestFakeTrafficEnvironment checks the proxy environment and terminal are
+// offered only while the proxy runs in proxy mode, as the real tool does.
+func TestFakeTrafficEnvironment(t *testing.T) {
+	tr := NewTraffic()
+	if _, err := tr.Environment(); !errors.Is(err, tool.ErrNotRunning) {
+		t.Fatalf("Environment before start: %v", err)
+	}
+	if err := tr.OpenTerminal(context.Background()); !errors.Is(err, tool.ErrNotRunning) {
+		t.Fatalf("OpenTerminal before start: %v", err)
+	}
+	if err := tr.Start(context.Background()); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = tr.Stop() })
+	env, err := tr.Environment()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.ContainsFunc(env.Vars, func(h tool.Header) bool {
+		return h.Name == "http_proxy" && h.Value == "http://127.0.0.1:9099"
+	}) {
+		t.Errorf("no http_proxy var in %+v", env.Vars)
+	}
+	if !strings.Contains(env.Script, "export http_proxy=http://127.0.0.1:9099\n") || env.Shell != "sh" {
+		t.Errorf("script %q, shell %q", env.Script, env.Shell)
+	}
+	if err := tr.OpenTerminal(context.Background()); err != nil {
+		t.Fatalf("OpenTerminal while running: %v", err)
+	}
+	cfg := tr.Config()
+	cfg.Mode = tool.ModePackets
+	if err := tr.SetConfig(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tr.Environment(); !errors.Is(err, tool.ErrUnsupportedHere) {
+		t.Fatalf("Environment in packet mode: %v", err)
+	}
+	if err := tr.OpenTerminal(context.Background()); !errors.Is(err, tool.ErrUnsupportedHere) {
+		t.Fatalf("OpenTerminal in packet mode: %v", err)
 	}
 }

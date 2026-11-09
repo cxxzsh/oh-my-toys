@@ -34,6 +34,10 @@ func (s *Server) connect(ctx context.Context, conn net.Conn, br *bufio.Reader, r
 		return
 	}
 	started := time.Now()
+	if !s.inScope(programOf(ctx)) {
+		s.passTunnel(ctx, conn, br, authority)
+		return
+	}
 	if s.decryptable(host) {
 		s.mitm(ctx, conn, br, authority, host, started)
 		return
@@ -44,7 +48,7 @@ func (s *Server) connect(ctx context.Context, conn net.Conn, br *bufio.Reader, r
 // tunnel copies bytes between the client and the server and records the
 // connection as one flow.
 func (s *Server) tunnel(ctx context.Context, conn net.Conn, br *bufio.Reader, authority string, started time.Time) {
-	flow := tunnelFlow(authority, started)
+	flow := tunnelFlow(authority, started, programOf(ctx))
 	flow.ID = s.put(flow)
 	upstream, err := s.dialUpstream(ctx, authority)
 	if err != nil {
@@ -59,12 +63,13 @@ func (s *Server) tunnel(ctx context.Context, conn net.Conn, br *bufio.Reader, au
 }
 
 // tunnelFlow is the flow of a CONNECT that is not decrypted.
-func tunnelFlow(authority string, started time.Time) tool.Flow {
+func tunnelFlow(authority string, started time.Time, program tool.Program) tool.Flow {
 	return tool.Flow{FlowRow: tool.FlowRow{
 		Source:  tool.SourceProxy,
 		Started: started,
 		Method:  http.MethodConnect,
 		Host:    authority,
+		Process: program,
 		Proto:   protoTunnel,
 		State:   tool.FlowOpen,
 	}}
@@ -89,7 +94,7 @@ func (s *Server) mitm(ctx context.Context, conn net.Conn, br *bufio.Reader, auth
 	err := tlsConn.HandshakeContext(hctx)
 	_ = tlsConn.SetReadDeadline(time.Time{})
 	if err != nil {
-		s.connectFailed(authority, started, err)
+		s.connectFailed(authority, started, programOf(ctx), err)
 		return
 	}
 	if tlsConn.ConnectionState().NegotiatedProtocol == http2.NextProtoTLS {
@@ -101,8 +106,8 @@ func (s *Server) mitm(ctx context.Context, conn net.Conn, br *bufio.Reader, auth
 
 // connectFailed records a tunnel whose TLS handshake with the client broke,
 // which in practice means the root certificate is not trusted.
-func (s *Server) connectFailed(authority string, started time.Time, err error) {
-	flow := tunnelFlow(authority, started)
+func (s *Server) connectFailed(authority string, started time.Time, program tool.Program, err error) {
+	flow := tunnelFlow(authority, started, program)
 	flow.State = tool.FlowFailed
 	flow.Duration = time.Since(started)
 	flow.Info = "client did not trust the certificate: " + err.Error()
@@ -132,6 +137,7 @@ func (s *Server) serveTLS1(ctx context.Context, conn *tls.Conn, authority string
 			req.URL.Host = firstNonEmpty(req.Host, authority)
 		}
 		m := meta{
+			program:    programOf(ctx),
 			proto:      protoHTTP11,
 			decrypted:  true,
 			tlsVersion: version,
@@ -169,6 +175,7 @@ func (s *Server) serveH2(ctx context.Context, conn *tls.Conn, authority string) 
 			req.URL.Host = firstNonEmpty(req.Host, authority)
 		}
 		m := meta{
+			program:    programOf(ctx),
 			proto:      protoH2,
 			decrypted:  true,
 			tlsVersion: version,
@@ -176,7 +183,7 @@ func (s *Server) serveH2(ctx context.Context, conn *tls.Conn, authority string) 
 			tunnelHost: authorityHost(authority),
 		}
 		rp := &reply{write: h2Writer(w), abort: func() { _ = conn.Close() }} //nolint:bodyclose // h2Writer closes the body it copies.
-		_, _ = s.serve(req.Context(), req, m, rp)
+		_, _ = s.serve(req.Context(), req, m, rp)                            //nolint:contextcheck // the stream's own context: http2 cancels it when the stream ends.
 	})
 	// The design fixes x/net/http2 for streams over the connection the proxy
 	// terminated; the standard library has no other way to serve one conn.
