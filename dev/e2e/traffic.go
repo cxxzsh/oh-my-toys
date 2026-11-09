@@ -44,6 +44,9 @@ const (
 	readHeaderWait = 10 * time.Second
 	linuxOS        = "linux"
 	darwinOS       = "darwin"
+	// openWait bounds the whole open step across its routes: a route that
+	// cannot work must not hold the run for a poll deadline each.
+	openWait = 40 * time.Second
 	// curlRefused is curl's exit code for a failed connection: what the proxy
 	// port answers when the app read another port from its settings.
 	curlRefused = 7
@@ -229,10 +232,36 @@ type trafficRun struct {
 // is the directory for the window captures; empty takes none.
 func runTraffic(c *client, win int, shots string) (map[string]any, []string) {
 	r := &trafficRun{c: c, win: win, shots: shots, obs: map[string]any{}, waits: map[string]string{}}
+	r.obs["window_content"] = windowContent(c, win)
 	r.run()
 	r.obs["waits"] = r.waits
 	r.obs["failures"] = r.failures
 	return r.obs, r.failures
+}
+
+// windowContent is the content size of window win, so each runner's record
+// shows the window the sidebar was laid out in. It is nil when the window
+// list does not answer.
+func windowContent(c *client, win int) any {
+	r, err := c.call("windows", nil)
+	if err != nil {
+		return nil
+	}
+	var w struct {
+		Windows []struct {
+			ID            int   `json:"id"`
+			ContentBounds *rect `json:"contentBounds"`
+		}
+	}
+	if json.Unmarshal(r, &w) != nil {
+		return nil
+	}
+	for _, x := range w.Windows {
+		if x.ID == win {
+			return x.ContentBounds
+		}
+	}
+	return nil
 }
 
 // run executes the steps in order. A failed step stops the run, after
@@ -307,32 +336,76 @@ func (r *trafficRun) shot(name string) error {
 // settings.
 var errConfigNotRead = errors.New("config not read: the app is not using the prepared data folder")
 
-// open reaches the Traffic tool and records which way worked. The sidebar
-// folds tool categories and rows below the fold are missing from the tree,
-// so the steps go from the plain row, to the Network header that unfolds it,
-// to the command palette.
+// menu chooses an item of the application menu by the labels along path, as
+// the menu bar does. The protocol's menu call takes no window.
+func (c *client) menu(path []string) error {
+	_, err := c.call("menu", map[string]any{"path": path})
+	return err
+}
+
+// open reaches the Traffic tool and records which route worked. The sidebar
+// may fold the Traffic row out of the tree (a short window clips it), so the
+// routes run in order: the sidebar row, the Network header that unfolds it,
+// the app's menu bar, the macOS keyboard shortcut, and the command palette.
+// They share one deadline, so a route that cannot work does not hold the run.
 func (r *trafficRun) open() error {
-	if err := r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...); err == nil {
-		r.obs["open_path"] = "sidebar"
-		return nil
+	deadline := time.Now().Add(openWait)
+	routes := []openRoute{
+		{"sidebar", func() error {
+			return r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...)
+		}},
+		{"network-header", r.openFromNetwork},
+		{"menu", r.openFromMenu},
 	}
-	if err := r.openFromNetwork(); err == nil {
-		r.obs["open_path"] = "network-header"
-		return nil
-	}
-	// The keyboard shortcut is tried first on macOS only: there the button
-	// path left the palette open. Other systems go straight to the button.
 	if runtime.GOOS == darwinOS {
-		if err := r.openFromKeyboard(); err == nil {
-			r.obs["open_path"] = "keyboard"
+		routes = append(routes, openRoute{"keyboard", r.openFromKeyboard})
+	}
+	routes = append(routes, openRoute{"palette", r.openFromPalette})
+	var failures []string
+	for _, rt := range routes {
+		if time.Now().After(deadline) {
+			failures = append(failures, rt.name+": out of time")
+			break
+		}
+		err := rt.fn()
+		if err == nil {
+			r.obs["open_path"] = rt.name
 			return nil
 		}
+		failures = append(failures, rt.name+": "+err.Error())
 	}
-	if err := r.openFromPalette(); err != nil {
-		return err
+	r.obs["open_failures"] = failures
+	r.obs["open_tree"] = r.treeSnapshot()
+	return fmt.Errorf("open: no route reached Traffic: %s", strings.Join(failures, "; "))
+}
+
+// openRoute is one way to reach the Traffic tool, with its name in the JSON.
+type openRoute struct {
+	name string
+	fn   func() error
+}
+
+// openFromMenu chooses Tools > Traffic from the app's menu bar. It does not
+// depend on how much of the sidebar the window shows.
+func (r *trafficRun) openFromMenu() error {
+	for _, tools := range both(i18n.Messages.MenuTools) {
+		for _, name := range both(i18n.Messages.TrafficName) {
+			if err := r.c.menu([]string{tools, name}); err == nil {
+				return nil
+			}
+		}
 	}
-	r.obs["open_path"] = "palette"
-	return nil
+	return errors.New("no Tools > Traffic menu item was chosen")
+}
+
+// treeSnapshot is the window's full tree as roles and labels, for a failure
+// that must show what was on screen.
+func (r *trafficRun) treeSnapshot() []string {
+	nodes, err := r.c.treeErr(r.win)
+	if err != nil {
+		return []string{"tree: " + err.Error()}
+	}
+	return fullTree(nodes)
 }
 
 // openFromNetwork unfolds the Network category and presses the Traffic row.
