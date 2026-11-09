@@ -1,12 +1,16 @@
 // Command e2e drives a running e2e build of the desktop app through MyGo's
 // automation plugin, which sees the app as a screen reader does, and
 // checks its tools end to end: the sidebar's accessible names, Keep Awake
-// really holding a power assertion, Ports listing listeners and Color
-// converting a color.
+// really holding a power assertion, Ports listing listeners, Color
+// converting a color and the Traffic capture running through the proxy.
+//
+// The CI job first makes the app portable and writes the Traffic settings the
+// scenario starts from into the data folder beside it, then drives the app:
 //
 //	go build -tags e2e -o omt-e2e ./cmd/oh-my-toys
+//	go run ./dev/e2e -prepare ./omt-e2e
 //	MYGO_AUTOMATION=/tmp/omt.sock ./omt-e2e &
-//	go run ./dev/e2e -socket /tmp/omt.sock -out e2e-result.json
+//	go run ./dev/e2e -socket /tmp/omt.sock -out e2e-result.json -shots shots
 package main
 
 import (
@@ -21,6 +25,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -32,12 +37,19 @@ const (
 	dialTries   = 100
 	dialPause   = 100 * time.Millisecond
 	idleTimeout = 5000 // milliseconds
+	callTimeout = 30 * time.Second
 	planPause   = 1500 * time.Millisecond
 	powerPause  = 300 * time.Millisecond
 )
 
 // paramWindow is the protocol's parameter naming a window.
 const paramWindow = "window"
+
+// Protocol roles the driver looks for.
+const (
+	roleButton = "button"
+	roleField  = "textField"
+)
 
 var errNoNode = errors.New("no such element")
 
@@ -48,6 +60,11 @@ type client struct {
 }
 
 func (c *client) call(method string, params any) (json.RawMessage, error) {
+	// A deadline on every call keeps a wedged app from hanging the run; it
+	// is longer than any idle wait the driver asks for.
+	if err := c.conn.SetDeadline(time.Now().Add(callTimeout)); err != nil {
+		return nil, err
+	}
 	c.n++
 	line, err := json.Marshal(map[string]any{"id": c.n, "method": method, "params": params})
 	if err != nil {
@@ -75,22 +92,32 @@ func (c *client) call(method string, params any) (json.RawMessage, error) {
 
 type node struct {
 	ID     string   `json:"id"`
+	Parent string   `json:"parent"`
 	Role   string   `json:"role"`
 	Label  string   `json:"label"`
 	Value  string   `json:"value"`
 	States []string `json:"states"`
+	Bounds *rect    `json:"bounds"`
 }
 
-func (c *client) tree(win int) []node {
+func (c *client) treeErr(win int) ([]node, error) {
 	r, err := c.call("tree", map[string]any{paramWindow: win})
 	if err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("tree: %w", err)
 	}
 	var t struct{ Nodes []node }
 	if err := json.Unmarshal(r, &t); err != nil {
+		return nil, fmt.Errorf("tree: %w", err)
+	}
+	return t.Nodes, nil
+}
+
+func (c *client) tree(win int) []node {
+	nodes, err := c.treeErr(win)
+	if err != nil {
 		log.Fatal(err)
 	}
-	return t.Nodes
+	return nodes
 }
 
 func (c *client) idle(win int) {
@@ -101,27 +128,42 @@ func (c *client) idle(win int) {
 
 // press presses the first element of a role named by any of labels.
 func (c *client) press(win int, role string, labels ...string) error {
-	for _, n := range c.tree(win) {
-		for _, l := range labels {
-			if n.Role == role && n.Label == l {
-				_, err := c.call("act", map[string]any{paramWindow: win, "id": n.ID, "action": "press"})
-				c.idle(win)
-				return err
-			}
-		}
+	nodes, err := c.treeErr(win)
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("%s %v: %w", role, labels, errNoNode)
+	n, ok := findNode(nodes, role, labels)
+	if !ok {
+		return fmt.Errorf("%s %v: %w", role, labels, errNoNode)
+	}
+	_, err = c.call("act", map[string]any{paramWindow: win, "id": n.ID, paramAction: actionPress})
+	c.idle(win)
+	return err
 }
 
 func (c *client) setValue(win int, label, text string) error {
-	for _, n := range c.tree(win) {
-		if n.Role == "textField" && n.Label == label {
-			_, err := c.call("act", map[string]any{paramWindow: win, "id": n.ID, "action": "setValue", "text": text})
-			c.idle(win)
-			return err
+	nodes, err := c.treeErr(win)
+	if err != nil {
+		return err
+	}
+	n, ok := findNode(nodes, roleField, []string{label})
+	if !ok {
+		return fmt.Errorf("text field %q: %w", label, errNoNode)
+	}
+	_, err = c.call("act", map[string]any{paramWindow: win, "id": n.ID, paramAction: "setValue", "text": text})
+	c.idle(win)
+	return err
+}
+
+// findNode returns the first element of the role (any role when role is
+// empty) whose label is one of labels.
+func findNode(nodes []node, role string, labels []string) (node, bool) {
+	for _, n := range nodes {
+		if (role == "" || n.Role == role) && slices.Contains(labels, n.Label) {
+			return n, true
 		}
 	}
-	return fmt.Errorf("text field %q: %w", label, errNoNode)
+	return node{}, false
 }
 
 func contains(nodes []node, s string) bool {
@@ -180,7 +222,15 @@ func mainWindow(c *client) int {
 func main() {
 	socket := flag.String("socket", "/tmp/omt.sock", "the app's MYGO_AUTOMATION socket")
 	out := flag.String("out", "e2e-result.json", "where to write the results")
+	prepare := flag.String("prepare", "", "make the app at this executable path portable and write the Traffic settings the scenario starts from into its data folder, then exit")
+	shots := flag.String("shots", "", "directory for the window captures of the Traffic scenario; empty takes none")
 	flag.Parse()
+	if *prepare != "" {
+		if err := prepareTraffic(*prepare); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}
 	c := dial(*socket)
 	win := mainWindow(c)
 	c.idle(win)
@@ -189,6 +239,8 @@ func main() {
 	result["awake"] = checkAwake(c, win)
 	result["ports"] = checkPorts(c, win)
 	result["color"] = checkColor(c, win)
+	traffic, failures := runTraffic(c, win, *shots)
+	result["traffic"] = traffic
 	b, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
 		log.Fatal(err)
@@ -197,12 +249,15 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println(string(b))
+	if len(failures) > 0 {
+		log.Fatalf("traffic scenario: %d failure(s), see traffic.failures in %s", len(failures), *out)
+	}
 }
 
 func sidebar(nodes []node) []string {
 	var out []string
 	for _, n := range nodes {
-		if n.Role == "button" && n.Label != "" {
+		if n.Role == roleButton && n.Label != "" {
 			out = append(out, n.Label)
 		}
 	}
@@ -212,7 +267,7 @@ func sidebar(nodes []node) []string {
 func checkAwake(c *client, win int) map[string]string {
 	res := map[string]string{}
 	name := both(i18n.Messages.AwakeName)
-	if err := c.press(win, "button", name...); err != nil {
+	if err := c.press(win, roleButton, name...); err != nil {
 		res["error"] = err.Error()
 		return res
 	}
@@ -231,7 +286,7 @@ func checkAwake(c *client, win int) map[string]string {
 }
 
 func checkPorts(c *client, win int) map[string]any {
-	if err := c.press(win, "button", both(i18n.Messages.PortsName)...); err != nil {
+	if err := c.press(win, roleButton, both(i18n.Messages.PortsName)...); err != nil {
 		return map[string]any{"error": err.Error()}
 	}
 	time.Sleep(planPause)
@@ -242,7 +297,7 @@ func checkPorts(c *client, win int) map[string]any {
 }
 
 func checkColor(c *client, win int) map[string]any {
-	if err := c.press(win, "button", both(i18n.Messages.ColorName)...); err != nil {
+	if err := c.press(win, roleButton, both(i18n.Messages.ColorName)...); err != nil {
 		return map[string]any{"error": err.Error()}
 	}
 	for _, label := range both(i18n.Messages.ColorFieldHint) {

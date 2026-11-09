@@ -95,7 +95,8 @@ func (a *App) trafficListWidth(c *ui.Context, st *trafficState) float32 {
 }
 
 // trafficFit drops the columns that do not fit in width, in the order of
-// trafficDropOrder. The Program, the URL and the Status are never dropped.
+// trafficDropOrder, until the URL has its minimum. The Program, the URL and
+// the Status are never dropped.
 func trafficFit(cols []trafficColumn, width float32) []trafficColumn {
 	for _, kind := range trafficDropOrder {
 		if trafficNeed(cols) <= width {
@@ -106,15 +107,15 @@ func trafficFit(cols []trafficColumn, width float32) []trafficColumn {
 	return cols
 }
 
-// trafficNeed is the width the columns ask for: their fixed widths, a minimum
-// for each flexible column, and the gap and padding that go with each.
+// trafficNeed is the width the columns ask for: their fixed widths, the URL's
+// minimum for the flexible column, and the gap and padding that go with each.
 func trafficNeed(cols []trafficColumn) float32 {
 	need := 2 * float32(ds.TableCellPad)
 	for _, col := range cols {
 		if col.width > 0 {
 			need += col.width
 		} else {
-			need += trafficMinFlex
+			need += trafficURLMin
 		}
 		need += float32(ds.Space4)
 	}
@@ -144,15 +145,16 @@ const (
 	trafficShareInfo        = 1.65
 )
 
-// trafficMinFlex is the least room a flexible column needs before a column is
-// dropped to make space for it.
-const trafficMinFlex = 120
+// trafficURLMin is the least width the URL column keeps: the list drops
+// columns to give it this much before it squeezes the URL any narrower.
+const trafficURLMin = 200
 
 // percentScale turns the list's percent split into a fraction of the panes.
 const percentScale = 100
 
-// trafficDropOrder lists the columns dropped first when the list is narrow.
-var trafficDropOrder = []int{cellType, cellTime}
+// trafficDropOrder lists the columns dropped first when the list is narrow,
+// least needed first. Program, URL, Status and # are never dropped.
+var trafficDropOrder = []int{cellType, cellTime, cellSize, cellMethod, cellDuration}
 
 // trafficListPane is the list with its column headings.
 func (a *App) trafficListPane(c *ui.Context, t tool.Traffic, st *trafficState) {

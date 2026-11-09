@@ -145,6 +145,69 @@ jobs:
           sudo apt-get install -y --no-install-recommends dbus dconf-service dconf-gsettings-backend gsettings-desktop-schemas
           dbus-run-session -- go test -v -count=1 -timeout 5m -run TestLive ./internal/platform/sysproxy/
 
+  # The real app, in a real window on each system, driven the way a screen
+  # reader drives it (MyGo's automation plugin, build tag e2e). The Traffic
+  # scenario starts a capture, sends a request with the real curl, filters
+  # the list and saves PNGs of the window, which the run uploads. Ubuntu has
+  # no GPU and no display: Xvfb gives it a display and the UI draws in
+  # software.
+  e2e:
+    name: E2E (${{ matrix.os }})
+    if: github.event.pull_request.draft == false
+    runs-on: ${{ matrix.os }}-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos, windows, ubuntu]
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - name: Display and libraries
+        if: matrix.os == 'ubuntu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends xvfb libx11-6 libxkbcommon0 libgl1 libegl1 mesa-vulkan-drivers libwayland-client0 libgtk-3-0
+      - name: Build the app and the driver
+        shell: bash
+        run: |
+          go build -tags e2e -o omt-e2e ./cmd/oh-my-toys
+          go build -o e2e-driver ./dev/e2e
+      # A file next to the executable makes the app keep its data in a folder
+      # beside it, so the capture starts with the system proxy and decryption
+      # off and port 19099, and never touches the runner's network.
+      - name: Run the app and the scenarios
+        shell: bash
+        run: |
+          set -eu
+          mkdir -p shots
+          sock="$RUNNER_TEMP/omt.sock"
+          if [ "${{ matrix.os }}" = windows ]; then sock="$(cygpath -m "$RUNNER_TEMP")/omt.sock"; fi
+          ./e2e-driver -prepare ./omt-e2e
+          launch=""
+          if [ "${{ matrix.os }}" = ubuntu ]; then launch="xvfb-run -a"; fi
+          MYGO_AUTOMATION="$sock" $launch ./omt-e2e > app.log 2>&1 &
+          sleep 8
+          status=0
+          ./e2e-driver -socket "$sock" -out e2e-result.json -shots shots || status=$?
+          cat e2e-result.json || true
+          tail -30 app.log || true
+          exit $status
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-${{ matrix.os }}
+          path: |
+            shots
+            e2e-result.json
+            app.log
+          if-no-files-found: ignore
+          retention-days: 3
+
   build:
     name: Build
     if: github.event.pull_request.draft == false
