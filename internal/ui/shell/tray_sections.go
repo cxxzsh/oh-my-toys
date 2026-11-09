@@ -299,7 +299,7 @@ func (a *App) trayToolRow(c *ui.Context, i int, t tool.Tool, chosen bool) {
 		a.kit.Glyph(c, m.Icon, ds.Glyph, p.TextSecondary)
 		comp.Text(c, label, ds.Label, p.TextPrimary).Grow(1).SingleLine().Ellipsis("…")
 		if core.IsRunning(t) {
-			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive, Pulse: true})
+			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive})
 		}
 	})
 }

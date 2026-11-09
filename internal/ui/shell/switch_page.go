@@ -66,7 +66,7 @@ func (a *App) heroCountdown(c *ui.Context, st tool.Status) {
 	}
 	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Gap(ds.Space6).Children(func() {
 		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-			comp.StatusDot(c, comp.DotOpts{Tone: tone, Pulse: st.On, Large: true})
+			comp.StatusDot(c, comp.DotOpts{Tone: tone, Large: true})
 			comp.Text(c, state, ds.Headline, p.TextStrong)
 			if st.Detail != "" && st.On {
 				comp.Text(c, "· "+st.Detail, ds.Caption, p.TextInactive)

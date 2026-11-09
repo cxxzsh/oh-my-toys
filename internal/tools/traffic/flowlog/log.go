@@ -63,7 +63,7 @@ func New(maxFlows int, maxBodyBytes int64) *Log {
 		capacity:     maxFlows,
 		maxBodyBytes: maxBodyBytes,
 		order:        list.New(),
-		byID:         make(map[uint64]*flowEntry, maxFlows),
+		byID:         map[uint64]*flowEntry{},
 		processes:    facetTally{},
 		hosts:        facetTally{},
 		wake:         make(chan struct{}, 1),

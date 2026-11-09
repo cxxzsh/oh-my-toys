@@ -83,7 +83,7 @@ In this order of precedence:
 - **Inactive window:** accent glyphs and dots turn `text-muted`, titlebar text turns `text-muted`; selection stays visible.
 
 ### Motion
-150ms `cubic-bezier(0.4, 0, 0.2, 1)` for colour, border and knob changes; 120ms fade for the tray panel, palette and tooltips; a 1s ping on live dots. Nothing slides or bounces. Reduced motion removes the ping and the fades; a hidden window stops all animation.
+150ms `cubic-bezier(0.4, 0, 0.2, 1)` for colour, border and knob changes; 120ms fade for the tray panel, palette and tooltips. Nothing slides, bounces or loops: a looping animation keeps the window drawing every frame, so a live dot is static. Reduced motion removes the fades; a hidden window stops all animation.
 
 ## Interaction
 

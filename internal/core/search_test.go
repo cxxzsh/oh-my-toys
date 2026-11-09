@@ -29,14 +29,14 @@ func TestSearch(t *testing.T) {
 			Actions: []tool.QuickAction{{ID: "1h", Title: named("1 hour", "保持 1 小时")}},
 		}},
 		fake{tool.Manifest{ID: "rename", Name: named("Batch Rename", "批量重命名")}},
-		fake{tool.Manifest{ID: "json", Name: named("JSON Formatter", "JSON 格式化")}},
+		fake{tool.Manifest{ID: "dupes", Name: named("Find Duplicates", "找重复文件")}},
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for q, want := range map[string]string{
 		"fsm": "awake", "fangshui": "awake", "防睡": "awake", "keep": "awake", "caffe": "awake",
-		"plcmm": "rename", "batch": "rename", "jsongsh": "json",
+		"plcmm": "rename", "batch": "rename", "zcfwj": "dupes",
 	} {
 		rs := reg.Index().Search(q, "zh-Hans", 8)
 		if len(rs) == 0 || rs[0].Tool.Manifest().ID != want {
