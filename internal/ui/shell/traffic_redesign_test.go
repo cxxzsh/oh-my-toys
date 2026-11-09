@@ -216,3 +216,23 @@ func TestTrafficDetailBesideListAtWideWindow(t *testing.T) {
 		t.Errorf("detail pane is about %v px wide, want at least %d px", got, minDetail)
 	}
 }
+
+// TestTrafficURLKeepsMinimumAtNarrowWidth checks that a single flow in a
+// 1024 px window keeps the URL column at least trafficURLMin wide, and that the
+// host and path are shown whole in it.
+func TestTrafficURLKeepsMinimumAtNarrowWidth(t *testing.T) {
+	const host = "127.0.0.1:65409"
+	const path = "/api/narrow"
+	f := newTestTraffic()
+	f.proxy.add(testFrom(testGET(host, path, 200), "curl"))
+	tt := openTrafficAt(t, f, 1024)
+	waitUntil(t, tt, func() bool { return tt.HasText(host) }, "the URL row")
+	url, ok := tt.Find(host)
+	if !ok {
+		t.Fatalf("the URL cell does not show %q", host)
+	}
+	status := headerX(t, tt, i18n.StatusLabel())
+	if w := status - url.X; w < trafficURLMin {
+		t.Errorf("URL column is %v px, want at least %d px", w, trafficURLMin)
+	}
+}

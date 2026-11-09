@@ -31,6 +31,9 @@ const (
 	portableData   = "data"
 	trafficFolder  = "traffic"
 	configFileName = "config.json"
+	// paletteKey opens the app's command palette; Escape closes it again.
+	paletteKey     = "CmdOrCtrl+K"
+	escapeKey      = "Escape"
 	trafficConfig  = `{"Mode":0,"ProxyPort":19099,"SystemProxy":false,"Decrypt":false,"Bypass":null,"Interface":"","Upstream":""}` + "\n"
 	trafficProxy   = "http://127.0.0.1:19099"
 	actionPress    = "press"
@@ -40,6 +43,7 @@ const (
 	langCount      = 2 // English and Chinese: the languages both(...) returns
 	readHeaderWait = 10 * time.Second
 	linuxOS        = "linux"
+	darwinOS       = "darwin"
 	// curlRefused is curl's exit code for a failed connection: what the proxy
 	// port answers when the app read another port from its settings.
 	curlRefused = 7
@@ -316,6 +320,14 @@ func (r *trafficRun) open() error {
 		r.obs["open_path"] = "network-header"
 		return nil
 	}
+	// The keyboard shortcut is tried first on macOS only: there the button
+	// path left the palette open. Other systems go straight to the button.
+	if runtime.GOOS == darwinOS {
+		if err := r.openFromKeyboard(); err == nil {
+			r.obs["open_path"] = "keyboard"
+			return nil
+		}
+	}
 	if err := r.openFromPalette(); err != nil {
 		return err
 	}
@@ -357,6 +369,23 @@ func (r *trafficRun) pressHeader(labels []string) error {
 func (r *trafficRun) openFromPalette() error {
 	// The palette may be a button that opens its field, so this press is optional.
 	_ = r.c.press(r.win, roleButton, both(i18n.Messages.PaletteHint)...)
+	return r.openPaletteResult()
+}
+
+// openFromKeyboard opens the command palette with its shortcut, then runs the
+// same search. The shortcut is tried first on macOS, where the button path
+// was seen to leave the palette open.
+func (r *trafficRun) openFromKeyboard() error {
+	if err := r.sendKey(paletteKey); err != nil {
+		return err
+	}
+	r.c.idle(r.win)
+	return r.openPaletteResult()
+}
+
+// openPaletteResult searches the palette for the Traffic name in each language
+// and presses the result.
+func (r *trafficRun) openPaletteResult() error {
 	var last error
 	for _, name := range both(i18n.Messages.TrafficName) {
 		if err := r.setField(both(i18n.Messages.PaletteHint), name); err != nil {
@@ -367,9 +396,52 @@ func (r *trafficRun) openFromPalette() error {
 			last = err
 			continue
 		}
-		return nil
+		return r.closePalette()
 	}
 	return last
+}
+
+// closePalette presses Escape in case the palette is still open, then polls
+// until its search field is gone, so the toolbar is read from the page.
+func (r *trafficRun) closePalette() error {
+	if err := r.sendKey(escapeKey); err != nil {
+		return err
+	}
+	return r.wait("palette_closed", func() (bool, error) {
+		nodes, err := r.c.treeErr(r.win)
+		if err != nil {
+			return false, err
+		}
+		r.c.idle(r.win)
+		return !hasLabel(nodes, both(i18n.Messages.PaletteHint)), nil
+	})
+}
+
+// sendKey presses a key chord in the window through the input method, so the
+// driver reaches the same shortcut a person would.
+func (r *trafficRun) sendKey(chord string) error {
+	_, err := r.c.call("input", map[string]any{paramWindow: r.win, "events": []map[string]string{{"type": "key", "key": chord}}})
+	return err
+}
+
+// hasLabel reports whether a node with one of labels is in nodes.
+func hasLabel(nodes []node, labels []string) bool {
+	for _, n := range nodes {
+		if slices.Contains(labels, n.Label) {
+			return true
+		}
+	}
+	return false
+}
+
+// fullTree lists every node's role and label, for a failure that must show
+// what was on screen.
+func fullTree(nodes []node) []string {
+	out := make([]string, 0, len(nodes))
+	for _, n := range nodes {
+		out = append(out, n.Role+":"+n.Label)
+	}
+	return out
 }
 
 // checkGuide fails when the first-run guide ticks its system-proxy step: the
@@ -441,6 +513,7 @@ func (r *trafficRun) toolbar() error {
 		return len(missingAll(nodes, toolbarWants())) == 0, nil
 	})
 	if err != nil {
+		r.obs["toolbar_tree"] = fullTree(seen)
 		return fmt.Errorf("toolbar lacks %v, saw %q: %w", missingAll(seen, toolbarWants()), labelList(seen), err)
 	}
 	r.obs["toolbar_found"] = len(toolbarWants())
