@@ -177,37 +177,20 @@ jobs:
         run: |
           go build -tags e2e -o omt-e2e ./cmd/oh-my-toys
           go build -o e2e-driver ./dev/e2e
-      # The app reads its settings from a folder of its own, so the capture
-      # starts with the system proxy and decryption off and never touches the
-      # runner's network.
+      # A file next to the executable makes the app keep its data in a folder
+      # beside it, so the capture starts with the system proxy and decryption
+      # off and port 19099, and never touches the runner's network.
       - name: Run the app and the scenarios
         shell: bash
         run: |
           set -eu
           mkdir -p shots
-          case "${{ matrix.os }}" in
-            macos)
-              home="$RUNNER_TEMP/home"
-              root="$home/Library/Application Support"
-              sock="$RUNNER_TEMP/omt.sock"
-              appenv="HOME=$home"
-              ;;
-            ubuntu)
-              root="$RUNNER_TEMP/cfg"
-              sock="$RUNNER_TEMP/omt.sock"
-              appenv="XDG_CONFIG_HOME=$root"
-              ;;
-            windows)
-              root="$(cygpath -w "$RUNNER_TEMP")\\appdata"
-              sock="$(cygpath -m "$RUNNER_TEMP")/omt.sock"
-              appenv="APPDATA=$root"
-              ;;
-          esac
-          mkdir -p "$root"
-          ./e2e-driver -prepare "$root"
+          sock="$RUNNER_TEMP/omt.sock"
+          if [ "${{ matrix.os }}" = windows ]; then sock="$(cygpath -m "$RUNNER_TEMP")/omt.sock"; fi
+          ./e2e-driver -prepare ./omt-e2e
           launch=""
           if [ "${{ matrix.os }}" = ubuntu ]; then launch="xvfb-run -a"; fi
-          env "$appenv" MYGO_AUTOMATION="$sock" $launch ./omt-e2e > app.log 2>&1 &
+          MYGO_AUTOMATION="$sock" $launch ./omt-e2e > app.log 2>&1 &
           sleep 8
           status=0
           ./e2e-driver -socket "$sock" -out e2e-result.json -shots shots || status=$?

@@ -36,11 +36,18 @@ func TestPollUntilReturnsCheckError(t *testing.T) {
 }
 
 func TestPrepareTrafficWritesStartSettings(t *testing.T) {
-	root := t.TempDir()
-	if err := prepareTraffic(root); err != nil {
+	exe := filepath.Join(t.TempDir(), "omt-e2e")
+	if err := os.WriteFile(exe, nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	b, err := os.ReadFile(filepath.Join(root, "oh-my-toys", "traffic", "config.json"))
+	if err := prepareTraffic(exe); err != nil {
+		t.Fatal(err)
+	}
+	dir := filepath.Dir(exe)
+	if _, err := os.Stat(filepath.Join(dir, "portable")); err != nil {
+		t.Fatalf("portable marker: %v", err)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, "data", "traffic", "config.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

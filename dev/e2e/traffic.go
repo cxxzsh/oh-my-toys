@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"time"
 
@@ -22,20 +23,34 @@ import (
 // trafficProxyPort; the system proxy and certificate decryption stay off so
 // the runner's network is never touched.
 const (
-	appFolder      = "oh-my-toys"
+	// The driver's copy of internal/core/portable.go: a regular file named
+	// portableMarker next to the executable makes the app keep its data in
+	// the portableData folder beside it. The driver keeps its own copy so it
+	// does not link the app's packages.
+	portableMarker = "portable"
+	portableData   = "data"
 	trafficFolder  = "traffic"
 	configFileName = "config.json"
 	trafficConfig  = `{"Mode":0,"ProxyPort":19099,"SystemProxy":false,"Decrypt":false,"Bypass":null,"Interface":"","Upstream":""}` + "\n"
 	trafficProxy   = "http://127.0.0.1:19099"
 	actionPress    = "press"
 	paramAction    = "action"
+	stateExpanded  = "expanded"
+	stateChecked   = "checked"
 	langCount      = 2 // English and Chinese: the languages both(...) returns
 	readHeaderWait = 10 * time.Second
+	linuxOS        = "linux"
+	// curlRefused is curl's exit code for a failed connection: what the proxy
+	// port answers when the app read another port from its settings.
+	curlRefused = 7
 )
 
 // Waits and file modes of the Traffic scenario.
 const (
 	trafficWait = 20 * time.Second
+	// slowWait is the deadline on Linux: its runner draws in software, so a
+	// frame takes seconds there.
+	slowWait    = 60 * time.Second
 	trafficPoll = 500 * time.Millisecond
 	curlWait    = 30 * time.Second
 	privateDir  = 0o700
@@ -75,14 +90,24 @@ type want struct {
 	labels []string
 }
 
-// prepareTraffic writes the Traffic settings the scenario starts from under
-// root, the platform's configuration folder, where the app reads them.
-func prepareTraffic(root string) error {
-	dir := filepath.Join(root, appFolder, trafficFolder)
-	if err := os.MkdirAll(dir, privateDir); err != nil {
+// prepareTraffic makes the app at exe portable, then writes the Traffic
+// settings the scenario starts from into the data folder beside it. The
+// driver writes there directly, so the app reads exactly these settings
+// without the driver reproducing the platform's application data lookup.
+func prepareTraffic(exe string) error {
+	resolved, err := filepath.EvalSymlinks(exe)
+	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(dir, configFileName), []byte(trafficConfig), privateFile)
+	dir := filepath.Dir(resolved)
+	if err := os.WriteFile(filepath.Join(dir, portableMarker), nil, privateFile); err != nil {
+		return err
+	}
+	cfg := filepath.Join(dir, portableData, trafficFolder)
+	if err := os.MkdirAll(cfg, privateDir); err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(cfg, configFileName), []byte(trafficConfig), privateFile)
 }
 
 // pollUntil calls check every interval until it reports true, fails, or
@@ -215,6 +240,7 @@ func (r *trafficRun) run() {
 		fn   func() error
 	}{
 		{"open", r.open},
+		{"guide", r.checkGuide},
 		{"toolbar", r.toolbar},
 		{"start", r.start},
 		{"flows", r.flows},
@@ -231,9 +257,18 @@ func (r *trafficRun) run() {
 	}
 }
 
+// waitBudget is the deadline of one poll. Linux draws in software and takes
+// seconds per frame, so it gets the longer deadline.
+func waitBudget() time.Duration {
+	if runtime.GOOS == linuxOS {
+		return slowWait
+	}
+	return trafficWait
+}
+
 // wait polls the check for the named step and records how long it took.
 func (r *trafficRun) wait(name string, check func() (bool, error)) error {
-	elapsed, err := pollUntil(trafficWait, trafficPoll, check)
+	elapsed, err := pollUntil(waitBudget(), trafficPoll, check)
 	r.waits[name] = elapsed.String()
 	return err
 }
@@ -264,8 +299,111 @@ func (r *trafficRun) shot(name string) error {
 	return os.WriteFile(filepath.Join(r.shots, name), data, privateFile)
 }
 
+// errConfigNotRead is the failure when the app did not read the prepared
+// settings.
+var errConfigNotRead = errors.New("config not read: the app is not using the prepared data folder")
+
+// open reaches the Traffic tool and records which way worked. The sidebar
+// folds tool categories and rows below the fold are missing from the tree,
+// so the steps go from the plain row, to the Network header that unfolds it,
+// to the command palette.
 func (r *trafficRun) open() error {
+	if err := r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...); err == nil {
+		r.obs["open_path"] = "sidebar"
+		return nil
+	}
+	if err := r.openFromNetwork(); err == nil {
+		r.obs["open_path"] = "network-header"
+		return nil
+	}
+	if err := r.openFromPalette(); err != nil {
+		return err
+	}
+	r.obs["open_path"] = "palette"
+	return nil
+}
+
+// openFromNetwork unfolds the Network category and presses the Traffic row.
+func (r *trafficRun) openFromNetwork() error {
+	if err := r.pressHeader(both(i18n.Messages.CategoryNetwork)); err != nil {
+		return err
+	}
 	return r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...)
+}
+
+// pressHeader unfolds the sidebar category whose header starts with one of
+// labels. A category that is already expanded is left alone: pressing its
+// header would fold it again.
+func (r *trafficRun) pressHeader(labels []string) error {
+	nodes, err := r.c.treeErr(r.win)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if n.Role != roleButton || !hasPrefixOf(n.Label, labels) {
+			continue
+		}
+		if slices.Contains(n.States, stateExpanded) {
+			return nil
+		}
+		return r.c.pressNode(r.win, n.ID)
+	}
+	return fmt.Errorf("sidebar category %v: %w", labels, errNoNode)
+}
+
+// openFromPalette types the tool's name into the command palette and presses
+// the result. Each language's name is tried in turn, since the palette
+// matches the names of the app's current language.
+func (r *trafficRun) openFromPalette() error {
+	// The palette may be a button that opens its field, so this press is optional.
+	_ = r.c.press(r.win, roleButton, both(i18n.Messages.PaletteHint)...)
+	var last error
+	for _, name := range both(i18n.Messages.TrafficName) {
+		if err := r.setField(both(i18n.Messages.PaletteHint), name); err != nil {
+			last = err
+			continue
+		}
+		if err := r.c.press(r.win, roleButton, both(i18n.Messages.TrafficName)...); err != nil {
+			last = err
+			continue
+		}
+		return nil
+	}
+	return last
+}
+
+// checkGuide fails when the first-run guide ticks its system-proxy step: the
+// app then read SystemProxy=true from settings the driver did not prepare.
+// The guide shows only on a first run, so its absence passes.
+func (r *trafficRun) checkGuide() error {
+	nodes, err := r.c.treeErr(r.win)
+	if err != nil {
+		return err
+	}
+	for _, n := range nodes {
+		if slices.Contains(both(i18n.Messages.TrafficGuideProxy), n.Label) && slices.Contains(n.States, stateChecked) {
+			return errConfigNotRead
+		}
+	}
+	return nil
+}
+
+// pressNode presses the node with id, for rows a label lookup cannot tell
+// apart.
+func (c *client) pressNode(win int, id string) error {
+	_, err := c.call("act", map[string]any{paramWindow: win, "id": id, paramAction: actionPress})
+	c.idle(win)
+	return err
+}
+
+// hasPrefixOf reports whether s starts with one of prefixes.
+func hasPrefixOf(s string, prefixes []string) bool {
+	for _, p := range prefixes {
+		if strings.HasPrefix(s, p) {
+			return true
+		}
+	}
+	return false
 }
 
 // labelList lists the labels of the buttons and fields in nodes, so a failed
@@ -399,6 +537,10 @@ func (r *trafficRun) curl(url string) (string, error) {
 	//nolint:gosec // curl is the fixed binary found on PATH; the URL is our own loopback server.
 	out, err := exec.CommandContext(ctx, bin, "-s", "-x", trafficProxy, url).Output()
 	if err != nil {
+		var exit *exec.ExitError
+		if errors.As(err, &exit) && exit.ExitCode() == curlRefused {
+			return "", fmt.Errorf("%w: nothing listens on %s: %w", errConfigNotRead, trafficProxy, err)
+		}
 		return "", fmt.Errorf("curl through the proxy: %w", err)
 	}
 	got := strings.TrimSpace(string(out))
@@ -419,7 +561,7 @@ func (r *trafficRun) filter() error {
 	if !ok {
 		return fmt.Errorf("sidebar program row %q: %w", sidebarProgram, errNoNode)
 	}
-	if _, err := r.c.call("act", map[string]any{paramWindow: r.win, "id": row.ID, paramAction: actionPress}); err != nil {
+	if err := r.c.pressNode(r.win, row.ID); err != nil {
 		return err
 	}
 	if err := r.expectFlow("flow after program", true); err != nil {

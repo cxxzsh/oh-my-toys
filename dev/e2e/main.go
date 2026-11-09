@@ -4,11 +4,11 @@
 // really holding a power assertion, Ports listing listeners, Color
 // converting a color and the Traffic capture running through the proxy.
 //
-// The CI job first writes the Traffic settings the scenario starts from into
-// the app's configuration folder, then drives the app:
+// The CI job first makes the app portable and writes the Traffic settings the
+// scenario starts from into the data folder beside it, then drives the app:
 //
-//	go run ./dev/e2e -prepare "$XDG_CONFIG_HOME"   # or "$HOME/Library/Application Support", "%APPDATA%"
 //	go build -tags e2e -o omt-e2e ./cmd/oh-my-toys
+//	go run ./dev/e2e -prepare ./omt-e2e
 //	MYGO_AUTOMATION=/tmp/omt.sock ./omt-e2e &
 //	go run ./dev/e2e -socket /tmp/omt.sock -out e2e-result.json -shots shots
 package main
@@ -222,7 +222,7 @@ func mainWindow(c *client) int {
 func main() {
 	socket := flag.String("socket", "/tmp/omt.sock", "the app's MYGO_AUTOMATION socket")
 	out := flag.String("out", "e2e-result.json", "where to write the results")
-	prepare := flag.String("prepare", "", "write the Traffic settings the scenario starts from under this configuration folder, then exit")
+	prepare := flag.String("prepare", "", "make the app at this executable path portable and write the Traffic settings the scenario starts from into its data folder, then exit")
 	shots := flag.String("shots", "", "directory for the window captures of the Traffic scenario; empty takes none")
 	flag.Parse()
 	if *prepare != "" {
