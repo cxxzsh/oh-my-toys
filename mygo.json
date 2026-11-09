@@ -1,7 +1,7 @@
 {
   "name": "oh-my-toys",
   "identifier": "dev.ohmytoys.app",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "copyright": "© 2026 oh-my-toys",
   "out": "build",
   "updates": {
