@@ -12,10 +12,14 @@ The Traffic tool (`traffic`, category network) records network traffic and lets 
 | Rules | Rewrite, mock, block and delay, matched by method and URL pattern, applied in order. There are no interactive breakpoints. |
 | Replay | Sends the request of a flow again through the same proxy and rules; the new flow records `ReplayOf`. |
 | Export | HAR 1.2 of proxied flows. |
+| Programs | Each proxied flow records the program that opened the connection (`FlowRow.Process`), found from the client's local port in the system's socket table (`internal/platform/procnet`). The list narrows to programs (`Filter.Processes`), and a capture can be scoped to programs (`CaptureConfig.Scope`): the traffic of any other program, or of one the system cannot name, passes through unopened and unlogged, and no rule applies to it. |
+| Capture a program | A program that ignores the system proxy (`curl` without `-x`, most Go and Rust programs) is started from a terminal the tool opens (`OpenTerminal`) or with the variables it copies (`Environment`): `HTTP(S)_PROXY`, `ALL_PROXY`, `NO_PROXY`, and the certificate variables. `NODE_EXTRA_CA_CERTS` adds our root; `SSL_CERT_FILE`, `REQUESTS_CA_BUNDLE`, `CURL_CA_BUNDLE` and `GIT_SSL_CAINFO` replace the trust list, so they point at a bundle of the system's roots plus ours (`traffic/ca/bundle.pem`) and are left out where the system has no bundle file (Windows). |
 
 Decisions that bound the work: loopback only; bodies are cut at `tool.MaxBody` (4 MiB); the proxy log keeps at most 5000 flows and 256 MiB of bodies, the packet log 50000 packets, and the oldest go first; the tool exists in the desktop app only (like Screenshot, it is registered in `cmd/oh-my-toys` and not in `omt`), so neither the command line nor MCP can start a capture or read one: a flow can hold secrets and a capture changes the system proxy.
 
 Known limit (macOS): the system proxy is set on every network service, but apps read the settings of the primary service. When a proxy app's virtual interface is primary (observed with Surge's `utun`: `scutil --proxy` showed no proxy while Traffic was capturing), system-proxy-aware apps do not reach the listener. The client has to be pointed at `127.0.0.1:<port>` directly, or the other proxy app's system proxy turned off. The tool asks `sysproxy.Effective` when it takes the system proxy and says so in its note while that run lasts.
+
+Not done: capturing a program that neither reads the system proxy nor is started from our terminal. That needs a system-wide takeover (a macOS Network Extension, which needs an Apple-granted entitlement, or a signed driver on Windows). Packet mode sees every program but cannot name it yet and does not decrypt.
 
 ## 2. Safety rules (every slice follows these)
 
@@ -33,6 +37,8 @@ internal/tool/traffic.go              contract (done): tool.Traffic, Flow, Rule,
 internal/platform/sysproxy/           system proxy: Current, Enable, Restore
 internal/platform/trust/              trust store: Install, Remove, Trusted
 internal/platform/pcap/               packet source: Interfaces, Open, Grant
+internal/platform/procnet/            owner of a TCP connection: Owner
+internal/platform/terminal/           a terminal window with variables set: Open
 internal/tools/traffic/ca/            root and leaf certificates
 internal/tools/traffic/flowlog/       the log (implements tool.FlowLog)
 internal/tools/traffic/rules/         the rule engine
@@ -130,6 +136,31 @@ var ErrPermission, ErrDriverMissing, ErrUnsupported error
 ```
 
 macOS: purego into the system `libpcap.dylib` (`pcap_open_live`, `pcap_next_ex`, `pcap_breakloop`, `pcap_findalldevs`), promiscuous off, a 100 ms read timeout so `Close` returns; `ErrPermission` when `/dev/bpf*` is not readable. Linux: `AF_PACKET` raw socket through `x/sys/unix`, `ErrPermission` without `CAP_NET_RAW`. Windows: `wpcap.dll` (Npcap) loaded with `syscall.LoadDLL`, `ErrDriverMissing` when it is absent.
+
+### `internal/platform/procnet`
+
+```go
+type Process struct{ PID int; Name, Path string }
+// Owner returns the process that owns the established TCP connection with
+// these ends, both as that process sees them. For a client of the proxy,
+// local is the client's address (the proxy's RemoteAddr), remote the proxy.
+func Owner(local, remote netip.AddrPort) (Process, error)
+var ErrNotFound, ErrUnsupported error
+```
+
+Name is the outermost `.app` bundle name without the suffix, or the executable's base name without `.exe`. macOS: purego into `libproc` (`proc_listallpids`, `proc_pidinfo(PROC_PIDLISTFDS)`, `proc_pidfdinfo(PROC_PIDFDSOCKETINFO)`, `proc_pidpath`). Linux: `/proc/net/tcp{,6}` to the socket inode, then `/proc/<pid>/fd`. Windows: `GetExtendedTcpTable` with `TCP_TABLE_OWNER_PID_ALL`. The proxy asks once per accepted connection and waits at most 200 ms.
+
+### `internal/platform/terminal`
+
+```go
+type Var struct{ Name, Value string }
+// Open opens a terminal window whose shell starts with vars set, and
+// returns once it is open.
+func Open(ctx context.Context, vars []Var) error
+var ErrUnsupported error
+```
+
+macOS: a private `session.command` (mode 0700) that deletes itself, exports the variables and `exec`s the login shell, opened with `open -a Terminal`. Windows: a PowerShell window; values travel base64-encoded because `cmd.exe` would otherwise rewrite quotes and `%`. Linux: the first of a list of terminal emulators on `PATH`, when a display exists. Names are checked against `^[A-Za-z_][A-Za-z0-9_]*$`; values are quoted, never concatenated raw.
 
 ## 5. Tool-internal APIs (frozen)
 
@@ -259,7 +290,14 @@ func Decode(p pcap.Packet) tool.Flow
 
 ## 6. The inspector page
 
-`internal/ui/shell` draws it for any tool that is a `tool.Traffic` (type assertion in `toolBody`, as `Timed` and `Screened` are used); the UI never names the tool. It holds: a toolbar (start / stop, mode, clear, export, certificate status), the status note when the tool has one, a filter bar, a virtualised list, a detail pane, a rules editor and the permission, certificate and driver guidance.
+`internal/ui/shell` draws it for any tool that is a `tool.Traffic` (type assertion in `toolBody`, as `Timed` and `Screened` are used); the UI never names the tool. The layout is modelled on the common proxy debuggers (a toolbar, a sidebar that groups by program and host, a list, an inspector), and built so that nothing moves while a capture runs:
+
+- **Toolbar**, one row whose elements never come and go: record (start / stop), the mode switch (proxy / packets), a warning dot that keeps its space and carries the status note, the search field, and Traffic Settings. The state text lives in the app's sidebar footer, not in the toolbar, because a text whose width changes with the state moved its neighbours (the jitter this layout replaced).
+- **Search field**, one query line: plain words, `host:`, `method:`, `status:` (`4xx`, `404`, `none`), `program:`, `type:`, `failed:`, quoted values for spaces. It is parsed into `tool.Filter`; what it applies is shown as chips. A bad token is plain text, never an error. The sidebar's choices and the query intersect.
+- **Sidebar**: the Flows and Rules tabs, the scope chip (`Capturing <programs>`, with a clear control) and the Programs and Hosts lists with counts, read from `FlowLog.Processes()` and `Hosts()` only when `Version()` changed. Clicking a row filters; a program's menu offers Capture only this program (`CaptureConfig.Scope`).
+- **List**: fixed-width columns for `#`, started, method, program, type, status, size and duration, and a URL column (host and path) that takes the rest; text is cut with an ellipsis and never wraps. Right click opens one menu: repeat, copy URL, copy as cURL, filter by host or program, mock / rewrite (the rule editor), block this host, do not decrypt this host, capture only this program.
+- **Settings** is a dialog: port, system proxy, decrypt, bypass, upstream, interface, the certificate, and Capture a program (open a terminal with the proxy, copy the environment). Before the first flow the list area shows a three-step guide (certificate, system proxy or a program started from Settings, start) whose ticks follow the real state.
+- The detail pane, the rules editor and the permission, certificate and driver guidance are as before.
 
 ## 7. What has run on a real system
 
@@ -267,10 +305,10 @@ The unit tests use fake command runners. These have also run against the real op
 
 | System | How | What |
 |---|---|---|
-| macOS | by hand | Root certificate install, trust and removal; the system proxy taken over, stopped, restored after a crash and after SIGTERM, each leaving the settings as found; HTTPS opened through the proxy |
-| Windows Server 2025 | CI job `Live`, `OMT_LIVE=1` | The Internet Settings registry key: `Enable`, `Restore` and `RestorePointing`; the current user's Root store: `Install`, `Trusted`, `Remove`, checked with `certutil` itself |
-| Ubuntu | CI job `Live`, `OMT_LIVE=1` | The Debian anchor directory and the rebuilt system bundle, and Go's system pool trusting the root; `gsettings` under a session bus with dconf; an `AF_PACKET` capture of a TCP exchange on the loopback |
+| macOS | by hand | Root certificate install, trust and removal; the system proxy taken over, stopped, restored after a crash and after SIGTERM, each leaving the settings as found; HTTPS opened through the proxy; a real `curl` through the real proxy is named (`curl`, its pid) by the socket table, recorded with no scope and with `Scope=[curl]`, and passes unrecorded with `Scope=[Safari]`; the shell script of `Environment()` makes a real `curl https://example.com` verify through the proxy without touching the system trust store (it fails with exit 60 without the script) and the decrypted flow is recorded for `curl` over TLS 1.3; the Terminal script exports the variables intact (quotes, `$`, backticks) and deletes itself |
+| Windows Server 2025 | CI job `Live`, `OMT_LIVE=1`; CI job `Test` | The Internet Settings registry key: `Enable`, `Restore` and `RestorePointing`; the current user's Root store: `Install`, `Trusted`, `Remove`, checked with `certutil` itself; `procnet.Owner` names the test process for a loopback connection (`GetExtendedTcpTable`) |
+| Ubuntu | CI job `Live`, `OMT_LIVE=1`; CI job `Test` | The Debian anchor directory and the rebuilt system bundle, and Go's system pool trusting the root; `gsettings` under a session bus with dconf; an `AF_PACKET` capture of a TCP exchange on the loopback; `procnet.Owner` names the test process for a loopback connection (`/proc`) |
 
 The live tests live next to the platform code (`*_live_*_test.go`), skip without `OMT_LIVE`, and fail rather than skip with it. On Windows, `certutil` asks the person to confirm adding and removing a root certificate; the runner has a desktop and nobody at it, so `.github/scripts/approve-root-prompt.ps1` answers Yes to those two dialogs (`Security Warning` and `Root Certificate Store`), as a person would.
 
-Not run anywhere yet: the macOS `/dev/bpf*` grant; packet capture on Windows (it needs Npcap, which the runner does not have); the Linux trust store through `pkexec` (the runner is root) and the NSS databases; the desktop app itself on Windows and Linux.
+Not run anywhere yet: the macOS `/dev/bpf*` grant; packet capture on Windows (it needs Npcap, which the runner does not have); the Linux trust store through `pkexec` (the runner is root) and the NSS databases; the terminal launcher on Windows and Linux (its builders are unit tested, no window was opened); the desktop app itself on Windows and Linux.
