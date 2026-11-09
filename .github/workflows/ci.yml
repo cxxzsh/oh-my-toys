@@ -223,6 +223,7 @@ jobs:
             e2e-result.json
             app.log
           if-no-files-found: ignore
+          retention-days: 3
 
   build:
     name: Build
