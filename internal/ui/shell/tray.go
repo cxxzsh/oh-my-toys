@@ -165,6 +165,7 @@ func (a *App) trayView(c *ui.Context) {
 	}
 	panel.Children(func() {
 		a.trayHead(c)
+		a.traySearchTrigger(c)
 		a.trayBody(c, items)
 	}).DrawOver(func(*ui.Painter, ui.Rect) { a.metrics.trayPainted() })
 	a.fitTray(c, panel)
@@ -193,6 +194,26 @@ func (a *App) trayHead(c *ui.Context) {
 				}
 			})
 		})
+}
+
+func (a *App) traySearchTrigger(c *ui.Context) {
+	p := ds.P(c)
+	b := ui.ButtonBase(c.Key("tray-search")).Label(i18n.PaletteHint()).Cursor(ui.CursorDefault)
+	if b.Clicked() {
+		a.hideTray()
+		a.openMain("")
+		a.showPalette()
+	}
+	fill := p.FillControl
+	if b.Hovered() {
+		fill = p.FillControlHover
+	}
+	b.FillWidth().Height(ds.ControlMd).Margin(0, ds.Space4, ds.Space6).Padding(0, ds.Space8).Gap(ds.Space6).
+		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center).Children(func() {
+		a.kit.Glyph(c, "search", ds.GlyphSm, p.TextMuted)
+		comp.Text(c, i18n.PaletteHint(), ds.Caption, p.TextMuted).Grow(1).SingleLine()
+		comp.Kbd(c, modKey("K"))
+	})
 }
 
 // fitHeight gives a window the height of its content, and reports whether it

@@ -1,6 +1,6 @@
 // Package design embeds the design system's fonts and image assets, so the
 // app carries them and never loads anything from the network. Names are
-// relative to the design folder: "fonts/Geist-Variable.ttf",
+// relative to the design folder: "fonts/IBMPlexSans-Variable.ttf",
 // "assets/glyphs/search.svg".
 package design
 
@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-//go:embed fonts/Geist-Variable.ttf fonts/JetBrainsMono-Variable.ttf
+//go:embed fonts/IBMPlexSans-Variable.ttf fonts/IBMPlexMono-Variable.ttf
 //go:embed assets/glyphs/*.svg assets/tray-icon/*.svg assets/process-icon/*.svg
 //go:embed assets/app-icon/*-128.png
 var files embed.FS

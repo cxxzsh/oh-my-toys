@@ -150,7 +150,7 @@ func (a *App) trafficListPane(c *ui.Context, t tool.Traffic, st *trafficState) {
 func trafficColumnHead(c *ui.Context, cols []trafficColumn) {
 	p := ds.P(c)
 	ui.Row(c).FillWidth().Height(ds.ControlSm).Padding(0, ds.TableCellPad).Gap(ds.Space4).AlignItems(ui.Center).
-		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.LineHairline).Children(func() {
+		Background(p.BgTitlebar).BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).Children(func() {
 		for i, col := range cols {
 			col.frame(c, i).Children(func() {
 				comp.Text(c, col.label(), ds.Eyebrow, p.TextMuted).SingleLine().Ellipsis("…")
@@ -203,7 +203,7 @@ func (a *App) trafficRow(c *ui.Context, t tool.Traffic, st *trafficState, cols [
 		AlignItems(ui.Center)
 	// The marker's width is always kept, so a marked row does not shift its
 	// text; only its colour changes.
-	b.BorderWidth(0, 0, 0, ds.FocusRingWidth).BorderColor(ui.Transparent)
+	b.BorderWidth(0, 0, 0, ds.SelectionBarW).BorderColor(ui.Transparent)
 	switch {
 	case chosen:
 		b.BorderColor(p.AccentStrong)

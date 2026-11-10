@@ -15,6 +15,7 @@ var pinyinTable = []hanEntry{
 	{0x4E0A, []string{"shang"}},                                // 上
 	{0x4E0B, []string{"xia"}},                                  // 下
 	{0x4E0D, []string{"bu", "fou", "fu"}},                      // 不
+	{0x4E0E, []string{"yu"}},                                   // 与
 	{0x4E22, []string{"diu"}},                                  // 丢
 	{0x4E2A, []string{"ge", "gan"}},                            // 个
 	{0x4E2D, []string{"zhong"}},                                // 中
@@ -78,6 +79,7 @@ var pinyinTable = []hanEntry{
 	{0x518D, []string{"zai"}},                                  // 再
 	{0x5199, []string{"xie"}},                                  // 写
 	{0x51B2, []string{"chong"}},                                // 冲
+	{0x51D1, []string{"cou"}},                                  // 凑
 	{0x51E0, []string{"ji"}},                                   // 几
 	{0x51FA, []string{"chu"}},                                  // 出
 	{0x51FB, []string{"ji"}},                                   // 击
@@ -156,6 +158,7 @@ var pinyinTable = []hanEntry{
 	{0x5740, []string{"zhi"}},                                  // 址
 	{0x574F, []string{"huai", "pi", "pei"}},                    // 坏
 	{0x5757, []string{"kuai", "yue"}},                          // 块
+	{0x578B, []string{"xing"}},                                 // 型
 	{0x57DF, []string{"yu"}},                                   // 域
 	{0x586B, []string{"tian", "chen", "zhen"}},                 // 填
 	{0x5883, []string{"jing"}},                                 // 境
@@ -175,6 +178,7 @@ var pinyinTable = []hanEntry{
 	{0x5B57, []string{"zi"}},                                   // 字
 	{0x5B58, []string{"cun"}},                                  // 存
 	{0x5B83, []string{"ta", "tuo", "yi"}},                      // 它
+	{0x5B88, []string{"shou"}},                                 // 守
 	{0x5B89, []string{"an"}},                                   // 安
 	{0x5B8C, []string{"wan", "kuan"}},                          // 完
 	{0x5B9A, []string{"ding"}},                                 // 定
@@ -291,6 +295,7 @@ var pinyinTable = []hanEntry{
 	{0x661F, []string{"xing"}},                                 // 星
 	{0x662F, []string{"shi", "ti"}},                            // 是
 	{0x663E, []string{"xian"}},                                 // 显
+	{0x66B4, []string{"bao", "pu", "bo"}},                      // 暴
 	{0x66F4, []string{"geng"}},                                 // 更
 	{0x66FF, []string{"ti"}},                                   // 替
 	{0x6700, []string{"zui", "cuo"}},                           // 最
@@ -314,6 +319,7 @@ var pinyinTable = []hanEntry{
 	{0x6837, []string{"yang"}},                                 // 样
 	{0x683C, []string{"ge", "luo", "he"}},                      // 格
 	{0x6863, []string{"dang"}},                                 // 档
+	{0x68AF, []string{"ti"}},                                   // 梯
 	{0x68C0, []string{"jian"}},                                 // 检
 	{0x6A21, []string{"mo", "mu"}},                             // 模
 	{0x6A61, []string{"xiang"}},                                // 橡
@@ -359,6 +365,7 @@ var pinyinTable = []hanEntry{
 	{0x7528, []string{"yong"}},                                 // 用
 	{0x7531, []string{"you", "yao"}},                           // 由
 	{0x7535, []string{"dian"}},                                 // 电
+	{0x753B, []string{"hua"}},                                  // 画
 	{0x7559, []string{"liu"}},                                  // 留
 	{0x7565, []string{"lve"}},                                  // 略
 	{0x767D, []string{"bai", "bo"}},                            // 白
@@ -391,14 +398,19 @@ var pinyinTable = []hanEntry{
 	{0x7AEF, []string{"duan"}},                                 // 端
 	{0x7B26, []string{"fu"}},                                   // 符
 	{0x7B2C, []string{"di"}},                                   // 第
+	{0x7B49, []string{"deng"}},                                 // 等
+	{0x7B56, []string{"ce"}},                                   // 策
 	{0x7B5B, []string{"shai"}},                                 // 筛
 	{0x7B7E, []string{"qian"}},                                 // 签
 	{0x7B97, []string{"suan"}},                                 // 算
 	{0x7BA1, []string{"guan"}},                                 // 管
 	{0x7BAD, []string{"jian"}},                                 // 箭
 	{0x7BD3, []string{"lou"}},                                  // 篓
+	{0x7C7B, []string{"lei"}},                                  // 类
 	{0x7CFB, []string{"xi", "ji"}},                             // 系
 	{0x7D22, []string{"suo"}},                                  // 索
+	{0x7D27, []string{"jin"}},                                  // 紧
+	{0x7EA7, []string{"ji"}},                                   // 级
 	{0x7EB8, []string{"zhi"}},                                  // 纸
 	{0x7EBF, []string{"xian"}},                                 // 线
 	{0x7EC4, []string{"zu"}},                                   // 组
@@ -463,6 +475,7 @@ var pinyinTable = []hanEntry{
 	{0x8BF4, []string{"shuo", "shui", "yue"}},                  // 说
 	{0x8BF7, []string{"qing"}},                                 // 请
 	{0x8BFB, []string{"du", "dou"}},                            // 读
+	{0x8C03, []string{"diao", "tiao"}},                         // 调
 	{0x8D25, []string{"bai"}},                                  // 败
 	{0x8D26, []string{"zhang"}},                                // 账
 	{0x8D34, []string{"tie"}},                                  // 贴
@@ -516,13 +529,16 @@ var pinyinTable = []hanEntry{
 	{0x95F2, []string{"xian"}},                                 // 闲
 	{0x95F4, []string{"jian"}},                                 // 间
 	{0x9632, []string{"fang"}},                                 // 防
+	{0x9636, []string{"jie"}},                                  // 阶
 	{0x9650, []string{"xian", "wen"}},                          // 限
 	{0x9664, []string{"chu", "zhu", "shu"}},                    // 除
+	{0x9669, []string{"xian"}},                                 // 险
 	{0x968F, []string{"sui"}},                                  // 随
 	{0x9690, []string{"yin"}},                                  // 隐
 	{0x9694, []string{"ge", "rong", "ji"}},                     // 隔
 	{0x96A7, []string{"sui", "zhui"}},                          // 隧
 	{0x9700, []string{"xu", "nuo", "ru", "ruan"}},              // 需
+	{0x9732, []string{"lu", "lou"}},                            // 露
 	{0x9762, []string{"mian"}},                                 // 面
 	{0x97F3, []string{"yin"}},                                  // 音
 	{0x9879, []string{"xiang"}},                                // 项
@@ -532,6 +548,7 @@ var pinyinTable = []hanEntry{
 	{0x9891, []string{"pin"}},                                  // 频
 	{0x9898, []string{"ti"}},                                   // 题
 	{0x989C, []string{"yan"}},                                  // 颜
+	{0x98CE, []string{"feng"}},                                 // 风
 	{0x9996, []string{"shou"}},                                 // 首
 	{0x9A6C, []string{"ma"}},                                   // 马
 	{0x9A8C, []string{"yan"}},                                  // 验

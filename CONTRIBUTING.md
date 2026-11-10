@@ -25,11 +25,12 @@ cmd/oh-my-toys/       desktop app entry
 cmd/omt/              command line entry
 internal/core/        registry, search, state, runner, settings
 internal/tools/<id>/  one directory per tool; a tool with several parts may split them into sub-packages of its directory, which import each other and nothing of another tool
-internal/ui/          MyGo views and design tokens
+internal/ui/          MyGo views; generated tokens live in internal/ui/ds
 internal/platform/    per-OS code, split by build tags
 internal/i18n/        catalogs: en.json (source), zh-Hans.json
 spikes/               throwaway prototypes; never imported by other code
 docs/                 design notes and decisions
+design/               brand book, tokens, component specs and assets; tokens.json feeds dev/gentokens
 ```
 
 ## 3. Go
@@ -112,10 +113,15 @@ Every tool provides a manifest and implements one of three contracts.
 
 ## 9. UI
 
-- Follow the design system: colours, type, spacing, radii and components come from its tokens and rules, never from literal values in a view.
-- Colours are assigned per category, not per tool. Interface glyphs come from Material Symbols Outlined (embedded in `design/assets/glyphs`).
-- Every control has an accessible name. Check both light and dark themes.
+Follow [design/README.md](design/README.md). Colours, type, spacing, radii and components come from `design/tokens.json` (generated into `internal/ui/ds`) and from that brand book, never from literal values in a view.
 
+- One design on every platform. Branch only for what the operating system owns, and only as the table in the brand book lists.
+- Colours are assigned per category, not per tool. The eight pairs are system, file, dev, network, text, media, productivity and app.
+- Interface glyphs are Material Symbols Outlined, snake_case names, embedded in `design/assets/glyphs`. A tool's art is optional; a missing file falls back to the manifest's glyph.
+- Words use IBM Plex Sans. Anything a machine produced (ports, paths, hashes, counts, shortcuts) uses IBM Plex Mono.
+- A button says what happens, to how many, in Title Case. Never "OK", "Submit" or "Done".
+- Every control has an accessible name. Dots and colours never carry state alone. Check both light and dark.
+- No emoji, no exclamation marks.
 ## 10. Performance budgets
 
 | What | Budget |

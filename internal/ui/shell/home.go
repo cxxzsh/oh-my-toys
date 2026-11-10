@@ -2,10 +2,12 @@ package shell
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/egoist/mygo/ui"
 
+	"github.com/cxxzsh/oh-my-toys/internal/core"
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
@@ -17,6 +19,7 @@ type homeKind int
 const (
 	homeHeader homeKind = iota
 	homeEyebrow
+	homeDaemons
 	homeCards
 )
 
@@ -45,15 +48,38 @@ func (a *App) filteredTools(tools []tool.Tool) []tool.Tool {
 func (a *App) homeRows(width float32) []homeRow {
 	cols := columns(width, ds.CardMinColumn, ds.Space12)
 	rows := []homeRow{{kind: homeHeader}}
+	if a.showDaemons() {
+		rows = append(rows, homeRow{kind: homeDaemons})
+	}
+	var pinnedSet map[string]bool
 	if a.homeCat == "" {
-		rows = appendSection(rows, i18n.Pinned(), a.filteredTools(a.pinnedTools()), cols)
+		pinned := a.pinnedTools()
+		pinnedSet = make(map[string]bool, len(pinned))
+		for _, t := range pinned {
+			pinnedSet[t.Manifest().ID] = true
+		}
+		rows = appendSection(rows, i18n.Pinned(), a.filteredTools(pinned), cols)
 	}
 	for _, cat := range tool.Categories() {
 		if a.homeCat == "" || cat == a.homeCat {
-			rows = appendSection(rows, categoryName(cat), a.filteredTools(a.reg.InCategory(cat)), cols)
+			tools := excludeTools(a.reg.InCategory(cat), pinnedSet)
+			rows = appendSection(rows, categoryName(cat), a.filteredTools(tools), cols)
 		}
 	}
 	return rows
+}
+
+func excludeTools(tools []tool.Tool, skip map[string]bool) []tool.Tool {
+	if len(skip) == 0 {
+		return tools
+	}
+	out := make([]tool.Tool, 0, len(tools))
+	for _, t := range tools {
+		if !skip[t.Manifest().ID] {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 func appendSection(rows []homeRow, label string, tools []tool.Tool, cols int) []homeRow {
@@ -83,9 +109,7 @@ func (a *App) recentTools() []tool.Tool {
 
 func (a *App) workbenchWidth(c *ui.Context) float32 {
 	w, _ := c.Size()
-	if !a.sideHidden {
-		w -= ds.SidebarWidth
-	}
+	w -= a.sidebarWidth()
 	return max(ds.CardMinColumn, w-2*ds.Space16)
 }
 
@@ -103,11 +127,19 @@ func (a *App) homeRow(c *ui.Context, r homeRow) {
 				Title:       a.title(),
 				Badge:       fmt.Sprintf("%d", len(a.reg.All())),
 				Description: i18n.PaletteEmpty(),
-				Filters:     func() { a.chips(c) },
+				Meta: func() {
+					a.kit.SearchField(c.Key("home-filter"), &a.pageFilter, &a.homeSearch, comp.SearchFieldOpts{
+						Placeholder: i18n.FilterTools(),
+						Width:       220,
+					})
+				},
+				Filters: func() { a.chips(c) },
 			})
 		})
 	case homeEyebrow:
 		comp.Eyebrow(c, r.label).Padding(ds.Space12, 0, ds.Space8).Role(ui.RoleHeading).Level(2)
+	case homeDaemons:
+		a.daemonStrip(c)
 	case homeCards:
 		a.cardRow(c, r.tools)
 	}
@@ -157,7 +189,8 @@ func (a *App) toolCard(c *ui.Context, t tool.Tool) {
 	}
 	card.ContextMenu(func(menu *ui.Menu) { a.sidebarToolMenu(menu, t) })
 	edge, shadow := p.Line, ds.S(c).ShadowXs
-	if card.Hovered() {
+	hovered := card.Hovered()
+	if hovered {
 		edge, shadow = p.LineHover, ds.S(c).ShadowSm
 	}
 	ds.ApplyShadow(card.FillWidth().Column().MinHeight(ds.CardMinHeight).Padding(ds.Space16).Gap(ds.Space10).
@@ -167,9 +200,16 @@ func (a *App) toolCard(c *ui.Context, t tool.Tool) {
 		ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.Center).Children(func() {
 			a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconMedium, Tint: true})
 			comp.Text(c, m.Name(msgs()), ds.Headline, p.TextStrong).Grow(1).SingleLine().Ellipsis("…")
-			a.pinButton(c, t)
+			if hovered {
+				a.pinButton(c, t)
+			} else if n := a.pinIndex(t); n >= 0 && n < ds.SidebarMaxJump {
+				comp.Kbd(c, modKey(strconv.Itoa(n+1)))
+			}
 		})
 		comp.Text(c, m.Summary(msgs()), ds.Caption, p.TextInactive).FillWidth().TextAlign(ui.Start).Grow(1).MaxLines(2)
+		if _, ok := t.(tool.Switch); ok && !m.Soon {
+			a.quickRow(c, t)
+		}
 		ui.Row(c).FillWidth().AlignItems(ui.Center).Children(func() { a.cardFoot(c, t) })
 	})
 }
@@ -191,6 +231,9 @@ func (a *App) cardFoot(c *ui.Context, t tool.Tool) {
 		}
 		return
 	}
+	if !m.Soon {
+		comp.RiskBadge(c, toolPrimaryRisk(t))
+	}
 	comp.CategoryBadge(c, m.Category, categoryName(m.Category))
 	ui.Spacer(c)
 	label := i18n.Open() + " ›"
@@ -198,6 +241,18 @@ func (a *App) cardFoot(c *ui.Context, t tool.Tool) {
 		label = i18n.ComingSoon()
 	}
 	comp.Text(c, label, ds.Label, p.Accent).Cursor(ui.CursorPointer)
+}
+
+// toolPrimaryRisk is the risk of a tool's first action, or read when it
+// declares none.
+func toolPrimaryRisk(t tool.Tool) tool.Risk {
+	if spec, ok := core.SpecOf(t, tool.ActionApply); ok && spec.Risk != "" {
+		return spec.Risk
+	}
+	if specs := t.Specs(); len(specs) > 0 && specs[0].Risk != "" {
+		return specs[0].Risk
+	}
+	return tool.RiskRead
 }
 
 func (a *App) pinButton(c *ui.Context, t tool.Tool) {

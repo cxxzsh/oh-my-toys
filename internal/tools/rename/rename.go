@@ -81,10 +81,24 @@ func (*Tool) Plan(ctx context.Context, in tool.Input) (tool.Plan, error) {
 	if err != nil {
 		return tool.Plan{}, fmt.Errorf("read %s: %w", dir, err)
 	}
-	changes, rows := plan(dir, entries, find, in[fieldReplace])
+	changes, rows, changeIdx := plan(dir, entries, find, in[fieldReplace])
 	if err := ctx.Err(); err != nil {
 		return tool.Plan{}, err
 	}
+	p := buildPlan(changes, rows)
+	p.Select = func(keep []bool) tool.Plan {
+		var picked []Change
+		for rowIdx, ci := range changeIdx {
+			if ci >= 0 && rowIdx < len(keep) && keep[rowIdx] {
+				picked = append(picked, changes[ci])
+			}
+		}
+		return buildPlan(picked, rows)
+	}
+	return p, nil
+}
+
+func buildPlan(changes []Change, rows []tool.Row) tool.Plan {
 	p := tool.Plan{
 		Summary: i18n.RenamePlanned(len(changes)),
 		Columns: []string{i18n.ColOriginal(), i18n.ColNewName(), i18n.ColStatus()},
@@ -94,17 +108,18 @@ func (*Tool) Plan(ctx context.Context, in tool.Input) (tool.Plan, error) {
 	if len(changes) > 0 {
 		p.ApplyLabel = i18n.RenameApply(len(changes))
 	}
-	return p, nil
+	return p
 }
 
-func plan(dir string, entries []os.DirEntry, find, replace string) ([]Change, []tool.Row) {
+func plan(dir string, entries []os.DirEntry, find, replace string) ([]Change, []tool.Row, []int) {
 	taken := map[string]bool{}
 	for _, e := range entries {
 		taken[e.Name()] = true
 	}
 	var (
-		changes []Change
-		rows    []tool.Row
+		changes   []Change
+		rows      []tool.Row
+		changeIdx []int
 	)
 	for _, e := range entries {
 		name := e.Name()
@@ -120,13 +135,18 @@ func plan(dir string, entries []os.DirEntry, find, replace string) ([]Change, []
 				Title: name, Detail: i18n.RenameConflict(to),
 				Cells: []string{name, to, i18n.Conflict()}, Tone: tool.ToneWarning,
 			})
+			changeIdx = append(changeIdx, -1)
 			continue
 		}
 		taken[to] = true
+		changeIdx = append(changeIdx, len(changes))
 		changes = append(changes, Change{From: filepath.Join(dir, name), To: filepath.Join(dir, to)})
-		rows = append(rows, tool.Row{Title: name, Detail: "→ " + to, Cells: []string{name, to, i18n.Ready()}})
+		rows = append(rows, tool.Row{
+			Title: name, Detail: "→ " + to,
+			Cells: []string{name, to, i18n.Ready()}, Selectable: true,
+		})
 	}
-	return changes, rows
+	return changes, rows, changeIdx
 }
 
 // Apply renames the files the plan lists, and only those, checking again

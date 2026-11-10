@@ -20,9 +20,9 @@ func SwitchCompact(c *ui.Context, on *bool, label string) ui.Element {
 
 func drawSwitch(c *ui.Context, on *bool, label string, w, h float32) ui.Element {
 	p := ds.P(c)
-	track := p.TextMuted
+	track, edge := p.FillControlHover, p.LineHover
 	if *on {
-		track = p.AccentStrong
+		track, edge = p.AccentStrong, p.AccentStrong
 	}
 	knob := h - 2*ds.SwitchInset
 	sw := ui.SwitchBase(c, on).Label(label).Cursor(ui.CursorDefault)
@@ -31,7 +31,7 @@ func drawSwitch(c *ui.Context, on *bool, label string, w, h float32) ui.Element 
 		x = w - knob - ds.SwitchInset
 	}
 	x = sw.Animate("knob", x, ds.EaseDuration)
-	return sw.Size(w, h).Radius(ds.RadiusFull).Background(track).Children(func() {
+	return sw.Size(w, h).Radius(ds.RadiusFull).Background(track).Border(ds.LineWidth, edge).Children(func() {
 		ds.ApplyShadow(ui.Box(c).Absolute().Top(ds.SwitchInset).Left(x).Size(knob, knob).
 			Radius(ds.RadiusFull).Background(p.Thumb), ds.S(c).ShadowThumb)
 	})

@@ -1,8 +1,12 @@
 package comp
 
 import (
+	"strings"
+
+	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
@@ -79,7 +83,7 @@ func badge(c *ui.Context, k *Kit, glyph, text string, tone Tone, rimmed bool) ui
 	if rimmed {
 		line = p.LineHairline
 	}
-	b := ui.Row(c).Padding(ds.BadgePadY, ds.Space6).Gap(ds.Space4).Radius(ds.RadiusFull).Background(fill).
+	b := ui.Row(c).Padding(ds.BadgePadY, ds.Space6).Gap(ds.Space4).Radius(ds.RadiusXs).Background(fill).
 		AlignItems(ui.Center)
 	if line != ui.Transparent {
 		b.Border(ds.LineWidth, line)
@@ -89,5 +93,45 @@ func badge(c *ui.Context, k *Kit, glyph, text string, tone Tone, rimmed bool) ui
 			k.Glyph(c, glyph, ds.GlyphSm, ink)
 		}
 		Text(c, text, ds.Badge, ink).SingleLine()
+	})
+}
+
+// RiskBadge draws a tool action's risk class (READ, SYSTEM, WRITE, PROCESS)
+// as a compact mono tag with semantic colour and border.
+func RiskBadge(c *ui.Context, risk tool.Risk) ui.Element {
+	tone := ToneNeutral
+	switch risk {
+	case tool.RiskSystem:
+		tone = ToneWarning
+	case tool.RiskWrite:
+		tone = ToneAccent
+	case tool.RiskProcess:
+		tone = ToneDanger
+	case tool.RiskRead, "":
+		risk = tool.RiskRead
+	}
+	return badge(c, nil, "", strings.ToUpper(string(risk)), tone, tone == ToneNeutral)
+}
+
+// CLICopyPill draws the equivalent omt CLI command as a compact mono pill
+// that copies the command to the clipboard when clicked.
+func (k *Kit) CLICopyPill(c *ui.Context, cmd, label, toast string) ui.Element {
+	p := ds.P(c)
+	b := ui.ButtonBase(c).Label(label).Tooltip(cmd).Cursor(ui.CursorDefault)
+	if b.Clicked() {
+		mygo.Clipboard.WriteText(cmd)
+		if toast != "" {
+			c.Toast(toast)
+		}
+	}
+	fill, edge := p.FillControl, p.LineControl
+	if b.Hovered() {
+		fill, edge = p.FillControlHover, p.LineHover
+	}
+	return b.Height(ds.ControlSm).MaxWidth(ds.CLIMaxWidth).Padding(0, ds.Space8).Gap(ds.Space6).
+		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, edge).AlignItems(ui.Center).Children(func() {
+		k.Glyph(c, "terminal", ds.GlyphSm, p.TextMuted)
+		Value(c, cmd, p.TextSecondary).Ellipsis("…").Shrink(1).MinWidth(0)
+		k.Glyph(c, "content_copy", ds.GlyphSm, p.TextMuted)
 	})
 }

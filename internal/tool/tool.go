@@ -176,12 +176,14 @@ type Process struct {
 
 // Row is one line of a plan: what would happen to one thing.
 type Row struct {
-	Title   string
-	Detail  string
-	Cells   []string // columns of a DataTable: port, process, pid, address…
-	Value   string   // copied when the row is clicked, if set
-	Tone    Tone
-	Process *Process // the executable of the row, when it names a process
+	Title      string
+	Detail     string
+	Cells      []string // columns of a DataTable: port, process, pid, address…
+	Value      string   // copied when the row is clicked, if set
+	Tone       Tone
+	Process    *Process // the executable of the row, when it names a process
+	Selectable bool     // whether a person can include or exclude this row before Apply
+	Group      string   // optional cluster heading above the first row of a group
 }
 
 // Plan is what an action tool would do. ApplyLabel is empty for tools that
@@ -192,7 +194,8 @@ type Plan struct {
 	Rows        []Row
 	ApplyLabel  string
 	Destructive bool
-	Data        any // the tool's own description of the work, for Apply
+	Data        any                    // the tool's own description of the work, for Apply
+	Select      func(keep []bool) Plan // optional: narrows ApplyLabel and Data to checked rows
 }
 
 // Result is what Apply did.

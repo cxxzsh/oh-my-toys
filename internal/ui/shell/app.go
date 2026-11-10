@@ -79,10 +79,12 @@ type App struct {
 	homeCat     tool.Category
 	pageFilter  string
 	sideHidden  bool
+	sideCompact bool
 	sidePeek    bool
 	sideEntered bool
 	sideList    ui.ListState
 	homeList    ui.ListState
+	homeSearch  ui.Handle
 	actions     map[string]*actionState
 	switchForms map[string]*switchForm
 	dialog      *comp.DialogOpts
@@ -97,13 +99,15 @@ type App struct {
 	shortcut      string
 	shortcutTaken []string // the shortcuts tried that were taken
 
-	metrics   *Metrics
-	quitting  bool
-	forceDark *bool // tests run without the app
-	snap      *snapSession
-	snapping  bool     // a capture is in flight
-	snapPrev  int      // frontmost app before the overlay took the keyboard
-	snapKeys  []string // global keys bound while the overlay shows
+	metrics        *Metrics
+	quitting       bool
+	forceDark      *bool // tests run without the app
+	snap           *snapSession
+	snapping       bool     // a capture is in flight
+	snapPrev       int      // frontmost app before the overlay took the keyboard
+	snapKeys       []string // global keys bound while the overlay shows
+	snapRecentsDir string
+	snapRecents    []recentFile
 }
 
 // New makes the app; Start creates its windows once MyGo is ready.
@@ -216,6 +220,11 @@ func (a *App) createMain() {
 	})
 	a.main.OnFocus(func() { a.main.Invalidate() })
 	a.main.OnBlur(func() { a.main.Invalidate() })
+	a.main.OnFileDrop(func(e *mygo.FileDropEvent) {
+		if len(e.Paths) > 0 {
+			a.acceptDroppedPath(e.Paths[0])
+		}
+	})
 	a.main.OnClose(func(e *mygo.CloseEvent) {
 		if !a.quitting {
 			e.PreventDefault()

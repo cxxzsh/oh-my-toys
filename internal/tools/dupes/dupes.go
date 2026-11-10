@@ -79,33 +79,68 @@ func (*Tool) Plan(ctx context.Context, in tool.Input) (tool.Plan, error) {
 	if err != nil {
 		return tool.Plan{}, err
 	}
+	rows, refs := buildDupeRows(dir, groups)
+	p := buildDupePlan(groups, rows)
+	p.Select = func(keep []bool) tool.Plan {
+		picked := narrowGroups(groups, refs, keep)
+		return buildDupePlan(picked, rows)
+	}
+	return p, nil
+}
+
+type dupeRowRef struct{ group, path int }
+
+func buildDupeRows(dir string, groups []Group) ([]tool.Row, []dupeRowRef) {
+	var rows []tool.Row
+	var refs []dupeRowRef
+	for gi, g := range groups {
+		for pi, path := range g.Paths {
+			rel, _ := filepath.Rel(dir, path)
+			r := tool.Row{Title: rel, Detail: i18n.DupesKeep(Size(g.Size)), Value: path, Tone: tool.ToneSuccess}
+			if pi == 0 {
+				r.Group = i18n.DupesGroup(Size(g.Size), len(g.Paths))
+			} else {
+				r.Detail, r.Tone, r.Selectable = i18n.DupesTrash(Size(g.Size)), tool.ToneWarning, true
+			}
+			rows = append(rows, r)
+			refs = append(refs, dupeRowRef{group: gi, path: pi})
+		}
+	}
+	return rows, refs
+}
+
+func narrowGroups(groups []Group, refs []dupeRowRef, checked []bool) []Group {
+	byGroup := make([][]string, len(groups))
+	for gi, g := range groups {
+		byGroup[gi] = []string{g.Paths[0]}
+	}
+	for ri, ref := range refs {
+		if ref.path > 0 && ri < len(checked) && checked[ri] {
+			byGroup[ref.group] = append(byGroup[ref.group], groups[ref.group].Paths[ref.path])
+		}
+	}
+	var out []Group
+	for gi, paths := range byGroup {
+		if len(paths) > 1 {
+			out = append(out, Group{Size: groups[gi].Size, Paths: paths})
+		}
+	}
+	return out
+}
+
+func buildDupePlan(groups []Group, rows []tool.Row) tool.Plan {
 	var extra int
 	var freed int64
-	rows := make([]tool.Row, 0, len(groups))
 	for _, g := range groups {
 		extra += len(g.Paths) - 1
 		freed += g.Size * int64(len(g.Paths)-1)
-		rows = append(rows, groupRows(dir, g)...)
 	}
 	p := tool.Plan{Summary: i18n.DupesFound(len(groups), Size(freed)), Rows: rows, Data: groups}
 	if extra > 0 {
 		p.ApplyLabel = i18n.DupesApply(extra)
 		p.Destructive = true
 	}
-	return p, nil
-}
-
-func groupRows(dir string, g Group) []tool.Row {
-	rows := make([]tool.Row, 0, len(g.Paths))
-	for i, path := range g.Paths {
-		rel, _ := filepath.Rel(dir, path)
-		r := tool.Row{Title: rel, Detail: i18n.DupesKeep(Size(g.Size)), Value: path, Tone: tool.ToneSuccess}
-		if i > 0 {
-			r.Detail, r.Tone = i18n.DupesTrash(Size(g.Size)), tool.ToneWarning
-		}
-		rows = append(rows, r)
-	}
-	return rows
+	return p
 }
 
 // Apply moves every copy but the first of each group to the Trash.

@@ -11,14 +11,14 @@ import (
 // The two bundled families, by the names the font stacks of the tokens use,
 // and their files in the design folder.
 const (
-	familySans = "Geist"
-	fileSans   = "fonts/Geist-Variable.ttf"
-	familyMono = "JetBrains Mono"
-	fileMono   = "fonts/JetBrainsMono-Variable.ttf"
+	familySans = "IBM Plex Sans"
+	fileSans   = "fonts/IBMPlexSans-Variable.ttf"
+	familyMono = "IBM Plex Mono"
+	fileMono   = "fonts/IBMPlexMono-Variable.ttf"
 )
 
-// RegisterFonts makes the bundled fonts, Geist and JetBrains Mono, usable
-// by every window. The app calls it once at start, before its first
+// RegisterFonts makes the bundled fonts, IBM Plex Sans and IBM Plex Mono,
+// usable by every window. The app calls it once at start, before its first
 // window.
 func RegisterFonts() error {
 	if err := registerFont(familySans, fileSans); err != nil {

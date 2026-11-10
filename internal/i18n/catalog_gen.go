@@ -7107,3 +7107,539 @@ func TrafficMenuScoped(name string) string { return In(i18n.Locale()).TrafficMen
 func (msgs Messages) TrafficMenuScoped(name string) string {
 	return Catalog.Format(msgs.locale, "trafficMenuScoped", map[string]any{"name": name})
 }
+
+// ActiveRunsCount says "{count, plural, one {# running} other {# running}}"
+// in the language the app shows.
+//
+// Titlebar pill showing how many background tools are active. {count} is
+// the number of running tools.
+func ActiveRunsCount(count int) string { return In(i18n.Locale()).ActiveRunsCount(count) }
+
+// ActiveRunsCount says "{count, plural, one {# running} other {# running}}"
+// in the language of msgs.
+//
+// Titlebar pill showing how many background tools are active. {count} is
+// the number of running tools.
+func (msgs Messages) ActiveRunsCount(count int) string {
+	return Catalog.Format(msgs.locale, "activeRunsCount", map[string]any{"count": count})
+}
+
+// ActiveDaemons says "Active Runs"
+// in the language the app shows.
+//
+// Section heading on Home for running background tools.
+func ActiveDaemons() string { return In(i18n.Locale()).ActiveDaemons() }
+
+// ActiveDaemons says "Active Runs"
+// in the language of msgs.
+//
+// Section heading on Home for running background tools.
+func (msgs Messages) ActiveDaemons() string {
+	return Catalog.Format(msgs.locale, "activeDaemons", nil)
+}
+
+// CopyCommand says "Copy omt Command"
+// in the language the app shows.
+//
+// Button and tooltip copying the equivalent omt CLI command.
+func CopyCommand() string { return In(i18n.Locale()).CopyCommand() }
+
+// CopyCommand says "Copy omt Command"
+// in the language of msgs.
+//
+// Button and tooltip copying the equivalent omt CLI command.
+func (msgs Messages) CopyCommand() string {
+	return Catalog.Format(msgs.locale, "copyCommand", nil)
+}
+
+// DirectCommand says "Direct Command"
+// in the language the app shows.
+//
+// Command palette section heading for a parsed inline command.
+func DirectCommand() string { return In(i18n.Locale()).DirectCommand() }
+
+// DirectCommand says "Direct Command"
+// in the language of msgs.
+//
+// Command palette section heading for a parsed inline command.
+func (msgs Messages) DirectCommand() string {
+	return Catalog.Format(msgs.locale, "directCommand", nil)
+}
+
+// AgentsSection says "CLI & MCP Agents"
+// in the language the app shows.
+//
+// Settings section title for CLI and MCP integration.
+func AgentsSection() string { return In(i18n.Locale()).AgentsSection() }
+
+// AgentsSection says "CLI & MCP Agents"
+// in the language of msgs.
+//
+// Settings section title for CLI and MCP integration.
+func (msgs Messages) AgentsSection() string {
+	return Catalog.Format(msgs.locale, "agentsSection", nil)
+}
+
+// AgentsMcpTitle says "MCP Server Configuration"
+// in the language the app shows.
+//
+// Settings row title for omt mcp JSON snippet.
+func AgentsMcpTitle() string { return In(i18n.Locale()).AgentsMcpTitle() }
+
+// AgentsMcpTitle says "MCP Server Configuration"
+// in the language of msgs.
+//
+// Settings row title for omt mcp JSON snippet.
+func (msgs Messages) AgentsMcpTitle() string {
+	return Catalog.Format(msgs.locale, "agentsMcpTitle", nil)
+}
+
+// AgentsMcpDesc says "Add to Claude Code, Cursor or any MCP client to expose typed plan and apply tools."
+// in the language the app shows.
+//
+// Settings row description for omt mcp.
+func AgentsMcpDesc() string { return In(i18n.Locale()).AgentsMcpDesc() }
+
+// AgentsMcpDesc says "Add to Claude Code, Cursor or any MCP client to expose typed plan and apply tools."
+// in the language of msgs.
+//
+// Settings row description for omt mcp.
+func (msgs Messages) AgentsMcpDesc() string {
+	return Catalog.Format(msgs.locale, "agentsMcpDesc", nil)
+}
+
+// AgentsRiskTitle says "Execution Risk Policy"
+// in the language the app shows.
+//
+// Settings row title explaining action risk levels.
+func AgentsRiskTitle() string { return In(i18n.Locale()).AgentsRiskTitle() }
+
+// AgentsRiskTitle says "Execution Risk Policy"
+// in the language of msgs.
+//
+// Settings row title explaining action risk levels.
+func (msgs Messages) AgentsRiskTitle() string {
+	return Catalog.Format(msgs.locale, "agentsRiskTitle", nil)
+}
+
+// AgentsRiskDesc says "Write and process actions require explicit confirmation; read actions never mutate state."
+// in the language the app shows.
+//
+// Settings row description explaining risk confirmation.
+func AgentsRiskDesc() string { return In(i18n.Locale()).AgentsRiskDesc() }
+
+// AgentsRiskDesc says "Write and process actions require explicit confirmation; read actions never mutate state."
+// in the language of msgs.
+//
+// Settings row description explaining risk confirmation.
+func (msgs Messages) AgentsRiskDesc() string {
+	return Catalog.Format(msgs.locale, "agentsRiskDesc", nil)
+}
+
+// CopyConfig says "Copy JSON"
+// in the language the app shows.
+//
+// Button copying the MCP configuration snippet.
+func CopyConfig() string { return In(i18n.Locale()).CopyConfig() }
+
+// CopyConfig says "Copy JSON"
+// in the language of msgs.
+//
+// Button copying the MCP configuration snippet.
+func (msgs Messages) CopyConfig() string {
+	return Catalog.Format(msgs.locale, "copyConfig", nil)
+}
+
+// InspectorTitle says "Process Inspector"
+// in the language the app shows.
+//
+// Side pane title on the Ports tool page.
+func InspectorTitle() string { return In(i18n.Locale()).InspectorTitle() }
+
+// InspectorTitle says "Process Inspector"
+// in the language of msgs.
+//
+// Side pane title on the Ports tool page.
+func (msgs Messages) InspectorTitle() string {
+	return Catalog.Format(msgs.locale, "inspectorTitle", nil)
+}
+
+// InspectorEmpty says "Select a listening port row to inspect its process and CLI command."
+// in the language the app shows.
+//
+// Placeholder in the Ports side inspector when no row is selected.
+func InspectorEmpty() string { return In(i18n.Locale()).InspectorEmpty() }
+
+// InspectorEmpty says "Select a listening port row to inspect its process and CLI command."
+// in the language of msgs.
+//
+// Placeholder in the Ports side inspector when no row is selected.
+func (msgs Messages) InspectorEmpty() string {
+	return Catalog.Format(msgs.locale, "inspectorEmpty", nil)
+}
+
+// BindLocal says "Loopback"
+// in the language the app shows.
+//
+// Badge beside a 127.0.0.1 or ::1 listening address.
+func BindLocal() string { return In(i18n.Locale()).BindLocal() }
+
+// BindLocal says "Loopback"
+// in the language of msgs.
+//
+// Badge beside a 127.0.0.1 or ::1 listening address.
+func (msgs Messages) BindLocal() string {
+	return Catalog.Format(msgs.locale, "bindLocal", nil)
+}
+
+// BindExposed says "Exposed"
+// in the language the app shows.
+//
+// Badge beside a wildcard 0.0.0.0 or * listening address.
+func BindExposed() string { return In(i18n.Locale()).BindExposed() }
+
+// BindExposed says "Exposed"
+// in the language of msgs.
+//
+// Badge beside a wildcard 0.0.0.0 or * listening address.
+func (msgs Messages) BindExposed() string {
+	return Catalog.Format(msgs.locale, "bindExposed", nil)
+}
+
+// EndSelectedProcess says "End Process"
+// in the language the app shows.
+//
+// Button in the Ports side inspector ending the selected process.
+func EndSelectedProcess() string { return In(i18n.Locale()).EndSelectedProcess() }
+
+// EndSelectedProcess says "End Process"
+// in the language of msgs.
+//
+// Button in the Ports side inspector ending the selected process.
+func (msgs Messages) EndSelectedProcess() string {
+	return Catalog.Format(msgs.locale, "endSelectedProcess", nil)
+}
+
+// HoldManual says "Manual Hold"
+// in the language the app shows.
+//
+// Label of the manual run card on a switch tool page.
+func HoldManual() string { return In(i18n.Locale()).HoldManual() }
+
+// HoldManual says "Manual Hold"
+// in the language of msgs.
+//
+// Label of the manual run card on a switch tool page.
+func (msgs Messages) HoldManual() string {
+	return Catalog.Format(msgs.locale, "holdManual", nil)
+}
+
+// HoldSchedule says "Schedule Hold"
+// in the language the app shows.
+//
+// Label of the weekly schedule card on a switch tool page.
+func HoldSchedule() string { return In(i18n.Locale()).HoldSchedule() }
+
+// HoldSchedule says "Schedule Hold"
+// in the language of msgs.
+//
+// Label of the weekly schedule card on a switch tool page.
+func (msgs Messages) HoldSchedule() string {
+	return Catalog.Format(msgs.locale, "holdSchedule", nil)
+}
+
+// HoldActive says "Holding"
+// in the language the app shows.
+//
+// Badge when a manual or scheduled hold is currently keeping the switch on.
+func HoldActive() string { return In(i18n.Locale()).HoldActive() }
+
+// HoldActive says "Holding"
+// in the language of msgs.
+//
+// Badge when a manual or scheduled hold is currently keeping the switch on.
+func (msgs Messages) HoldActive() string {
+	return Catalog.Format(msgs.locale, "holdActive", nil)
+}
+
+// HoldStandby says "Standby"
+// in the language the app shows.
+//
+// Badge when a hold source is enabled but not currently active.
+func HoldStandby() string { return In(i18n.Locale()).HoldStandby() }
+
+// HoldStandby says "Standby"
+// in the language of msgs.
+//
+// Badge when a hold source is enabled but not currently active.
+func (msgs Messages) HoldStandby() string {
+	return Catalog.Format(msgs.locale, "holdStandby", nil)
+}
+
+// HoldDisabled says "Off"
+// in the language the app shows.
+//
+// Badge when a hold source is turned off.
+func HoldDisabled() string { return In(i18n.Locale()).HoldDisabled() }
+
+// HoldDisabled says "Off"
+// in the language of msgs.
+//
+// Badge when a hold source is turned off.
+func (msgs Messages) HoldDisabled() string {
+	return Catalog.Format(msgs.locale, "holdDisabled", nil)
+}
+
+// SnapPermRequired says "Screen Recording permission is required to capture windows behind oh-my-toys."
+// in the language the app shows.
+//
+// Warning banner on the Screenshot page when screen capture permission is
+// missing.
+func SnapPermRequired() string { return In(i18n.Locale()).SnapPermRequired() }
+
+// SnapPermRequired says "Screen Recording permission is required to capture windows behind oh-my-toys."
+// in the language of msgs.
+//
+// Warning banner on the Screenshot page when screen capture permission is
+// missing.
+func (msgs Messages) SnapPermRequired() string {
+	return Catalog.Format(msgs.locale, "snapPermRequired", nil)
+}
+
+// SnapRecentTitle says "Recent Captures"
+// in the language the app shows.
+//
+// Section heading on the Screenshot page listing recent PNG captures.
+func SnapRecentTitle() string { return In(i18n.Locale()).SnapRecentTitle() }
+
+// SnapRecentTitle says "Recent Captures"
+// in the language of msgs.
+//
+// Section heading on the Screenshot page listing recent PNG captures.
+func (msgs Messages) SnapRecentTitle() string {
+	return Catalog.Format(msgs.locale, "snapRecentTitle", nil)
+}
+
+// SnapRecentEmpty says "Captured PNG files in your save folder will appear here."
+// in the language the app shows.
+//
+// Empty state when the screenshot folder has no PNG files yet.
+func SnapRecentEmpty() string { return In(i18n.Locale()).SnapRecentEmpty() }
+
+// SnapRecentEmpty says "Captured PNG files in your save folder will appear here."
+// in the language of msgs.
+//
+// Empty state when the screenshot folder has no PNG files yet.
+func (msgs Messages) SnapRecentEmpty() string {
+	return Catalog.Format(msgs.locale, "snapRecentEmpty", nil)
+}
+
+// SnapOpenFolder says "Open Folder"
+// in the language the app shows.
+//
+// Button opening the screenshot save folder.
+func SnapOpenFolder() string { return In(i18n.Locale()).SnapOpenFolder() }
+
+// SnapOpenFolder says "Open Folder"
+// in the language of msgs.
+//
+// Button opening the screenshot save folder.
+func (msgs Messages) SnapOpenFolder() string {
+	return Catalog.Format(msgs.locale, "snapOpenFolder", nil)
+}
+
+// FilterTools says "Filter tools…"
+// in the language the app shows.
+//
+// Search input placeholder on the Home catalog header.
+func FilterTools() string { return In(i18n.Locale()).FilterTools() }
+
+// FilterTools says "Filter tools…"
+// in the language of msgs.
+//
+// Search input placeholder on the Home catalog header.
+func (msgs Messages) FilterTools() string {
+	return Catalog.Format(msgs.locale, "filterTools", nil)
+}
+
+// FilterRows says "Filter rows…"
+// in the language the app shows.
+//
+// Inline filter input placeholder on Action tool result views.
+func FilterRows() string { return In(i18n.Locale()).FilterRows() }
+
+// FilterRows says "Filter rows…"
+// in the language of msgs.
+//
+// Inline filter input placeholder on Action tool result views.
+func (msgs Messages) FilterRows() string {
+	return Catalog.Format(msgs.locale, "filterRows", nil)
+}
+
+// EmptyFolderHint says "Choose a folder above or drop one onto the window to preview changes."
+// in the language the app shows.
+//
+// Empty state guidance on folder-based Action tools before a folder is
+// chosen.
+func EmptyFolderHint() string { return In(i18n.Locale()).EmptyFolderHint() }
+
+// EmptyFolderHint says "Choose a folder above or drop one onto the window to preview changes."
+// in the language of msgs.
+//
+// Empty state guidance on folder-based Action tools before a folder is
+// chosen.
+func (msgs Messages) EmptyFolderHint() string {
+	return Catalog.Format(msgs.locale, "emptyFolderHint", nil)
+}
+
+// EmptyColorHint says "Pick a preset swatch below or enter a HEX, RGB or HSL value above."
+// in the language the app shows.
+//
+// Empty state guidance on a colour tool before a value is entered.
+func EmptyColorHint() string { return In(i18n.Locale()).EmptyColorHint() }
+
+// EmptyColorHint says "Pick a preset swatch below or enter a HEX, RGB or HSL value above."
+// in the language of msgs.
+//
+// Empty state guidance on a colour tool before a value is entered.
+func (msgs Messages) EmptyColorHint() string {
+	return Catalog.Format(msgs.locale, "emptyColorHint", nil)
+}
+
+// PresetSwatches says "Presets"
+// in the language the app shows.
+//
+// Label before preset colour swatches.
+func PresetSwatches() string { return In(i18n.Locale()).PresetSwatches() }
+
+// PresetSwatches says "Presets"
+// in the language of msgs.
+//
+// Label before preset colour swatches.
+func (msgs Messages) PresetSwatches() string {
+	return Catalog.Format(msgs.locale, "presetSwatches", nil)
+}
+
+// RailCompact says "Compact Sidebar"
+// in the language the app shows.
+//
+// Tooltip and accessible label switching the sidebar to 56pt icon-only
+// mode.
+func RailCompact() string { return In(i18n.Locale()).RailCompact() }
+
+// RailCompact says "Compact Sidebar"
+// in the language of msgs.
+//
+// Tooltip and accessible label switching the sidebar to 56pt icon-only
+// mode.
+func (msgs Messages) RailCompact() string {
+	return Catalog.Format(msgs.locale, "railCompact", nil)
+}
+
+// RailExpand says "Expand Sidebar"
+// in the language the app shows.
+//
+// Tooltip and accessible label expanding the compact icon-only sidebar to
+// full width.
+func RailExpand() string { return In(i18n.Locale()).RailExpand() }
+
+// RailExpand says "Expand Sidebar"
+// in the language of msgs.
+//
+// Tooltip and accessible label expanding the compact icon-only sidebar to
+// full width.
+func (msgs Messages) RailExpand() string {
+	return Catalog.Format(msgs.locale, "railExpand", nil)
+}
+
+// ScopeDevPorts says "Dev 3000-9999"
+// in the language the app shows.
+//
+// Filter chip on Ports narrowing to development ports 3000 through 9999.
+func ScopeDevPorts() string { return In(i18n.Locale()).ScopeDevPorts() }
+
+// ScopeDevPorts says "Dev 3000-9999"
+// in the language of msgs.
+//
+// Filter chip on Ports narrowing to development ports 3000 through 9999.
+func (msgs Messages) ScopeDevPorts() string {
+	return Catalog.Format(msgs.locale, "scopeDevPorts", nil)
+}
+
+// ScopeExposed says "Exposed"
+// in the language the app shows.
+//
+// Filter chip on Ports narrowing to wildcard listeners reachable from other
+// machines.
+func ScopeExposed() string { return In(i18n.Locale()).ScopeExposed() }
+
+// ScopeExposed says "Exposed"
+// in the language of msgs.
+//
+// Filter chip on Ports narrowing to wildcard listeners reachable from other
+// machines.
+func (msgs Messages) ScopeExposed() string {
+	return Catalog.Format(msgs.locale, "scopeExposed", nil)
+}
+
+// TonalScale says "Tonal Scale"
+// in the language the app shows.
+//
+// Heading above the 9-step lightness ramp on the Color page.
+func TonalScale() string { return In(i18n.Locale()).TonalScale() }
+
+// TonalScale says "Tonal Scale"
+// in the language of msgs.
+//
+// Heading above the 9-step lightness ramp on the Color page.
+func (msgs Messages) TonalScale() string {
+	return Catalog.Format(msgs.locale, "tonalScale", nil)
+}
+
+// DupesGroup says "{size} each · {count, plural, one {# copy} other {# copies}}"
+// in the language the app shows.
+//
+// Duplicate cluster heading. {size} is the file size and {count} is the
+// number of identical copies.
+func DupesGroup(size string, count int) string { return In(i18n.Locale()).DupesGroup(size, count) }
+
+// DupesGroup says "{size} each · {count, plural, one {# copy} other {# copies}}"
+// in the language of msgs.
+//
+// Duplicate cluster heading. {size} is the file size and {count} is the
+// number of identical copies.
+func (msgs Messages) DupesGroup(size string, count int) string {
+	return Catalog.Format(msgs.locale, "dupesGroup", map[string]any{"size": size, "count": count})
+}
+
+// SelectAll says "Select All"
+// in the language the app shows.
+//
+// Header checkbox label toggling all selectable plan rows.
+func SelectAll() string { return In(i18n.Locale()).SelectAll() }
+
+// SelectAll says "Select All"
+// in the language of msgs.
+//
+// Header checkbox label toggling all selectable plan rows.
+func (msgs Messages) SelectAll() string {
+	return Catalog.Format(msgs.locale, "selectAll", nil)
+}
+
+// SelectedCount says "{count} of {total} selected"
+// in the language the app shows.
+//
+// Summary count in an action footer when rows are checkable. {count} is
+// checked and {total} is selectable.
+func SelectedCount(count string, total string) string {
+	return In(i18n.Locale()).SelectedCount(count, total)
+}
+
+// SelectedCount says "{count} of {total} selected"
+// in the language of msgs.
+//
+// Summary count in an action footer when rows are checkable. {count} is
+// checked and {total} is selectable.
+func (msgs Messages) SelectedCount(count string, total string) string {
+	return Catalog.Format(msgs.locale, "selectedCount", map[string]any{"count": count, "total": total})
+}

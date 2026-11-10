@@ -5,7 +5,7 @@ import (
 	"errors"
 	"log"
 	"maps"
-	"strconv"
+	"slices"
 	"strings"
 	"time"
 
@@ -23,18 +23,22 @@ import (
 const planTimeout = 10 * time.Minute
 
 type actionState struct {
-	input     tool.Input
-	plan      tool.Plan
-	err       error
-	busy      bool
-	busyUntil time.Time
-	result    string
-	cancel    context.CancelFunc
-	version   int
-	table     comp.TableState
-	rows      ui.ListState
-	inputs    map[string]*string
-	started   bool
+	input       tool.Input
+	plan        tool.Plan
+	err         error
+	busy        bool
+	busyUntil   time.Time
+	result      string
+	cancel      context.CancelFunc
+	version     int
+	table       comp.TableState
+	rows        ui.ListState
+	filter      string
+	filterInput ui.Handle
+	selected    []bool
+	portScope   string
+	inputs      map[string]*string
+	started     bool
 }
 
 func (a *App) action(id string) *actionState {
@@ -61,6 +65,11 @@ func (a *App) actionPage(c *ui.Context, t tool.Action) {
 			Title:       m.Name(msgs()),
 			Badge:       s.plan.Summary,
 			Description: m.Summary(msgs()),
+			Meta: func() {
+				cmd := buildActionCLI(t, s)
+				comp.RiskBadge(c, actionRisk(t))
+				a.kit.CLICopyPill(c.Key("cli"), cmd, i18n.CopyCommand(), i18n.Copied(cmd))
+			},
 		})
 		a.fields(c, t, s)
 		a.planView(c, t, s)
@@ -77,19 +86,61 @@ func (a *App) fields(c *ui.Context, t tool.Action, s *actionState) {
 	if len(fs) == 0 {
 		return
 	}
-	a.kit.Panel(c, comp.PanelOpts{
-		Title: t.Manifest().Name(msgs()),
-		Glyph: t.Manifest().Icon,
-		Actions: func() {
-			if a.kit.Button(c.Key("refresh"), i18n.Refresh(), comp.ButtonOpts{Kind: comp.Ghost, Small: true}).Clicked() {
+	comp.Card(c).FillWidth().Padding(ds.Space10, ds.Space12).Gap(ds.Space8).Children(func() {
+		ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.End).Wrap().Children(func() {
+			for _, f := range fs {
+				ui.Box(c.Key("box:" + f.Name)).Grow(1).Basis(180).MinWidth(160).Children(func() {
+					a.field(c, t, s, f)
+				})
+			}
+			if len(s.plan.Rows) > 8 {
+				a.kit.SearchField(c.Key("act-filter"), &s.filter, &s.filterInput, comp.SearchFieldOpts{
+					Placeholder: i18n.FilterRows(),
+					Width:       190,
+				})
+			}
+			if a.kit.Button(c.Key("refresh"), i18n.Refresh(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
 				a.replan(context.Background(), t, s)
 			}
-		},
-	}, func() {
-		for _, f := range fs {
-			a.field(c, t, s, f)
+		})
+		if colorField, ok := hasColorField(fs); ok {
+			a.colorSwatchRow(c, t, s, colorField)
 		}
 	})
+}
+
+func actionRisk(t tool.Action) tool.Risk {
+	for _, name := range []string{tool.ActionApply, tool.ActionPlan} {
+		if spec, ok := core.SpecOf(t, name); ok {
+			return spec.Risk
+		}
+	}
+	return tool.RiskRead
+}
+
+// buildActionCLI is the omt command that runs the action with the current
+// inputs, as the CLI copy pill shows it.
+func buildActionCLI(t tool.Action, s *actionState) string {
+	var b strings.Builder
+	b.WriteString("omt " + t.Manifest().ID)
+	for _, k := range slices.Sorted(maps.Keys(s.input)) {
+		if v := s.input[k]; v != "" {
+			b.WriteString(" --" + k + " " + quoteArg(v))
+		}
+	}
+	if s.plan.ApplyLabel != "" {
+		b.WriteString(" --apply")
+	}
+	return b.String()
+}
+
+// quoteArg quotes a flag value only when it holds a space, as the CLI copy
+// pill shows it.
+func quoteArg(v string) string {
+	if !strings.ContainsAny(v, " \t") {
+		return v
+	}
+	return shellQuote(v)
 }
 
 func (a *App) field(c *ui.Context, t tool.Action, s *actionState, f core.Field) {
@@ -128,20 +179,9 @@ func (a *App) folderField(c *ui.Context, t tool.Action, s *actionState, f core.F
 				a.replan(context.Background(), t, s)
 			}
 		})
-		if !a.kit.Button(c.Key("choose"), i18n.ChooseFolder(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
-			return
+		if a.kit.Button(c.Key("choose"), i18n.ChooseFolder(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
+			a.openFolderPicker(t, s, f.Name)
 		}
-		go func() {
-			paths, err := mygo.Dialog.Open(mygo.OpenDialogOptions{Directory: true, Parent: a.main})
-			if err != nil || len(paths) == 0 {
-				return
-			}
-			a.Post(func() {
-				*v = paths[0]
-				s.input[f.Name] = paths[0]
-				a.replan(context.Background(), t, s)
-			})
-		}()
 	})
 	_ = p
 }
@@ -165,6 +205,7 @@ func (a *App) replan(ctx context.Context, t tool.Action, s *actionState) {
 				return
 			}
 			s.plan, s.err = plan, err
+			s.resetSelection()
 			s.finishBusy()
 		})
 	})
@@ -180,11 +221,12 @@ func problem(err error) string {
 }
 
 func (a *App) apply(t tool.Action, s *actionState) {
-	if s.plan.Destructive {
-		a.confirmPlan(t, s, s.plan)
+	plan := s.effectivePlan()
+	if plan.Destructive {
+		a.confirmPlan(t, s, plan)
 		return
 	}
-	a.runApply(t, s, s.plan)
+	a.runApply(t, s, plan)
 }
 
 func (a *App) confirmPlan(t tool.Action, s *actionState, plan tool.Plan) {
@@ -259,139 +301,46 @@ func (a *App) showBusyLine(c *ui.Context) bool {
 }
 
 func (a *App) planView(c *ui.Context, t tool.Action, s *actionState) {
-	rows := a.filterRows(s.plan.Rows)
+	indices := filterActionIndices(s.filter, s.plan.Rows)
+	rows := rowsAt(s.plan.Rows, indices)
 	switch {
-	case len(rows) > 0 && rows[0].Process != nil:
+	case len(s.plan.Rows) > 0 && s.plan.Rows[0].Process != nil:
 		a.portsTable(c, t, s, rows)
 	case len(s.plan.Columns) == 3 && len(rows) > 0:
-		a.resultList(c, t, s, rows)
+		a.resultList(c, t, s, rows, indices)
 	default:
-		a.plainRows(c, t, s, rows)
+		a.plainRows(c, t, s, rows, indices)
 	}
 }
 
-func (a *App) filterRows(rows []tool.Row) []tool.Row {
-	q := strings.ToLower(strings.TrimSpace(a.pageFilter))
-	if q == "" {
-		return rows
-	}
-	var out []tool.Row
-	for _, r := range rows {
-		if strings.Contains(strings.ToLower(r.Title+" "+r.Detail), q) {
-			out = append(out, r)
+func filterActionIndices(query string, rows []tool.Row) []int {
+	q := strings.ToLower(strings.TrimSpace(query))
+	out := make([]int, 0, len(rows))
+	for i, r := range rows {
+		if q == "" || strings.Contains(strings.ToLower(r.Title+" "+r.Detail+" "+strings.Join(r.Cells, " ")), q) {
+			out = append(out, i)
 		}
 	}
 	return out
 }
 
-func (a *App) portsTable(c *ui.Context, t tool.Action, s *actionState, rows []tool.Row) {
+func rowsAt(rows []tool.Row, indices []int) []tool.Row {
+	out := make([]tool.Row, len(indices))
+	for i, idx := range indices {
+		out[i] = rows[idx]
+	}
+	return out
+}
+
+func (a *App) resultList(c *ui.Context, t tool.Action, s *actionState, rows []tool.Row, indices []int) {
 	p := ds.P(c)
-	text := make([][]string, len(rows))
-	for i, r := range rows {
-		text[i] = r.Cells
-	}
-	cols := []comp.Column{
-		{Label: i18n.ColPort(), Share: 2},
-		{Label: i18n.ColProcess(), Share: 3},
-		{Label: i18n.ColPID(), Share: 2},
-		{Label: i18n.ColAddress(), Share: 3},
-		{Label: i18n.ColAction(), Share: 2, End: true},
-	}
-	a.kit.DataTable(c, &s.table, comp.Table{
-		Cols: cols,
-		Text: text,
-		Cell: func(row, col int) { a.portsCell(c, t, s, rows[row], col, p) },
-		Menu: func(m *ui.Menu, row int) { a.portsRowMenu(m, t, s, rows[row]) },
-		Delete: func(row int) {
-			if rows[row].Process != nil && !rows[row].Process.System {
-				a.killPortRow(t, s, rows[row])
-			}
-		},
-	})
-}
-
-func (a *App) portsCell(c *ui.Context, t tool.Action, s *actionState, r tool.Row, col int, p *ds.Palette) {
-	switch col {
-	case 0:
-		ui.Row(c).Gap(ds.Space6).AlignItems(ui.Center).Children(func() {
-			comp.Text(c, r.Cells[0], ds.Badge, p.AccentText).FontFeatures(ds.Tabular)
-			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive})
-		})
-	case 1:
-		ui.Row(c).Gap(ds.ProcessGap).MinWidth(0).AlignItems(ui.Center).Children(func() {
-			if r.Process != nil {
-				a.kit.ProcessIcon(c, a.procs, *r.Process)
-			}
-			comp.Value(c, r.Cells[1], p.TextStrong).Ellipsis("…").Shrink(1).MinWidth(0)
-		})
-	case 2, 3:
-		comp.Value(c, r.Cells[col], p.TextMuted).Ellipsis("…")
-	case 4:
-		if r.Process != nil && r.Process.System {
-			ui.Row(c).Gap(ds.Space4).AlignItems(ui.Center).Children(func() {
-				a.kit.Glyph(c, "lock", ds.GlyphSm, p.TextMuted)
-				comp.Value(c, i18n.Protected(), p.TextMuted)
-			})
-			return
-		}
-		if a.kit.Button(c.Key("kill:"+r.Value+":"+r.Cells[2]), i18n.Kill(), comp.ButtonOpts{
-			Kind: comp.Danger, Small: true, Square: true,
-		}).Clicked() {
-			a.killPortRow(t, s, r)
-		}
-	}
-}
-
-func (a *App) killPortRow(t tool.Action, s *actionState, r tool.Row) {
-	pid, _ := strconv.Atoi(r.Cells[2])
-	a.askDialog(comp.DialogOpts{
-		Title:       i18n.KillProcessTitle(r.Cells[1], pid),
-		Description: i18n.KillConsequence(),
-		Items:       []comp.DialogItem{{Process: r.Process, Text: r.Cells[1] + "  " + r.Cells[0] + "  pid " + r.Cells[2]}},
-		Cancel:      i18n.Cancel(),
-		Confirm:     i18n.PortsEnd(1),
-		Destructive: true,
-		OnConfirm: func() {
-			a.opt.Runner.Go(context.Background(), t.Manifest().ID, planTimeout, func(ctx context.Context) {
-				plan, err := t.Plan(ctx, tool.Input{"port": r.Value})
-				if err == nil && plan.Destructive {
-					_, _ = t.Apply(ctx, plan)
-				}
-				a.Post(func() { a.replan(context.WithoutCancel(ctx), t, s) })
-			})
-		},
-	})
-}
-
-func (a *App) portsRowMenu(m *ui.Menu, t tool.Action, s *actionState, r tool.Row) {
-	if m.Item(i18n.CopyPort()).Chosen() {
-		mygo.Clipboard.WriteText(r.Value)
-	}
-	if m.Item(i18n.CopyPID()).Chosen() {
-		mygo.Clipboard.WriteText(r.Cells[2])
-	}
-	if m.Item(i18n.CopyAddress()).Chosen() {
-		mygo.Clipboard.WriteText(r.Cells[3])
-	}
-	m.Separator()
-	if m.Item(i18n.KillProcess()).Disabled(r.Process != nil && r.Process.System).Chosen() {
-		a.killPortRow(t, s, r)
-	}
-}
-
-func (a *App) resultList(c *ui.Context, t tool.Action, s *actionState, rows []tool.Row) {
-	p := ds.P(c)
-	text := make([][]string, len(rows))
-	for i, r := range rows {
-		text[i] = []string{r.Cells[0], "→", r.Cells[1], r.Cells[2]}
-	}
-	cols := []comp.Column{
-		{Label: s.plan.Columns[0], Share: 5},
-		{Label: "", Share: 1},
-		{Label: s.plan.Columns[1], Share: 5},
-		{Label: s.plan.Columns[2], Share: 2, End: true},
-	}
+	checkable := hasSelectable(s.plan.Rows)
+	text := resultTableText(rows, checkable)
+	cols := resultTableCols(s.plan.Columns, checkable)
 	ui.Column(c).Grow(1).FillWidth().Gap(ds.Space8).Children(func() {
+		if checkable {
+			a.selectionBar(c, s)
+		}
 		a.kit.DataTable(c, &s.table, comp.Table{
 			Cols: cols,
 			Text: text,
@@ -401,24 +350,69 @@ func (a *App) resultList(c *ui.Context, t tool.Action, s *actionState, rows []to
 				}
 				return comp.ToneNeutral
 			},
-			Cell: func(row, col int) { resultCell(c, rows[row], col, p) },
+			Cell: func(row, col int) { a.resultTableCell(c, s, rows[row], indices[row], col, checkable, p) },
 		})
 		a.resultFooter(c, t, s)
 	})
 }
 
+func resultTableText(rows []tool.Row, checkable bool) [][]string {
+	text := make([][]string, len(rows))
+	for i, r := range rows {
+		if checkable {
+			text[i] = []string{"", r.Cells[0], "→", r.Cells[1], r.Cells[2]}
+		} else {
+			text[i] = []string{r.Cells[0], "→", r.Cells[1], r.Cells[2]}
+		}
+	}
+	return text
+}
+
+func resultTableCols(headers []string, checkable bool) []comp.Column {
+	cols := []comp.Column{
+		{Label: headers[0], Share: 5},
+		{Label: "", Share: 1},
+		{Label: headers[1], Share: 5},
+		{Label: headers[2], Share: 2, End: true},
+	}
+	if checkable {
+		cols = append([]comp.Column{{Label: "", Share: 0.7}}, cols...)
+	}
+	return cols
+}
+
+func (a *App) resultTableCell(c *ui.Context, s *actionState, r tool.Row, origIdx, col int, checkable bool, p *ds.Palette) {
+	if checkable {
+		if col == 0 {
+			a.rowCheckBox(c, s, origIdx)
+			return
+		}
+		resultCell(c, r, col-1, p)
+		return
+	}
+	resultCell(c, r, col, p)
+}
+
 func resultCell(c *ui.Context, r tool.Row, col int, p *ds.Palette) {
 	switch col {
 	case 0:
+		if r.Cells[0] != r.Cells[1] {
+			diffFrom(c, r, p)
+			return
+		}
 		comp.Value(c, r.Cells[0], p.TextMuted).Ellipsis("…")
 	case 1:
 		comp.Value(c, "→", p.TextMuted)
 	case 2:
-		ink := p.TextStrong
 		if r.Tone == tool.ToneWarning {
-			ink = p.Warning
+			comp.Value(c, r.Cells[1], p.Warning).Ellipsis("…")
+			return
 		}
-		comp.Value(c, r.Cells[1], ink).Ellipsis("…")
+		if r.Cells[0] == r.Cells[1] {
+			comp.Value(c, r.Cells[1], p.TextStrong).Ellipsis("…")
+			return
+		}
+		diffTo(c, r, p)
 	case 3:
 		tone := comp.ToneNeutral
 		if r.Tone == tool.ToneWarning {
@@ -429,27 +423,42 @@ func resultCell(c *ui.Context, r tool.Row, col int, p *ds.Palette) {
 }
 
 func (a *App) resultFooter(c *ui.Context, t tool.Action, s *actionState) {
+	eff := s.effectivePlan()
 	if s.plan.ApplyLabel == "" && s.result == "" {
 		return
 	}
 	p := ds.P(c)
 	ui.Row(c).FillWidth().Padding(ds.ResultFootPad, ds.TableCellPad).Gap(ds.Space12).AlignItems(ui.Center).
 		Radius(ds.RadiusSm).Background(p.BgTitlebar).Border(ds.LineWidth, p.Line).Children(func() {
-		text, ink := s.plan.Summary, p.TextSecondary
+		cmd := buildActionCLI(t, s)
+		comp.RiskBadge(c, actionRisk(t))
+		text, ink := eff.Summary, p.TextSecondary
 		if s.result != "" {
 			text, ink = s.result, p.Success
 		}
 		comp.Text(c, text, ds.Caption, ink).Grow(1)
-		if s.plan.ApplyLabel != "" && !s.busy && s.err == nil {
-			if a.kit.Button(c.Key("apply"), s.plan.ApplyLabel, comp.ButtonOpts{Kind: comp.Primary}).Clicked() {
+		a.kit.CLICopyPill(c.Key("footer-cli"), cmd, i18n.CopyCommand(), i18n.Copied(cmd))
+		if eff.ApplyLabel != "" && !s.busy && s.err == nil {
+			if a.kit.Button(c.Key("apply"), eff.ApplyLabel, comp.ButtonOpts{Kind: comp.Primary}).Clicked() {
 				a.apply(t, s)
 			}
 		}
 	})
 }
 
-func (a *App) plainRows(c *ui.Context, t tool.Action, s *actionState, rows []tool.Row) {
+func (a *App) plainRows(c *ui.Context, t tool.Action, s *actionState, rows []tool.Row, indices []int) {
 	if len(rows) == 0 {
+		a.actionEmptyCard(c, t, s)
+		return
+	}
+	if s.plan.ApplyLabel == "" {
+		if _, ok := parseHexSwatch(s.plan.Summary); ok {
+			a.colorStudioView(c, t, s, strings.TrimSpace(s.plan.Summary), rows)
+			return
+		}
+	}
+	if hasGroups(s.plan.Rows) {
+		a.groupedPlainRows(c, t, s, indices)
 		return
 	}
 	comp.Card(c).Grow(1).FillWidth().Clip().Children(func() {
@@ -491,9 +500,12 @@ func (a *App) plainRow(c *ui.Context, r tool.Row) {
 	}
 	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Gap(ds.Space12).Radius(ds.RadiusXs).
 		Background(fill).AlignItems(ui.Center).Children(func() {
+		if col, ok := swatchOf(r); ok {
+			swatchBox(c, col, p)
+		}
 		comp.Value(c, r.Title, p.TextPrimary).Ellipsis("…").Shrink(1).MinWidth(0)
 		ui.Spacer(c)
-		comp.Value(c, r.Detail, detail).Ellipsis("…").Shrink(1).MinWidth(0)
+		plainDetail(c, r, detail)
 	})
 }
 

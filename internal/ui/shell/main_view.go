@@ -48,13 +48,29 @@ func (a *App) mainShortcuts(c *ui.Context) {
 	c.OnShortcut(ui.Cmd, ui.KeyF, a.showPalette)
 	c.OnShortcut(ui.Cmd, ui.KeyComma, func() { a.open(pageSettings) })
 	c.OnShortcut(ui.Cmd|ui.Shift, ui.KeyS, a.toggleSidebar)
+	c.OnShortcut(ui.Cmd|ui.Shift, ui.KeyB, func() { a.sideCompact = !a.sideCompact })
 	c.OnShortcut(ui.Cmd, ui.KeyW, a.main.Hide)
 	c.OnShortcut(ui.Cmd, ui.KeyQ, mygo.App.Quit)
-	all := a.reg.All()
-	for i := range min(len(all), ds.SidebarMaxJump) {
-		id := all[i].Manifest().ID
+	jump := a.jumpTools()
+	for i := range min(len(jump), ds.SidebarMaxJump) {
+		id := jump[i].Manifest().ID
 		c.OnShortcut(ui.Cmd, ui.Key1+ui.Key(i), func() { a.open(id) })
 	}
+}
+
+func (a *App) jumpTools() []tool.Tool {
+	seen := map[string]bool{}
+	var out []tool.Tool
+	for _, t := range a.pinnedTools() {
+		seen[t.Manifest().ID] = true
+		out = append(out, t)
+	}
+	for _, t := range a.reg.All() {
+		if !seen[t.Manifest().ID] {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 // titlebar is the 48pt strip under the OS window controls: app icon and
@@ -75,6 +91,7 @@ func (a *App) titlebar(c *ui.Context) {
 		a.breadcrumbs(c)
 		a.paletteTrigger(c)
 		ui.Row(c).Grow(1).Basis(0).Justify(ui.End).AlignItems(ui.Center).Children(func() {
+			a.activeStatus(c)
 			a.themeSegment(c)
 		})
 	})
@@ -91,12 +108,19 @@ func (a *App) paletteTrigger(c *ui.Context) {
 		fill = p.FillControlHover
 	}
 	b.Width(ds.SearchWidth).MinWidth(ds.SearchMinWidth).Shrink(1).Height(ds.ControlLg).
-		Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).Radius(ds.RadiusFull).
-		Background(fill).Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center).Children(func() {
+		Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).Radius(ds.RadiusSm).
+		Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center).Children(func() {
 		a.kit.Glyph(c, "search", ds.SearchGlyph, p.TextMuted)
 		comp.Text(c, i18n.PaletteHint(), ds.Label, p.TextMuted).Grow(1).SingleLine().TextAlign(ui.Start)
 		comp.Kbd(c, modKey("K"))
 	})
+}
+
+// activeStatus is the titlebar's live pill: how many tools are on, when any is.
+func (a *App) activeStatus(c *ui.Context) {
+	if n := len(a.reg.Running()); n > 0 {
+		comp.Badge(c, i18n.ActiveRunsCount(n), comp.ToneSuccess)
+	}
 }
 
 func (a *App) breadcrumbs(c *ui.Context) {
@@ -111,6 +135,9 @@ func (a *App) breadcrumbs(c *ui.Context) {
 	crumbStyle.Weight = ds.Semibold
 	ui.Row(c).Grow(1).Basis(0).MinWidth(0).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
 		a.sidebarPinButton(c)
+		if !a.sideHidden {
+			a.sidebarCompactButton(c)
+		}
 		a.kit.AppIcon(c, ds.TitlebarGlyph)
 		comp.Text(c, i18n.AppName(), appStyle, ink).SingleLine()
 		comp.Text(c, "›", ds.Label, p.TextMuted).SingleLine()

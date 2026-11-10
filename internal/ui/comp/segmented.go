@@ -11,16 +11,16 @@ import (
 func Segmented(c *ui.Context, selected *int, options []string, label string) ui.Element {
 	p := ds.P(c)
 	seg := ui.SegmentedBase(c, selected, len(options))
-	seg.Track.Label(label).Height(ds.ControlMd).Padding(ds.Space2).Radius(ds.RadiusFull).
+	seg.Track.Label(label).Height(ds.ControlMd).Padding(ds.Space2).Radius(ds.RadiusSm).
 		Background(p.FillControl).Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center)
 	seg.Track.Children(func() {
 		for i, name := range options {
 			chosen := i == *selected
-			s := seg.Segment(i).Label(name).Cursor(ui.CursorDefault).Radius(ds.RadiusFull).AlignItems(ui.Center)
+			s := seg.Segment(i).Label(name).Cursor(ui.CursorDefault).Radius(ds.RadiusXs).AlignItems(ui.Center)
 			style, ink, padX := ds.Caption, p.TextInactive, float32(ds.Space8)
 			if chosen {
-				style.Weight, ink, padX = ds.Semibold, p.OnThumb, ds.Space10
-				s.Background(p.Thumb)
+				style.Weight, ink, padX = ds.Semibold, p.TextStrong, ds.Space10
+				s.Background(p.BgSelected).Border(ds.LineWidth, p.LineControl)
 				ds.ApplyShadow(s, ds.S(c).ShadowXs)
 			}
 			s.Padding(0, padX).Children(func() { Text(c, name, style, ink).SingleLine() })
@@ -38,8 +38,8 @@ func Chip(c *ui.Context, label string, active bool) ui.Element {
 	style.Weight = ds.Label.Weight
 	b.Height(ds.ControlMd).Radius(ds.RadiusFull).AlignItems(ui.Center)
 	if active {
-		style.Weight, ink, padX = ds.Semibold, p.OnInverse, ds.Space12
-		b.Background(p.Inverse)
+		style.Weight, ink, padX = ds.Semibold, p.AccentText, ds.Space12
+		b.Background(p.AccentSoft).Border(ds.LineWidth, p.AccentLine)
 	} else {
 		if b.Hovered() {
 			ink = p.TextStrong

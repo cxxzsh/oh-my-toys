@@ -47,7 +47,7 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 			if ev.Kind != ui.InputPointerDown || ev.Button != 1 {
 				return false
 			}
-			a.snapCancel()
+			a.snapStepBack()
 			return true
 		})
 	pressed := surface.Pressed()
@@ -72,6 +72,29 @@ func (a *App) snapView(c *ui.Context, ov *snapOverlay) {
 			a.snapHud(c, ov, s, pal)
 			a.snapTextEditor(c, ov, s, pal)
 		})
+}
+
+// snapStepBack is a right click: it steps back one thing at a time, the label
+// being typed, then the annotation tool, then the selection, and cancels the
+// capture only when nothing is left.
+func (a *App) snapStepBack() {
+	s := a.snap
+	if s == nil {
+		return
+	}
+	switch {
+	case s.text != nil:
+		s.text = nil
+		a.registerSnapKeys()
+	case s.tool != snapToolNone:
+		s.tool = snapToolNone
+	case !s.sel.Empty():
+		s.sel = image.Rectangle{}
+	default:
+		a.snapCancel()
+		return
+	}
+	a.snapInvalidate()
 }
 
 // snapToolKeys puts an annotation tool in hand from the keyboard: a, m or

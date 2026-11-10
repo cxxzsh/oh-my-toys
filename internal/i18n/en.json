@@ -1638,7 +1638,9 @@
   "@trafficFlowCountOf": {
     "description": "Flow count in the bottom bar when a filter narrows the list: the flows shown, out of the flows the log holds.",
     "placeholders": {
-      "shown": {"type": "int"},
+      "shown": {
+        "type": "int"
+      },
       "total": {}
     }
   },
@@ -2459,5 +2461,153 @@
   "trafficMenuScoped": "Capturing only {name}",
   "@trafficMenuScoped": {
     "description": "Toast after the capture was scoped to one program. {name} is the program name."
+  },
+  "activeRunsCount": "{count, plural, one {# running} other {# running}}",
+  "@activeRunsCount": {
+    "description": "Titlebar pill showing how many background tools are active. {count} is the number of running tools."
+  },
+  "activeDaemons": "Active Runs",
+  "@activeDaemons": {
+    "description": "Section heading on Home for running background tools."
+  },
+  "copyCommand": "Copy omt Command",
+  "@copyCommand": {
+    "description": "Button and tooltip copying the equivalent omt CLI command."
+  },
+  "directCommand": "Direct Command",
+  "@directCommand": {
+    "description": "Command palette section heading for a parsed inline command."
+  },
+  "agentsSection": "CLI & MCP Agents",
+  "@agentsSection": {
+    "description": "Settings section title for CLI and MCP integration."
+  },
+  "agentsMcpTitle": "MCP Server Configuration",
+  "@agentsMcpTitle": {
+    "description": "Settings row title for omt mcp JSON snippet."
+  },
+  "agentsMcpDesc": "Add to Claude Code, Cursor or any MCP client to expose typed plan and apply tools.",
+  "@agentsMcpDesc": {
+    "description": "Settings row description for omt mcp."
+  },
+  "agentsRiskTitle": "Execution Risk Policy",
+  "@agentsRiskTitle": {
+    "description": "Settings row title explaining action risk levels."
+  },
+  "agentsRiskDesc": "Write and process actions require explicit confirmation; read actions never mutate state.",
+  "@agentsRiskDesc": {
+    "description": "Settings row description explaining risk confirmation."
+  },
+  "copyConfig": "Copy JSON",
+  "@copyConfig": {
+    "description": "Button copying the MCP configuration snippet."
+  },
+  "inspectorTitle": "Process Inspector",
+  "@inspectorTitle": {
+    "description": "Side pane title on the Ports tool page."
+  },
+  "inspectorEmpty": "Select a listening port row to inspect its process and CLI command.",
+  "@inspectorEmpty": {
+    "description": "Placeholder in the Ports side inspector when no row is selected."
+  },
+  "bindLocal": "Loopback",
+  "@bindLocal": {
+    "description": "Badge beside a 127.0.0.1 or ::1 listening address."
+  },
+  "bindExposed": "Exposed",
+  "@bindExposed": {
+    "description": "Badge beside a wildcard 0.0.0.0 or * listening address."
+  },
+  "endSelectedProcess": "End Process",
+  "@endSelectedProcess": {
+    "description": "Button in the Ports side inspector ending the selected process."
+  },
+  "holdManual": "Manual Hold",
+  "@holdManual": {
+    "description": "Label of the manual run card on a switch tool page."
+  },
+  "holdSchedule": "Schedule Hold",
+  "@holdSchedule": {
+    "description": "Label of the weekly schedule card on a switch tool page."
+  },
+  "holdActive": "Holding",
+  "@holdActive": {
+    "description": "Badge when a manual or scheduled hold is currently keeping the switch on."
+  },
+  "holdStandby": "Standby",
+  "@holdStandby": {
+    "description": "Badge when a hold source is enabled but not currently active."
+  },
+  "holdDisabled": "Off",
+  "@holdDisabled": {
+    "description": "Badge when a hold source is turned off."
+  },
+  "snapPermRequired": "Screen Recording permission is required to capture windows behind oh-my-toys.",
+  "@snapPermRequired": {
+    "description": "Warning banner on the Screenshot page when screen capture permission is missing."
+  },
+  "snapRecentTitle": "Recent Captures",
+  "@snapRecentTitle": {
+    "description": "Section heading on the Screenshot page listing recent PNG captures."
+  },
+  "snapRecentEmpty": "Captured PNG files in your save folder will appear here.",
+  "@snapRecentEmpty": {
+    "description": "Empty state when the screenshot folder has no PNG files yet."
+  },
+  "snapOpenFolder": "Open Folder",
+  "@snapOpenFolder": {
+    "description": "Button opening the screenshot save folder."
+  },
+  "filterTools": "Filter tools…",
+  "@filterTools": {
+    "description": "Search input placeholder on the Home catalog header."
+  },
+  "filterRows": "Filter rows…",
+  "@filterRows": {
+    "description": "Inline filter input placeholder on Action tool result views."
+  },
+  "emptyFolderHint": "Choose a folder above or drop one onto the window to preview changes.",
+  "@emptyFolderHint": {
+    "description": "Empty state guidance on folder-based Action tools before a folder is chosen."
+  },
+  "emptyColorHint": "Pick a preset swatch below or enter a HEX, RGB or HSL value above.",
+  "@emptyColorHint": {
+    "description": "Empty state guidance on a colour tool before a value is entered."
+  },
+  "presetSwatches": "Presets",
+  "@presetSwatches": {
+    "description": "Label before preset colour swatches."
+  },
+  "railCompact": "Compact Sidebar",
+  "@railCompact": {
+    "description": "Tooltip and accessible label switching the sidebar to 56pt icon-only mode."
+  },
+  "railExpand": "Expand Sidebar",
+  "@railExpand": {
+    "description": "Tooltip and accessible label expanding the compact icon-only sidebar to full width."
+  },
+  "scopeDevPorts": "Dev 3000-9999",
+  "@scopeDevPorts": {
+    "description": "Filter chip on Ports narrowing to development ports 3000 through 9999."
+  },
+  "scopeExposed": "Exposed",
+  "@scopeExposed": {
+    "description": "Filter chip on Ports narrowing to wildcard listeners reachable from other machines."
+  },
+  "tonalScale": "Tonal Scale",
+  "@tonalScale": {
+    "description": "Heading above the 9-step lightness ramp on the Color page."
+  },
+  "dupesGroup": "{size} each · {count, plural, one {# copy} other {# copies}}",
+  "@dupesGroup": {
+    "description": "Duplicate cluster heading. {size} is the file size and {count} is the number of identical copies."
+  },
+  "selectAll": "Select All",
+  "@selectAll": {
+    "description": "Header checkbox label toggling all selectable plan rows."
+  },
+  "selectedCount": "{count} of {total} selected",
+  "@selectedCount": {
+    "description": "Summary count in an action footer when rows are checkable. {count} is checked and {total} is selectable."
   }
 }

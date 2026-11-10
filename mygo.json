@@ -32,8 +32,7 @@
   "main": "./cmd/oh-my-toys",
   "icon": "design/app-icon.png",
   "resources": [
-    "design/fonts/Geist-OFL.txt",
-    "design/fonts/JetBrainsMono-OFL.txt",
+    "design/fonts/IBMPlex-OFL.txt",
     "design/fonts/NOTICE.txt"
   ]
 }

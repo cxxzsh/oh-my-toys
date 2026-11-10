@@ -80,25 +80,25 @@ func CategoryColors(c *ui.Context, cat tool.Category) (ink, fill ui.Color) {
 	return p.CatApp, p.CatAppSoft
 }
 
-// CategoryBadge is a tool's category as an uppercase pastel pill.
+// CategoryBadge is a tool's category as a machined uppercase tag.
 func CategoryBadge(c *ui.Context, cat tool.Category, label string) ui.Element {
 	ink, fill := CategoryColors(c, cat)
-	style := ds.Caption
-	style.Weight, style.Tracking = ds.Bold, ds.CategoryTracking
-	return ui.Row(c).Height(ds.CategoryHeight).Padding(0, ds.Space8).Radius(ds.RadiusFull).Background(fill).
+	style := ds.Badge
+	style.Tracking = ds.CategoryTracking
+	return ui.Row(c).Height(ds.CategoryHeight).Padding(0, ds.Space6).Radius(ds.RadiusXs).Background(fill).
 		AlignItems(ui.Center).Children(func() {
 		Text(c, strings.ToUpper(label), style, ink).SingleLine()
 	})
 }
 
-// ProgressBar is a 6pt track for long work; fraction is 0 to 1. The
-// gradient is the design system's one: nowhere else.
+// ProgressBar is a 5pt linear track for timed runs and long work; fraction is 0 to 1.
 func ProgressBar(c *ui.Context, fraction float32) ui.Element {
 	p := ds.P(c)
-	return ui.Box(c).FillWidth().Height(ds.ProgressHeight).Radius(ds.RadiusFull).Background(p.SandboxBg).Clip().
+	return ui.Box(c).FillWidth().Height(ds.ProgressHeight).Radius(ds.RadiusFull).
+		Background(p.FillControlHover).Border(ds.LineWidth, p.LineHairline).Clip().
 		Children(func() {
-			ui.Box(c).WidthPercent(max(0, min(fraction, 1))*ds.PercentFull).FillHeight().
-				Gradient(p.SandboxBlue, p.SandboxPurple, 90)
+			ui.Box(c).WidthPercent(max(0, min(fraction, 1)) * ds.PercentFull).FillHeight().
+				Radius(ds.RadiusFull).Background(p.Live)
 		})
 }
 
@@ -116,14 +116,8 @@ const BusySweep = 900 * time.Millisecond
 // titlebar; dark keeps the cyan streak that glows on it.
 func ProgressBusy(c *ui.Context) ui.Element {
 	p := ds.P(c)
-	var ink, from ui.Color
-	if c.Theme().Dark {
-		ink = p.SandboxCyan
-		from = ink.Alpha(0)
-	} else {
-		ink = p.Accent
-		from = ink.Alpha(0.15)
-	}
+	ink := p.AccentStrong
+	from := ink.Alpha(0.12)
 	line := ui.Box(c).Absolute().Top(0).Left(0).Right(0).Height(ds.BusyLine).Clip()
 	at := line.Loop("busy", BusySweep, ui.Linear) * (ds.PercentFull - busyShare)
 	return line.Children(func() {

@@ -232,8 +232,8 @@ func (st *trafficState) clearFilter() {
 func (a *App) trafficSearchField(c *ui.Context, st *trafficState) {
 	p := ds.P(c)
 	box := ui.Row(c).MinWidth(trafficSearchMinWidth).MaxWidth(trafficSearchMaxWidth).Grow(1).Height(ds.ControlLg).
-		Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).Radius(ds.RadiusFull).Background(p.FillControl).
-		Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center)
+		Padding(0, ds.Space6, 0, ds.Space10).Gap(ds.Space6).Radius(ds.RadiusSm).Background(p.FillControl).
+		Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center)
 	box.Children(func() {
 		a.kit.Glyph(c, "search", ds.SearchGlyph, p.TextMuted)
 		in := ui.TextInputBase(c, &st.text).Bind(&st.search).Grow(1).Disabled(st.view == viewRules).Placeholder(i18n.TrafficSearch()).

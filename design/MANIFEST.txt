@@ -3,7 +3,7 @@ oh-my-toys design system: the rules, tokens, components and assets every screen 
 README.md                 brand book: rules for every screen
 tokens.json               all tokens; feeds dev/gentokens
 components/<Name>/        README.md = the spec; preview.html = how it looks
-fonts/                    Geist and JetBrains Mono (OFL), to embed
+fonts/                    IBM Plex Sans and IBM Plex Mono (OFL), to embed
 assets/app-icon/          app icon (light, dark, mono)
 assets/tray-icon/         tray glyph (black, white, active)
 assets/tool-icons/        icon per tool, light and dark

@@ -58,7 +58,7 @@ func (a *App) trafficRecord(c *ui.Context, t tool.Traffic, st *trafficState) {
 		fill, ink, edge = p.BgButton, p.TextPrimary, p.LineControl
 	}
 	b := ui.ButtonBase(c.Key("traffic-on")).Label(label).Cursor(ui.CursorDefault).Disabled(busy)
-	b.Height(ds.ControlSm).Padding(0, ds.Space10).Gap(ds.Space6).Radius(ds.RadiusFull).Background(fill)
+	b.Height(ds.ControlSm).Padding(0, ds.Space10).Gap(ds.Space6).Radius(ds.RadiusSm).Background(fill)
 	b.Border(ds.LineWidth, edge).Opacity(opacity).AlignItems(ui.Center)
 	ui.Row(c).Width(trafficRecordWidth).Children(func() {
 		if b.Children(func() {
