@@ -208,11 +208,13 @@ func (a *App) traySearchTrigger(c *ui.Context) {
 	if b.Hovered() {
 		fill = p.FillControlHover
 	}
-	b.FillWidth().Height(ds.ControlMd).Margin(0, ds.Space4, ds.Space6).Padding(0, ds.Space8).Gap(ds.Space6).
-		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center).Children(func() {
-		a.kit.Glyph(c, "search", ds.GlyphSm, p.TextMuted)
-		comp.Text(c, i18n.PaletteHint(), ds.Caption, p.TextMuted).Grow(1).SingleLine()
-		comp.Kbd(c, modKey("K"))
+	ui.Row(c).FillWidth().Padding(0, ds.Space4, ds.Space6).Children(func() {
+		b.FillWidth().Height(ds.ControlMd).Padding(0, ds.Space8).Gap(ds.Space6).
+			Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center).Children(func() {
+			a.kit.Glyph(c, "search", ds.GlyphSm, p.TextMuted)
+			comp.Text(c, i18n.PaletteHint(), ds.Caption, p.TextMuted).Grow(1).SingleLine()
+			comp.Kbd(c, modKey("K"))
+		})
 	})
 }
 

@@ -1,11 +1,10 @@
 package comp
 
 import (
-	"strings"
-
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
+	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
@@ -99,18 +98,23 @@ func badge(c *ui.Context, k *Kit, glyph, text string, tone Tone, rimmed bool) ui
 // RiskBadge draws a tool action's risk class (READ, SYSTEM, WRITE, PROCESS)
 // as a compact mono tag with semantic colour and border.
 func RiskBadge(c *ui.Context, risk tool.Risk) ui.Element {
-	tone := ToneNeutral
+	label, tone := riskLabel(risk)
+	return badge(c, nil, "", label, tone, tone == ToneNeutral)
+}
+
+// riskLabel is the localized word of a risk class and its tone.
+func riskLabel(risk tool.Risk) (string, Tone) {
 	switch risk {
 	case tool.RiskSystem:
-		tone = ToneWarning
+		return i18n.RiskSystem(), ToneWarning
 	case tool.RiskWrite:
-		tone = ToneAccent
+		return i18n.RiskWrite(), ToneAccent
 	case tool.RiskProcess:
-		tone = ToneDanger
+		return i18n.RiskProcess(), ToneDanger
 	case tool.RiskRead, "":
-		risk = tool.RiskRead
+		return i18n.RiskRead(), ToneNeutral
 	}
-	return badge(c, nil, "", strings.ToUpper(string(risk)), tone, tone == ToneNeutral)
+	return i18n.RiskRead(), ToneNeutral
 }
 
 // CLICopyPill draws the equivalent omt CLI command as a compact mono pill

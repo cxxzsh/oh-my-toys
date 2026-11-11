@@ -74,9 +74,28 @@ func markNow(cells []cell, now int) []cell {
 // filled where the plan holds the tool, with a mark at the time now.
 func (a *App) weekStrip(c *ui.Context, cur tool.Schedule, now time.Time) {
 	ui.Column(c.Key("plan-week")).FillWidth().Gap(ds.Space4).Label(i18n.SwitchPlanWeek()).Children(func() {
+		a.hourScale(c)
 		for _, d := range weekOrder {
 			a.weekDay(c, cur, d, now)
 		}
+	})
+}
+
+// hourMarks are the clock times the week strip is ruled with, midnight to
+// midnight.
+var hourMarks = [...]string{"00:00", "06:00", "12:00", "18:00", "24:00"}
+
+// hourScale rules the week strip with the clock, in mono, over the bars.
+func (a *App) hourScale(c *ui.Context) {
+	ruler := ds.Caption
+	ruler.Mono = true
+	ui.Row(c.Key("hour-scale")).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+		ui.Box(c).Width(ds.WeekLabelWidth)
+		ui.Row(c).Grow(1).Justify(ui.SpaceBetween).Children(func() {
+			for i, m := range hourMarks {
+				comp.Text(c.Key(i), m, ruler, ds.P(c).TextInactive).SingleLine()
+			}
+		})
 	})
 }
 
@@ -96,12 +115,12 @@ func (a *App) weekDay(c *ui.Context, cur tool.Schedule, d time.Weekday, now time
 		if !cur.Enabled {
 			fill = p.TextInactive
 		}
-		ui.Row(c).Grow(1).Height(ds.WeekBarHeight).Radius(ds.RadiusFull).Background(p.FillControl).Clip().
-			Children(func() {
-				for i, cl := range dayCells(cur.Coverage(d), mark) {
-					cellBox(c.Key(i), cl, fill, p.TextStrong)
-				}
-			})
+		ui.Row(c).Grow(1).Height(ds.WeekBarHeight).Radius(ds.RadiusXs).Background(p.FillControl).Clip().
+			Border(ds.LineWidth, p.LineHairline).Children(func() {
+			for i, cl := range dayCells(cur.Coverage(d), mark) {
+				cellBox(c.Key(i), cl, fill, p.TextStrong)
+			}
+		})
 	})
 }
 

@@ -22,7 +22,7 @@ const devVersion = "dev"
 func msgsLang() string { return mygoi18n.Locale() }
 
 func (a *App) settingsPage(c *ui.Context) {
-	comp.PageHeader(c, comp.Header{Title: i18n.Settings(), Description: i18n.AppearanceDesc()})
+	comp.PageHeader(c, comp.Header{Title: i18n.Settings(), Description: i18n.SettingsDesc()})
 	a.kit.SettingsList(c, []comp.SettingsRow{
 		{
 			Glyph:   "contrast",
@@ -39,7 +39,7 @@ func (a *App) settingsPage(c *ui.Context) {
 		{
 			Glyph:   "keyboard",
 			Title:   i18n.GlobalShortcut(),
-			Desc:    a.shortcutTakenDesc(),
+			Desc:    a.shortcutDesc(),
 			Control: func() { a.shortcutBadge(c) },
 		},
 		{
@@ -109,6 +109,13 @@ func (a *App) shortcutTakenDesc() string {
 	return i18n.ShortcutTaken(strings.Join(taken, i18n.ListSeparator()))
 }
 
+func (a *App) shortcutDesc() string {
+	if d := a.shortcutTakenDesc(); d != "" {
+		return d
+	}
+	return i18n.SettingsShortcutDesc()
+}
+
 func (a *App) aboutSection(c *ui.Context) {
 	version := mygo.App.Version()
 	if version == "" {
@@ -117,8 +124,15 @@ func (a *App) aboutSection(c *ui.Context) {
 	if a.opt.Portable {
 		version = i18n.VersionPortable(version)
 	}
-	a.section(c, i18n.About(), func() {
-		a.valueRow(c, i18n.Version(), version)
+	ui.Column(c).FillWidth().Gap(ds.Space8).Children(func() {
+		comp.Eyebrow(c, i18n.About())
+		a.kit.SettingsList(c, []comp.SettingsRow{
+			{
+				Glyph:   "memory",
+				Title:   i18n.Version(),
+				Control: func() { comp.BadgeRimmed(c, version) },
+			},
+		})
 	})
 }
 
@@ -136,6 +150,12 @@ func (a *App) agentsSection(c *ui.Context) {
 						c.Toast(i18n.Copied("omt mcp"))
 					}
 				},
+			},
+			{
+				Glyph:   "terminal",
+				Title:   i18n.AgentsCliTitle(),
+				Desc:    i18n.AgentsCliDesc(),
+				Control: func() { a.kit.CLICopyPill(c.Key("cli-help"), "omt --help", "omt --help", i18n.Copied("omt --help")) },
 			},
 			{
 				Glyph: "lock",

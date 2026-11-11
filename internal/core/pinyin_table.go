@@ -47,6 +47,7 @@ var pinyinTable = []hanEntry{
 	{0x4EFD, []string{"fen", "bin"}},                           // 份
 	{0x4F1A, []string{"hui", "kuai"}},                          // 会
 	{0x4F46, []string{"dan", "tan", "yan"}},                    // 但
+	{0x4F4D, []string{"wei", "li"}},                            // 位
 	{0x4F4F, []string{"zhu"}},                                  // 住
 	{0x4F53, []string{"ti", "ben", "cui"}},                     // 体
 	{0x4F55, []string{"he"}},                                   // 何
@@ -318,6 +319,7 @@ var pinyinTable = []hanEntry{
 	{0x6821, []string{"xiao", "jiao", "qiao"}},                 // 校
 	{0x6837, []string{"yang"}},                                 // 样
 	{0x683C, []string{"ge", "luo", "he"}},                      // 格
+	{0x684C, []string{"zhuo"}},                                 // 桌
 	{0x6863, []string{"dang"}},                                 // 档
 	{0x68AF, []string{"ti"}},                                   // 梯
 	{0x68C0, []string{"jian"}},                                 // 检
@@ -366,6 +368,7 @@ var pinyinTable = []hanEntry{
 	{0x7531, []string{"you", "yao"}},                           // 由
 	{0x7535, []string{"dian"}},                                 // 电
 	{0x753B, []string{"hua"}},                                  // 画
+	{0x754C, []string{"jie"}},                                  // 界
 	{0x7559, []string{"liu"}},                                  // 留
 	{0x7565, []string{"lve"}},                                  // 略
 	{0x767D, []string{"bai", "bo"}},                            // 白
@@ -407,6 +410,7 @@ var pinyinTable = []hanEntry{
 	{0x7BAD, []string{"jian"}},                                 // 箭
 	{0x7BD3, []string{"lou"}},                                  // 篓
 	{0x7C7B, []string{"lei"}},                                  // 类
+	{0x7CBE, []string{"jing", "qing"}},                         // 精
 	{0x7CFB, []string{"xi", "ji"}},                             // 系
 	{0x7D22, []string{"suo"}},                                  // 索
 	{0x7D27, []string{"jin"}},                                  // 紧
@@ -434,6 +438,7 @@ var pinyinTable = []hanEntry{
 	{0x8017, []string{"hao", "mao"}},                           // 耗
 	{0x80FD, []string{"neng", "tai", "nai", "xiong"}},          // 能
 	{0x8111, []string{"nao"}},                                  // 脑
+	{0x811A, []string{"jiao", "jue"}},                          // 脚
 	{0x817E, []string{"teng"}},                                 // 腾
 	{0x81EA, []string{"zi"}},                                   // 自
 	{0x81F3, []string{"zhi", "die"}},                           // 至

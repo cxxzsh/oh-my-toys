@@ -90,7 +90,7 @@ const (
 	TrafficPaneMinH   = 200       // the least height a request or response pane takes when the two stack
 	TrafficRulesList  = 360       // the rule list's width beside its form
 	TrafficWide       = 1200      // pane width from which the list and detail sit side by side; below it the detail goes under the list
-	TrafficDetailWide = 900       // detail pane width from which a flow's request and response sit side by side; below it they stack
+	TrafficDetailWide = 660       // detail pane width from which a flow's request and response sit side by side; below it they stack
 
 	TrafficSourcesWidth = 184 // the sources column beside the flow list
 	TrafficSourcesMin   = 920 // page width from which the sources column opens by itself

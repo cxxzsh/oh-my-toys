@@ -13,6 +13,14 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
+// telemetryText names the switch beside its timer in the live telemetry bar.
+func telemetryText(name, text string) string {
+	if text != "" {
+		return name + " · " + text
+	}
+	return name
+}
+
 func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 	m := t.Manifest()
 	st := t.Status()
@@ -43,7 +51,7 @@ func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 		ui.Column(c).FillWidth().Padding(0, ds.Space16, ds.Space16).Children(func() {
 			a.kit.StatusBar(c, comp.StatusBarOpts{
 				Title:  i18n.LiveTelemetry(),
-				Counts: []comp.StatusCount{{Text: st.Text, Live: st.On}},
+				Counts: []comp.StatusCount{{Text: telemetryText(m.Name(msgs()), st.Text), Live: st.On}},
 				Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
 			})
 		})
@@ -67,24 +75,28 @@ func (a *App) heroCountdown(c *ui.Context, t tool.Switch, st tool.Status) {
 	if st.On {
 		ink, tone, state = p.LiveText, comp.DotLive, i18n.StatusOn()
 	}
-	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Gap(ds.Space6).Children(func() {
-		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-			comp.StatusDot(c, comp.DotOpts{Tone: tone, Large: true})
-			comp.Text(c, state, ds.Headline, p.TextStrong)
-			if st.Detail != "" && st.On {
-				comp.Text(c, "· "+st.Detail, ds.Caption, p.TextInactive)
+	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Justify(ui.SpaceBetween).Gap(ds.Space10).Children(func() {
+		ui.Column(c).Gap(ds.Space6).Children(func() {
+			ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+				comp.StatusDot(c, comp.DotOpts{Tone: tone, Large: true})
+				comp.Text(c, state, ds.Headline, p.TextStrong)
+				if st.Detail != "" && st.On {
+					comp.Text(c, "· "+st.Detail, ds.Caption, p.TextInactive)
+				}
+			})
+			big := ds.Title
+			big.Size, big.LineHeight, big.Mono, big.Tracking = ds.CountdownSize, ds.CountdownLine, true, 0
+			comp.Text(c, countdownText(st), big, ink).SingleLine()
+			comp.Text(c, countdownCaption(st), ds.Caption, p.TextInactive)
+		})
+		ui.Column(c).Gap(ds.Space10).Children(func() {
+			if left, total, ok := timeLeft(st); ok {
+				comp.ProgressBar(c, float32(left)/float32(total))
+			}
+			if st.On {
+				a.heroActions(c, t, st)
 			}
 		})
-		big := ds.Title
-		big.Size, big.LineHeight, big.Mono, big.Tracking = ds.CountdownSize, ds.CountdownLine, true, 0
-		comp.Text(c, countdownText(st), big, ink).SingleLine()
-		comp.Text(c, countdownCaption(st), ds.Caption, p.TextInactive)
-		if left, total, ok := timeLeft(st); ok {
-			comp.ProgressBar(c, float32(left)/float32(total))
-		}
-		if st.On {
-			a.heroActions(c, t, st)
-		}
 	})
 }
 

@@ -86,27 +86,49 @@ func (a *App) fields(c *ui.Context, t tool.Action, s *actionState) {
 	if len(fs) == 0 {
 		return
 	}
+	colorField, hasColor := hasColorField(fs)
 	comp.Card(c).FillWidth().Padding(ds.Space10, ds.Space12).Gap(ds.Space8).Children(func() {
-		ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.End).Wrap().Children(func() {
-			for _, f := range fs {
-				ui.Box(c.Key("box:" + f.Name)).Grow(1).Basis(180).MinWidth(160).Children(func() {
-					a.field(c, t, s, f)
-				})
-			}
-			if len(s.plan.Rows) > 8 {
-				a.kit.SearchField(c.Key("act-filter"), &s.filter, &s.filterInput, comp.SearchFieldOpts{
-					Placeholder: i18n.FilterRows(),
-					Width:       190,
-				})
-			}
-			if a.kit.Button(c.Key("refresh"), i18n.Refresh(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
-				a.replan(context.Background(), t, s)
-			}
-		})
-		if colorField, ok := hasColorField(fs); ok {
+		a.fieldControls(c, t, s, fs, !hasColor || len(fs) > 1)
+		if hasColor {
 			a.colorSwatchRow(c, t, s, colorField)
 		}
 	})
+}
+
+func (a *App) fieldControls(c *ui.Context, t tool.Action, s *actionState, fs []core.Field, showRefresh bool) {
+	ui.Row(c).FillWidth().Gap(ds.Space10).AlignItems(ui.End).Wrap().Children(func() {
+		for _, f := range fs {
+			a.fieldCell(c, t, s, f)
+		}
+		if len(s.plan.Rows) > 8 {
+			a.kit.SearchField(c.Key("act-filter"), &s.filter, &s.filterInput, comp.SearchFieldOpts{
+				Placeholder: i18n.FilterRows(),
+				Width:       190,
+			})
+		}
+		if showRefresh && a.kit.Button(c.Key("refresh"), i18n.Refresh(), comp.ButtonOpts{Kind: comp.Secondary}).Clicked() {
+			a.replan(context.Background(), t, s)
+		}
+	})
+}
+
+// fieldCell gives a folder field room for its path, and every other field a
+// narrower share of the row.
+func (a *App) fieldCell(c *ui.Context, t tool.Action, s *actionState, f core.Field) {
+	if isFolderField(f) {
+		ui.Box(c.Key("box:" + f.Name)).Grow(2).Basis(260).MinWidth(180).Children(func() {
+			a.field(c, t, s, f)
+		})
+		return
+	}
+	ui.Box(c.Key("box:" + f.Name)).Grow(1).Basis(150).MinWidth(140).Children(func() {
+		a.field(c, t, s, f)
+	})
+}
+
+// isFolderField reports whether a field takes a folder path.
+func isFolderField(f core.Field) bool {
+	return f.Kind == core.FieldPath
 }
 
 func actionRisk(t tool.Action) tool.Risk {
@@ -149,7 +171,7 @@ func (a *App) field(c *ui.Context, t tool.Action, s *actionState, f core.Field) 
 		v = new(string)
 		s.inputs[f.Name] = v
 	}
-	if f.Kind == core.FieldPath {
+	if isFolderField(f) {
 		a.folderField(c, t, s, f, v)
 		return
 	}

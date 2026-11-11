@@ -33,9 +33,93 @@ var tonalSteps = []struct {
 func (a *App) colorStudioView(c *ui.Context, t tool.Action, s *actionState, hex string, rows []tool.Row) {
 	ui.Column(c).Grow(1).FillWidth().Gap(ds.Space12).Children(func() {
 		a.colorHeroCard(c, t, s, hex)
-		comp.Card(c).Grow(1).FillWidth().Clip().Children(func() {
-			ui.List(c.Key("crows"), &s.rows, len(rows), func(i int) { a.plainRow(c, rows[i]) }).
-				Grow(1).FillWidth().Padding(ds.Space8).Label(i18n.Preview())
+		a.colorDetailRow(c, hex, rows)
+	})
+}
+
+// colorDetailRow puts the format values beside the contrast previews, as two
+// cards of equal height.
+func (a *App) colorDetailRow(c *ui.Context, hex string, rows []tool.Row) {
+	formats, contrasts := splitColorRows(rows)
+	ui.Row(c).FillWidth().Gap(ds.Space12).AlignItems(ui.Stretch).Wrap().Children(func() {
+		a.colorFormatsCard(c, formats)
+		a.colorContrastCard(c, hex, contrasts)
+	})
+}
+
+// splitColorRows separates the format rows, which carry a value to copy, from
+// the contrast rows.
+func splitColorRows(rows []tool.Row) (formats, contrasts []tool.Row) {
+	for _, r := range rows {
+		if r.Value != "" {
+			formats = append(formats, r)
+		} else {
+			contrasts = append(contrasts, r)
+		}
+	}
+	return formats, contrasts
+}
+
+func (a *App) colorFormatsCard(c *ui.Context, formats []tool.Row) {
+	comp.Card(c).Grow(1).Basis(0).MinWidth(ds.CardMinColumn).FillHeight().Padding(ds.Space12).Gap(ds.Space8).Children(func() {
+		comp.Eyebrow(c, i18n.ColorFormats())
+		for _, r := range formats {
+			a.colorFormatButton(c, r)
+		}
+	})
+}
+
+// colorFormatButton is one format; a click copies its value.
+func (a *App) colorFormatButton(c *ui.Context, r tool.Row) {
+	p := ds.P(c)
+	b := ui.ButtonBase(c.Key("fmt:" + r.Title)).Cursor(ui.CursorDefault)
+	if b.Clicked() {
+		mygo.Clipboard.WriteText(r.Value)
+		c.Toast(i18n.Copied(r.Value))
+	}
+	fill := ui.Transparent
+	if b.Hovered() {
+		fill = p.FillControlHover
+	}
+	b.FillWidth().Height(ds.TableRow).Padding(0, ds.Space10).Radius(ds.RadiusSm).
+		Background(fill).Border(ds.LineWidth, p.LineHairline).
+		Justify(ui.SpaceBetween).AlignItems(ui.Center).Children(func() {
+		comp.Text(c, r.Title, ds.Caption, p.TextMuted).SingleLine()
+		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			comp.Value(c, r.Detail, p.TextPrimary)
+			a.kit.Glyph(c, "content_copy", ds.GlyphSm, p.TextMuted)
+		})
+	})
+}
+
+func (a *App) colorContrastCard(c *ui.Context, hex string, contrasts []tool.Row) {
+	p := ds.P(c)
+	surfaces := []ui.Color{p.ContrastWhite, p.ContrastBlack}
+	comp.Card(c).Grow(1).Basis(0).MinWidth(ds.CardMinColumn).FillHeight().Padding(ds.Space12).Gap(ds.Space8).Children(func() {
+		comp.Eyebrow(c, i18n.ColorContrastCheck())
+		for i, r := range contrasts {
+			if i < len(surfaces) {
+				contrastPreview(c, hex, r, surfaces[i])
+			}
+		}
+	})
+}
+
+// contrastPreview draws the swatch's color as sample text on one surface, with
+// the contrast verdict beneath it.
+func contrastPreview(c *ui.Context, hex string, r tool.Row, surface ui.Color) {
+	p := ds.P(c)
+	tone := toneDetailColor(p, r.Tone)
+	ui.Column(c.Key("cprev:" + r.Title)).FillWidth().Gap(ds.Space6).Children(func() {
+		ui.Column(c).FillWidth().Background(surface).Border(ds.LineWidth, p.LineControl).
+			Radius(ds.RadiusSm).Padding(ds.Space10, ds.Space12).Children(func() {
+			comp.Text(c, i18n.ColorSampleText(), ds.Headline, ui.Hex(hex)).SingleLine()
+		})
+		ui.Row(c).FillWidth().Gap(ds.Space6).AlignItems(ui.Center).Children(func() {
+			ui.Box(c).Size(ds.Space8, ds.Space8).Radius(ds.RadiusFull).Background(tone).Shrink(0)
+			comp.Text(c, r.Title, ds.Caption, p.TextSecondary)
+			ui.Spacer(c)
+			comp.Text(c, r.Detail, ds.Caption, tone)
 		})
 	})
 }
@@ -49,8 +133,8 @@ func (a *App) colorHeroCard(c *ui.Context, t tool.Action, s *actionState, hex st
 			ui.Row(c).Height(64).MinWidth(220).Padding(0, ds.Space16).Gap(ds.Space16).
 				Radius(ds.RadiusSm).Background(col).Border(ds.LineWidth, p.LineControl).
 				AlignItems(ui.Center).Justify(ui.SpaceBetween).Children(func() {
-				comp.Text(c, "Aa  "+hex, ds.Headline, ui.Hex("#ffffff"))
-				comp.Text(c, "Aa", ds.Headline, ui.Hex("#0b0f19"))
+				comp.Text(c, "Aa  "+hex, ds.Headline, p.ContrastWhite)
+				comp.Text(c, "Aa", ds.Headline, p.ContrastBlack)
 			})
 			ui.Column(c).Grow(1).MinWidth(260).Gap(ds.Space6).Children(func() {
 				comp.Eyebrow(c, i18n.TonalScale())

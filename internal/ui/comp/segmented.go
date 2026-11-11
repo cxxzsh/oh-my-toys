@@ -34,18 +34,15 @@ func Segmented(c *ui.Context, selected *int, options []string, label string) ui.
 func Chip(c *ui.Context, label string, active bool) ui.Element {
 	p := ds.P(c)
 	b := ui.ButtonBase(c).Label(label).Selected(active).Cursor(ui.CursorDefault)
-	style, ink, padX := ds.Caption, p.TextInactive, float32(ds.Space10)
+	style, ink, padX := ds.Caption, p.TextSecondary, float32(ds.Space10)
 	style.Weight = ds.Label.Weight
-	b.Height(ds.ControlMd).Radius(ds.RadiusFull).AlignItems(ui.Center)
+	fill, edge := p.BgButton, p.LineControl
 	if active {
 		style.Weight, ink, padX = ds.Semibold, p.AccentText, ds.Space12
-		b.Background(p.AccentSoft).Border(ds.LineWidth, p.AccentLine)
-	} else {
-		if b.Hovered() {
-			ink = p.TextStrong
-		}
-		b.Background(p.BgCard).Border(ds.LineWidth, p.LineControl)
-		ds.ApplyShadow(b, ds.S(c).ShadowXs)
+		fill, edge = p.AccentSoft, p.AccentLine
+	} else if b.Hovered() {
+		fill, ink = p.FillControlHover, p.TextStrong
 	}
+	b.Height(ds.ControlSm).Radius(ds.RadiusSm).AlignItems(ui.Center).Background(fill).Border(ds.LineWidth, edge)
 	return b.Padding(0, padX).Children(func() { Text(c, label, style, ink).SingleLine() })
 }

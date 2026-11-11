@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	mygoi18n "github.com/egoist/mygo/i18n"
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
@@ -138,48 +139,75 @@ func TestRenderPrecisionPagesHiDPI(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, dark := range []bool{true, false} {
-		suffix := "light"
-		if dark {
-			suffix = "dark"
-		}
-		for _, page := range []string{pageHome, modeToolID, "ports", "rename", "dupes", "color", "screenshot", devtools.TrafficID, pageSettings} {
-			a := newRenderApp(t, dark, page)
-			seedRenderPage(t, a, page)
-			img := ui.Render(a.mainView, ds.WindowWidth, ds.WindowHeight, 2)
-			savePNG(t, filepath.Join(dir, "native-"+page+"-"+suffix+".png"), img)
-		}
-		a := newRenderApp(t, dark, "ports")
-		a.sideCompact = true
-		seedRenderPage(t, a, "ports")
-		savePNG(t, filepath.Join(dir, "native-compact-rail-"+suffix+".png"), ui.Render(a.mainView, ds.WindowWidth, ds.WindowHeight, 2))
-
-		planApp := newRenderApp(t, dark, modeToolID)
-		planApp.switchForm(modeToolID).tab = tabPlan
-		savePNG(t, filepath.Join(dir, "native-switch-plan-"+suffix+".png"), ui.Render(planApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
-
-		palApp := newRenderApp(t, dark, pageHome)
-		palApp.pal.open = true
-		palApp.pal.query = modeToolID + " 45m"
-		savePNG(t, filepath.Join(dir, "native-palette-direct-"+suffix+".png"), ui.Render(palApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
-
-		dlgApp := newRenderApp(t, dark, "ports")
-		seedRenderPage(t, dlgApp, "ports")
-		dlgApp.askDialog(comp.DialogOpts{
-			Title:       "End node (PID 4821)?",
-			Description: "Unsaved work in this process will be lost.",
-			Items:       []comp.DialogItem{{Text: "node  :3000  pid 4821"}},
-			Cancel:      "Cancel",
-			Confirm:     "End 1 Process",
-			Destructive: true,
-		})
-		savePNG(t, filepath.Join(dir, "native-dialog-"+suffix+".png"), ui.Render(dlgApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
-
-		wideTraffic := newRenderApp(t, dark, devtools.TrafficID)
-		savePNG(t, filepath.Join(dir, "native-traffic-wide-"+suffix+".png"), ui.Render(wideTraffic.mainView, 1680, 920, 2))
-
-		trayApp := newRenderApp(t, dark, pageHome)
-		savePNG(t, filepath.Join(dir, "native-tray-"+suffix+".png"), ui.Render(trayApp.trayView, ds.TrayWidth, 620, 2))
+		renderThemePages(t, dir, dark)
 	}
+	renderZhAndResponsive(t, dir)
+}
+
+func renderThemePages(t *testing.T, dir string, dark bool) {
+	t.Helper()
+	suffix := "light"
+	if dark {
+		suffix = "dark"
+	}
+	for _, page := range []string{pageHome, modeToolID, "ports", "rename", "dupes", "color", "screenshot", devtools.TrafficID, pageSettings} {
+		a := newRenderApp(t, dark, page)
+		seedRenderPage(t, a, page)
+		savePNG(t, filepath.Join(dir, "native-"+page+"-"+suffix+".png"), ui.Render(a.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+	}
+	a := newRenderApp(t, dark, "ports")
+	a.sideCompact = true
+	seedRenderPage(t, a, "ports")
+	savePNG(t, filepath.Join(dir, "native-compact-rail-"+suffix+".png"), ui.Render(a.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+
+	planApp := newRenderApp(t, dark, modeToolID)
+	planApp.switchForm(modeToolID).tab = tabPlan
+	savePNG(t, filepath.Join(dir, "native-switch-plan-"+suffix+".png"), ui.Render(planApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+
+	palApp := newRenderApp(t, dark, pageHome)
+	palApp.pal.open = true
+	palApp.pal.query = modeToolID + " 45m"
+	savePNG(t, filepath.Join(dir, "native-palette-direct-"+suffix+".png"), ui.Render(palApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+
+	dlgApp := newRenderApp(t, dark, "ports")
+	seedRenderPage(t, dlgApp, "ports")
+	dlgApp.askDialog(comp.DialogOpts{
+		Title:       "End node (PID 4821)?",
+		Description: "Unsaved work in this process will be lost.",
+		Items:       []comp.DialogItem{{Text: "node  :3000  pid 4821"}},
+		Cancel:      "Cancel",
+		Confirm:     "End 1 Process",
+		Destructive: true,
+	})
+	savePNG(t, filepath.Join(dir, "native-dialog-"+suffix+".png"), ui.Render(dlgApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+
+	wideTraffic := newRenderApp(t, dark, devtools.TrafficID)
+	savePNG(t, filepath.Join(dir, "native-traffic-wide-"+suffix+".png"), ui.Render(wideTraffic.mainView, 1680, 920, 2))
+
+	trayApp := newRenderApp(t, dark, pageHome)
+	savePNG(t, filepath.Join(dir, "native-tray-"+suffix+".png"), ui.Render(trayApp.trayView, ds.TrayWidth, 620, 2))
+}
+
+func renderZhAndResponsive(t *testing.T, dir string) {
+	t.Helper()
+	narrowTraffic := newRenderApp(t, true, devtools.TrafficID)
+	savePNG(t, filepath.Join(dir, "native-narrow-880-traffic-dark.png"), ui.Render(narrowTraffic.mainView, ds.WindowMinWidth, ds.WindowMinHeight, 2))
+
+	narrowPorts := newRenderApp(t, true, "ports")
+	seedRenderPage(t, narrowPorts, "ports")
+	savePNG(t, filepath.Join(dir, "native-narrow-880-ports-dark.png"), ui.Render(narrowPorts.mainView, ds.WindowMinWidth, ds.WindowMinHeight, 2))
+
+	mygoi18n.SetLocaleFunc(func() string { return "zh-Hans" })
+	defer mygoi18n.SetLocaleFunc(nil)
+
+	for _, page := range []string{pageHome, devtools.TrafficID, "color", pageSettings} {
+		zhApp := newRenderApp(t, true, page)
+		seedRenderPage(t, zhApp, page)
+		savePNG(t, filepath.Join(dir, "native-zh-"+page+"-dark.png"), ui.Render(zhApp.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+	}
+	zhPlan := newRenderApp(t, false, modeToolID)
+	zhPlan.switchForm(modeToolID).tab = tabPlan
+	savePNG(t, filepath.Join(dir, "native-zh-switch-plan-light.png"), ui.Render(zhPlan.mainView, ds.WindowWidth, ds.WindowHeight, 2))
 }
 
 func seedRenderPage(t *testing.T, a *App, page string) {

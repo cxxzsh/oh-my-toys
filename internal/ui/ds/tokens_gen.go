@@ -78,6 +78,8 @@ type Palette struct {
 	CatProductivitySoft ui.Color // cat-productivity-soft
 	CatApp              ui.Color // cat-app
 	CatAppSoft          ui.Color // cat-app-soft
+	ContrastWhite       ui.Color // contrast-white
+	ContrastBlack       ui.Color // contrast-black
 }
 
 // Light is the light theme.
@@ -154,6 +156,8 @@ var Light = Palette{
 	CatProductivitySoft: ui.Hex("#ffedd5"),
 	CatApp:              ui.Hex("#3e4c63"),
 	CatAppSoft:          ui.Hex("#e6eaf0"),
+	ContrastWhite:       ui.Hex("#ffffff"),
+	ContrastBlack:       ui.Hex("#0b0f19"),
 }
 
 // Dark is the dark theme.
@@ -230,6 +234,8 @@ var Dark = Palette{
 	CatProductivitySoft: ui.RGBA(251, 146, 60, 0.15),
 	CatApp:              ui.Hex("#94a3b8"),
 	CatAppSoft:          ui.RGBA(148, 163, 184, 0.16),
+	ContrastWhite:       ui.Hex("#ffffff"),
+	ContrastBlack:       ui.Hex("#0b0f19"),
 }
 
 // TypeStyle is a text style of the type scale.
@@ -296,7 +302,7 @@ const (
 	WindowMinWidth  = 880
 	WindowMinHeight = 600
 	TitlebarHeight  = 44
-	SidebarWidth    = 224
+	SidebarWidth    = 240
 	StatusbarHeight = 28
 	SearchWidth     = 280
 	ControlSm       = 22

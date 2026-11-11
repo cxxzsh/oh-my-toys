@@ -610,6 +610,48 @@ func (msgs Messages) ColorRatio(ratio float64, verdict string) string {
 	return Catalog.Format(msgs.locale, "colorRatio", map[string]any{"ratio": ratio, "verdict": verdict})
 }
 
+// ColorFormats says "Color Formats"
+// in the language the app shows.
+//
+// Eyebrow heading for HEX, RGB and HSL values in the Color tool.
+func ColorFormats() string { return In(i18n.Locale()).ColorFormats() }
+
+// ColorFormats says "Color Formats"
+// in the language of msgs.
+//
+// Eyebrow heading for HEX, RGB and HSL values in the Color tool.
+func (msgs Messages) ColorFormats() string {
+	return Catalog.Format(msgs.locale, "colorFormats", nil)
+}
+
+// ColorContrastCheck says "WCAG Contrast Preview"
+// in the language the app shows.
+//
+// Eyebrow heading for the white and black contrast cards in the Color tool.
+func ColorContrastCheck() string { return In(i18n.Locale()).ColorContrastCheck() }
+
+// ColorContrastCheck says "WCAG Contrast Preview"
+// in the language of msgs.
+//
+// Eyebrow heading for the white and black contrast cards in the Color tool.
+func (msgs Messages) ColorContrastCheck() string {
+	return Catalog.Format(msgs.locale, "colorContrastCheck", nil)
+}
+
+// ColorSampleText says "Aa · Precision Workbench 0123"
+// in the language the app shows.
+//
+// Sample line drawn in the chosen color on the white and black cards.
+func ColorSampleText() string { return In(i18n.Locale()).ColorSampleText() }
+
+// ColorSampleText says "Aa · Precision Workbench 0123"
+// in the language of msgs.
+//
+// Sample line drawn in the chosen color on the white and black cards.
+func (msgs Messages) ColorSampleText() string {
+	return Catalog.Format(msgs.locale, "colorSampleText", nil)
+}
+
 // ComingSoon says "Coming soon"
 // in the language the app shows.
 //
@@ -1608,6 +1650,36 @@ func (msgs Messages) Settings() string {
 	return Catalog.Format(msgs.locale, "settings", nil)
 }
 
+// SettingsDesc says "Appearance, language, global shortcuts, CLI and MCP integration."
+// in the language the app shows.
+//
+// Subtitle of the Settings page.
+func SettingsDesc() string { return In(i18n.Locale()).SettingsDesc() }
+
+// SettingsDesc says "Appearance, language, global shortcuts, CLI and MCP integration."
+// in the language of msgs.
+//
+// Subtitle of the Settings page.
+func (msgs Messages) SettingsDesc() string {
+	return Catalog.Format(msgs.locale, "settingsDesc", nil)
+}
+
+// SettingsShortcutDesc says "Summons the command palette from anywhere on the desktop."
+// in the language the app shows.
+//
+// Description of the Global Shortcut row when no shortcut conflict is
+// reported.
+func SettingsShortcutDesc() string { return In(i18n.Locale()).SettingsShortcutDesc() }
+
+// SettingsShortcutDesc says "Summons the command palette from anywhere on the desktop."
+// in the language of msgs.
+//
+// Description of the Global Shortcut row when no shortcut conflict is
+// reported.
+func (msgs Messages) SettingsShortcutDesc() string {
+	return Catalog.Format(msgs.locale, "settingsShortcutDesc", nil)
+}
+
 // ShortcutTaken says "Taken: {keys}"
 // in the language the app shows.
 //
@@ -1704,6 +1776,20 @@ func SnapHint() string { return In(i18n.Locale()).SnapHint() }
 // Screenshot overlay hint line.
 func (msgs Messages) SnapHint() string {
 	return Catalog.Format(msgs.locale, "snapHint", nil)
+}
+
+// CaptureStatusReady says "Ready to capture"
+// in the language the app shows.
+//
+// Status bar label on the Screenshot page.
+func CaptureStatusReady() string { return In(i18n.Locale()).CaptureStatusReady() }
+
+// CaptureStatusReady says "Ready to capture"
+// in the language of msgs.
+//
+// Status bar label on the Screenshot page.
+func (msgs Messages) CaptureStatusReady() string {
+	return Catalog.Format(msgs.locale, "captureStatusReady", nil)
 }
 
 // SnapArrow says "Arrow"
@@ -7208,6 +7294,34 @@ func (msgs Messages) AgentsMcpDesc() string {
 	return Catalog.Format(msgs.locale, "agentsMcpDesc", nil)
 }
 
+// AgentsCliTitle says "Command-Line Interface"
+// in the language the app shows.
+//
+// Title of the CLI row in Settings.
+func AgentsCliTitle() string { return In(i18n.Locale()).AgentsCliTitle() }
+
+// AgentsCliTitle says "Command-Line Interface"
+// in the language of msgs.
+//
+// Title of the CLI row in Settings.
+func (msgs Messages) AgentsCliTitle() string {
+	return Catalog.Format(msgs.locale, "agentsCliTitle", nil)
+}
+
+// AgentsCliDesc says "Run every switch and action from scripts or a terminal with omt."
+// in the language the app shows.
+//
+// Description of the CLI row in Settings.
+func AgentsCliDesc() string { return In(i18n.Locale()).AgentsCliDesc() }
+
+// AgentsCliDesc says "Run every switch and action from scripts or a terminal with omt."
+// in the language of msgs.
+//
+// Description of the CLI row in Settings.
+func (msgs Messages) AgentsCliDesc() string {
+	return Catalog.Format(msgs.locale, "agentsCliDesc", nil)
+}
+
 // AgentsRiskTitle says "Execution Risk Policy"
 // in the language the app shows.
 //
@@ -7234,6 +7348,62 @@ func AgentsRiskDesc() string { return In(i18n.Locale()).AgentsRiskDesc() }
 // Settings row description explaining risk confirmation.
 func (msgs Messages) AgentsRiskDesc() string {
 	return Catalog.Format(msgs.locale, "agentsRiskDesc", nil)
+}
+
+// RiskRead says "READ"
+// in the language the app shows.
+//
+// Risk badge label for read-only actions.
+func RiskRead() string { return In(i18n.Locale()).RiskRead() }
+
+// RiskRead says "READ"
+// in the language of msgs.
+//
+// Risk badge label for read-only actions.
+func (msgs Messages) RiskRead() string {
+	return Catalog.Format(msgs.locale, "riskRead", nil)
+}
+
+// RiskSystem says "SYSTEM"
+// in the language the app shows.
+//
+// Risk badge label for system switches and actions.
+func RiskSystem() string { return In(i18n.Locale()).RiskSystem() }
+
+// RiskSystem says "SYSTEM"
+// in the language of msgs.
+//
+// Risk badge label for system switches and actions.
+func (msgs Messages) RiskSystem() string {
+	return Catalog.Format(msgs.locale, "riskSystem", nil)
+}
+
+// RiskWrite says "WRITE"
+// in the language the app shows.
+//
+// Risk badge label for actions that modify or move files.
+func RiskWrite() string { return In(i18n.Locale()).RiskWrite() }
+
+// RiskWrite says "WRITE"
+// in the language of msgs.
+//
+// Risk badge label for actions that modify or move files.
+func (msgs Messages) RiskWrite() string {
+	return Catalog.Format(msgs.locale, "riskWrite", nil)
+}
+
+// RiskProcess says "PROCESS"
+// in the language the app shows.
+//
+// Risk badge label for actions that terminate processes.
+func RiskProcess() string { return In(i18n.Locale()).RiskProcess() }
+
+// RiskProcess says "PROCESS"
+// in the language of msgs.
+//
+// Risk badge label for actions that terminate processes.
+func (msgs Messages) RiskProcess() string {
+	return Catalog.Format(msgs.locale, "riskProcess", nil)
 }
 
 // CopyConfig says "Copy JSON"

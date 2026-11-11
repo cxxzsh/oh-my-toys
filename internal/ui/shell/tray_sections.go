@@ -294,13 +294,11 @@ func (a *App) trayToolRow(c *ui.Context, i int, t tool.Tool, chosen bool) {
 		a.openMain(m.ID)
 	}
 	row.ContextMenu(func(menu *ui.Menu) { a.toolMenu(menu, t) })
-	row.FillWidth().Height(ds.TrayRow).Padding(0, ds.Space8).Gap(ds.Space8).Radius(ds.RadiusSm).
+	row.FillWidth().MinHeight(ds.TrayRow).Padding(ds.Space2, ds.Space8).Gap(ds.Space8).Radius(ds.RadiusSm).
 		Background(trayRowFill(p, row.Hovered(), chosen)).AlignItems(ui.Center).Children(func() {
-		a.kit.Glyph(c, m.Icon, ds.Glyph, p.TextSecondary)
-		comp.Text(c, label, ds.Label, p.TextPrimary).Grow(1).SingleLine().Ellipsis("…")
-		if core.IsRunning(t) {
-			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive})
-		}
+		a.kit.ToolIcon(c, m, comp.ToolIconOpts{Size: comp.IconSmall, Running: core.IsRunning(t), Tint: true})
+		comp.Text(c, m.Name(msgs()), ds.Label, p.TextPrimary).Grow(1).SingleLine().Ellipsis("…")
+		comp.Text(c, "›", ds.Headline, p.TextMuted)
 	})
 }
 
@@ -315,7 +313,7 @@ func (a *App) trayFooterRow(c *ui.Context, i int, it trayItem, chosen bool) {
 		a.kit.Glyph(c, it.glyph, ds.Glyph, p.TextSecondary)
 		comp.Text(c, it.label, ds.Label, p.TextPrimary).Grow(1).SingleLine()
 		if it.hint != "" {
-			comp.Hint(c, it.hint)
+			comp.Kbd(c, it.hint)
 		}
 	})
 }

@@ -171,6 +171,18 @@
     "description": "Row title: contrast with black."
   },
   "colorRatio": "{ratio, number, ::.0}:1 · {verdict}",
+  "colorFormats": "Color Formats",
+  "@colorFormats": {
+    "description": "Eyebrow heading for HEX, RGB and HSL values in the Color tool."
+  },
+  "colorContrastCheck": "WCAG Contrast Preview",
+  "@colorContrastCheck": {
+    "description": "Eyebrow heading for the white and black contrast cards in the Color tool."
+  },
+  "colorSampleText": "Aa · Precision Workbench 0123",
+  "@colorSampleText": {
+    "description": "Sample line drawn in the chosen color on the white and black cards."
+  },
   "@colorRatio": {
     "description": "Contrast ratio and verdict.",
     "placeholders": {
@@ -570,6 +582,14 @@
     "description": "Sidebar search placeholder."
   },
   "settings": "Settings",
+  "settingsDesc": "Appearance, language, global shortcuts, CLI and MCP integration.",
+  "@settingsDesc": {
+    "description": "Subtitle of the Settings page."
+  },
+  "settingsShortcutDesc": "Summons the command palette from anywhere on the desktop.",
+  "@settingsShortcutDesc": {
+    "description": "Description of the Global Shortcut row when no shortcut conflict is reported."
+  },
   "@settings": {
     "description": "Page and button."
   },
@@ -603,6 +623,10 @@
     "description": "Screenshot overlay flash after copying."
   },
   "snapHint": "Drag to select · Enter copies · ⌘S saves · Esc cancels",
+  "captureStatusReady": "Ready to capture",
+  "@captureStatusReady": {
+    "description": "Status bar label on the Screenshot page."
+  },
   "@snapHint": {
     "description": "Screenshot overlay hint line."
   },
@@ -2487,6 +2511,14 @@
     "description": "Settings row title for omt mcp JSON snippet."
   },
   "agentsMcpDesc": "Add to Claude Code, Cursor or any MCP client to expose typed plan and apply tools.",
+  "agentsCliTitle": "Command-Line Interface",
+  "@agentsCliTitle": {
+    "description": "Title of the CLI row in Settings."
+  },
+  "agentsCliDesc": "Run every switch and action from scripts or a terminal with omt.",
+  "@agentsCliDesc": {
+    "description": "Description of the CLI row in Settings."
+  },
   "@agentsMcpDesc": {
     "description": "Settings row description for omt mcp."
   },
@@ -2495,6 +2527,22 @@
     "description": "Settings row title explaining action risk levels."
   },
   "agentsRiskDesc": "Write and process actions require explicit confirmation; read actions never mutate state.",
+  "riskRead": "READ",
+  "@riskRead": {
+    "description": "Risk badge label for read-only actions."
+  },
+  "riskSystem": "SYSTEM",
+  "@riskSystem": {
+    "description": "Risk badge label for system switches and actions."
+  },
+  "riskWrite": "WRITE",
+  "@riskWrite": {
+    "description": "Risk badge label for actions that modify or move files."
+  },
+  "riskProcess": "PROCESS",
+  "@riskProcess": {
+    "description": "Risk badge label for actions that terminate processes."
+  },
   "@agentsRiskDesc": {
     "description": "Settings row description explaining risk confirmation."
   },

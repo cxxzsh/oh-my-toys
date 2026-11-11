@@ -21,9 +21,24 @@ import (
 // capturePage is the page of a tool the app runs itself, such as the
 // screenshot: the button that starts it, and the settings that belong to it.
 func (a *App) capturePage(c *ui.Context, t tool.Tool) {
+	ui.Column(c).Grow(1).FillWidth().Children(func() {
+		ui.Scroll(c).Grow(1).FillWidth().Children(func() { a.captureBody(c, t) })
+		ui.Column(c).FillWidth().Padding(0, ds.Space16, ds.Space16).Children(func() {
+			a.kit.StatusBar(c, comp.StatusBarOpts{
+				Title:  i18n.LiveTelemetry(),
+				Counts: []comp.StatusCount{{Text: i18n.CaptureStatusReady(), Live: true}},
+				Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
+			})
+		})
+	})
+}
+
+// captureBody is the scrolling part of the capture page: the header, the
+// start button, the save folder and the recent captures.
+func (a *App) captureBody(c *ui.Context, t tool.Tool) {
 	p := ds.P(c)
 	m := t.Manifest()
-	ui.Column(c).Grow(1).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(func() {
+	ui.Column(c).FillWidth().Padding(ds.Space16).Gap(ds.Space16).Children(func() {
 		comp.PageHeader(c, comp.Header{Title: m.Name(msgs()), Description: m.Summary(msgs())})
 		if a.opt.ScreenAllowed != nil && !a.opt.ScreenAllowed() {
 			a.permissionBanner(c)

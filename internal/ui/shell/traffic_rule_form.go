@@ -385,7 +385,7 @@ func (a *App) mockBodyField(c *ui.Context, st *trafficState) {
 	code.Mono = true
 	ta := ui.TextArea(c, &f.body).Label(i18n.TrafficBody())
 	ds.Style(ta, code).FillWidth().Height(ds.ControlLg*4).Padding(ds.Space8).Radius(ds.RadiusSm).
-		Background(p.FillControl).Border(ds.LineWidth, p.LineHairline).TextColor(p.TextPrimary)
+		Background(p.FillControl).Border(ds.LineWidth, p.LineControl).TextColor(p.TextPrimary)
 	if ta.Changed() {
 		st.rulesChanged()
 	}
