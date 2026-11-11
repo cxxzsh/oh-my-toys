@@ -12,6 +12,7 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
+	"github.com/cxxzsh/oh-my-toys/internal/i18n"
 	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/color"
 	"github.com/cxxzsh/oh-my-toys/internal/tools/devtools"
@@ -197,6 +198,8 @@ func renderZhAndResponsive(t *testing.T, dir string) {
 	seedRenderPage(t, narrowPorts, "ports")
 	savePNG(t, filepath.Join(dir, "native-narrow-880-ports-dark.png"), ui.Render(narrowPorts.mainView, ds.WindowMinWidth, ds.WindowMinHeight, 2))
 
+	saveRulesShot(t, dir)
+
 	mygoi18n.SetLocaleFunc(func() string { return "zh-Hans" })
 	defer mygoi18n.SetLocaleFunc(nil)
 
@@ -208,6 +211,20 @@ func renderZhAndResponsive(t *testing.T, dir string) {
 	zhPlan := newRenderApp(t, false, modeToolID)
 	zhPlan.switchForm(modeToolID).tab = tabPlan
 	savePNG(t, filepath.Join(dir, "native-zh-switch-plan-light.png"), ui.Render(zhPlan.mainView, ds.WindowWidth, ds.WindowHeight, 2))
+}
+
+// saveRulesShot opens the traffic inspector on its rule book, which lives in
+// the page's local state and so needs a driven frame rather than a render.
+func saveRulesShot(t *testing.T, dir string) {
+	t.Helper()
+	a := newRenderApp(t, true, devtools.TrafficID)
+	tt := ui.NewTester(a.mainView, ds.WindowWidth, ds.WindowHeight)
+	tt.Frame()
+	if err := tt.Click(i18n.TrafficViewRules()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	savePNG(t, filepath.Join(dir, "native-traffic-rules-dark.png"), tt.Image())
 }
 
 func seedRenderPage(t *testing.T, a *App, page string) {
