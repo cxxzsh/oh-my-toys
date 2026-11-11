@@ -85,6 +85,7 @@ func (a *App) trafficPane(c *ui.Context, st *trafficState, side detailSide) {
 	if side == sideResponse {
 		title, key = i18n.TrafficTabResponse(), "response-tabs"
 	}
+	comp.Eyebrow(c, title)
 	if comp.Tabs(c.Key(key), &sel, title, labels...).Changed() {
 		st.paneTab[side] = kinds[sel]
 	}

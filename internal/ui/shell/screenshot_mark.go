@@ -7,12 +7,12 @@ import (
 	"sync"
 
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/gomedium"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 
 	"github.com/egoist/mygo/ui"
 
-	"github.com/cxxzsh/oh-my-toys/design"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
@@ -391,14 +391,10 @@ func stampLine(img *image.RGBA, a, b image.Point, width int) {
 	}
 }
 
-// snapFont parses the interface font once, for the labels written into
-// screenshots.
+// snapFont parses a static TrueType font once for rasterizing text labels into
+// exported screenshot bitmaps (x/image/font/opentype does not interpolate gvar).
 var snapFont = sync.OnceValues(func() (*opentype.Font, error) {
-	data, err := design.Read("fonts/Geist-Variable.ttf")
-	if err != nil {
-		return nil, err
-	}
-	return opentype.Parse(data)
+	return opentype.Parse(gomedium.TTF)
 })
 
 // snapDrawText writes a label into the image with its top left at at.

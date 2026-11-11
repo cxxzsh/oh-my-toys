@@ -548,9 +548,7 @@ func TestTrafficModeSwitchesColumns(t *testing.T) {
 		t.Fatal(err)
 	}
 	waitText(t, tt, i18n.TrafficColProtocol())
-	if !tt.HasText("SYN 52114 → 443") {
-		t.Errorf("the packet is not listed: %q", tt.Texts())
-	}
+	waitText(t, tt, "SYN 52114 → 443")
 	if tt.HasText("/get") {
 		t.Errorf("a proxied flow is still listed in packet mode: %q", tt.Texts())
 	}

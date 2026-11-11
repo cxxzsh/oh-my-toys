@@ -13,6 +13,14 @@ import (
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
 
+// telemetryText names the switch beside its timer in the live telemetry bar.
+func telemetryText(name, text string) string {
+	if text != "" {
+		return name + " · " + text
+	}
+	return name
+}
+
 func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 	m := t.Manifest()
 	st := t.Status()
@@ -21,9 +29,14 @@ func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 	}
 	toggle := func() {
 		on := st.On
-		if comp.Switch(c, &on, m.Name(msgs())).Changed() {
-			a.setSwitch(t, on)
-		}
+		cmd := switchCLI(m.ID, st)
+		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			comp.RiskBadge(c, tool.RiskSystem)
+			a.kit.CLICopyPill(c.Key("sw-cli"), cmd, i18n.CopyCommand(), i18n.Copied(cmd))
+			if comp.Switch(c, &on, m.Name(msgs())).Changed() {
+				a.setSwitch(t, on)
+			}
+		})
 	}
 	ui.Column(c).Grow(1).FillWidth().Children(func() {
 		ui.Scroll(c).Grow(1).FillWidth().Children(func() {
@@ -38,47 +51,52 @@ func (a *App) switchPage(c *ui.Context, t tool.Switch) {
 		ui.Column(c).FillWidth().Padding(0, ds.Space16, ds.Space16).Children(func() {
 			a.kit.StatusBar(c, comp.StatusBarOpts{
 				Title:  i18n.LiveTelemetry(),
-				Counts: []comp.StatusCount{{Text: st.Text, Live: st.On}},
+				Counts: []comp.StatusCount{{Text: telemetryText(m.Name(msgs()), st.Text), Live: st.On}},
 				Hints:  []string{modKey("K") + " " + i18n.SearchTools()},
 			})
 		})
 	})
 }
 
-// switchHero is the state at a glance: the dot, the countdown and what is
-// left of it on the left, and when it started and ends on the right.
+// switchHero is the state at a glance: the dot, the countdown and the run's
+// controls on the left, and the telemetry matrix of the holds on the right.
 func (a *App) switchHero(c *ui.Context, t tool.Switch, st tool.Status) {
 	comp.Card(c).FillWidth().Padding(ds.Space20).Children(func() {
 		ui.Row(c).FillWidth().Gap(ds.Space20).AlignItems(ui.Stretch).Wrap().Children(func() {
-			a.heroCountdown(c, st)
-			if st.On {
-				a.heroFacts(c, t, st)
-			}
+			a.heroCountdown(c, t, st)
+			a.heroHolds(c, t, st)
 		})
 	})
 }
 
-func (a *App) heroCountdown(c *ui.Context, st tool.Status) {
+func (a *App) heroCountdown(c *ui.Context, t tool.Switch, st tool.Status) {
 	p := ds.P(c)
 	ink, tone, state := p.TextMuted, comp.DotMuted, i18n.StatusOff()
 	if st.On {
 		ink, tone, state = p.LiveText, comp.DotLive, i18n.StatusOn()
 	}
-	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Gap(ds.Space6).Children(func() {
-		ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
-			comp.StatusDot(c, comp.DotOpts{Tone: tone, Large: true})
-			comp.Text(c, state, ds.Headline, p.TextStrong)
-			if st.Detail != "" && st.On {
-				comp.Text(c, "· "+st.Detail, ds.Caption, p.TextInactive)
+	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Justify(ui.SpaceBetween).Gap(ds.Space10).Children(func() {
+		ui.Column(c).Gap(ds.Space6).Children(func() {
+			ui.Row(c).Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+				comp.StatusDot(c, comp.DotOpts{Tone: tone, Large: true})
+				comp.Text(c, state, ds.Headline, p.TextStrong)
+				if st.Detail != "" && st.On {
+					comp.Text(c, "· "+st.Detail, ds.Caption, p.TextInactive)
+				}
+			})
+			big := ds.Title
+			big.Size, big.LineHeight, big.Mono, big.Tracking = ds.CountdownSize, ds.CountdownLine, true, 0
+			comp.Text(c, countdownText(st), big, ink).SingleLine()
+			comp.Text(c, countdownCaption(st), ds.Caption, p.TextInactive)
+		})
+		ui.Column(c).Gap(ds.Space10).Children(func() {
+			if left, total, ok := timeLeft(st); ok {
+				comp.ProgressBar(c, float32(left)/float32(total))
+			}
+			if st.On {
+				a.heroActions(c, t, st)
 			}
 		})
-		big := ds.Title
-		big.Size, big.LineHeight, big.Mono, big.Tracking = ds.CountdownSize, ds.CountdownLine, true, 0
-		comp.Text(c, countdownText(st), big, ink).SingleLine()
-		comp.Text(c, countdownCaption(st), ds.Caption, p.TextInactive)
-		if left, total, ok := timeLeft(st); ok {
-			comp.ProgressBar(c, float32(left)/float32(total))
-		}
 	})
 }
 
@@ -113,23 +131,89 @@ func countdownCaption(st tool.Status) string {
 	return i18n.SwitchTimeLeft()
 }
 
-// heroFacts are the clock times of the run, in mono.
-func (a *App) heroFacts(c *ui.Context, t tool.Switch, st tool.Status) {
+// heroFacts are the clock times of a run in mono, and its note when it has one.
+func (a *App) heroFacts(c *ui.Context, st tool.Status) {
 	p := ds.P(c)
 	ends := i18n.SwitchUntilOff()
 	if !st.Until.IsZero() {
 		ends = st.Until.Format(time.TimeOnly)
 	}
-	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Padding(0, 0, 0, ds.Space20).
-		BorderWidth(0, 0, 0, ds.LineWidth).BorderColor(p.LineHairline).Children(func() {
-		a.valueRow(c, i18n.SwitchStarted(), st.Since.Format(time.TimeOnly))
-		a.valueRow(c, i18n.SwitchEnds(), ends)
-		a.valueRow(c, i18n.SwitchRunning(), tool.Clock(time.Since(st.Since).Round(time.Second)))
-		a.heroActions(c, t, st)
-		if st.Note != "" {
-			comp.Text(c, st.Note, ds.Caption, p.TextInactive).Padding(ds.Space8, 0, 0)
+	a.valueRow(c, i18n.SwitchStarted(), st.Since.Format(time.TimeOnly))
+	a.valueRow(c, i18n.SwitchEnds(), ends)
+	a.valueRow(c, i18n.SwitchRunning(), tool.Clock(time.Since(st.Since).Round(time.Second)))
+	if st.Note != "" {
+		comp.Text(c, st.Note, ds.Caption, p.TextInactive).Padding(ds.Space8, 0, 0)
+	}
+}
+
+// heroHolds is the telemetry matrix on the right: the manual hold and, when
+// the tool has a plan, the schedule hold, each a sub-card with its badge.
+func (a *App) heroHolds(c *ui.Context, t tool.Switch, st tool.Status) {
+	ui.Column(c).Grow(1).Basis(ds.FactsMinWidth).Gap(ds.Space10).Children(func() {
+		a.manualHold(c, st)
+		if sched, ok := t.(tool.Scheduled); ok {
+			a.scheduleHold(c, sched, st)
 		}
 	})
+}
+
+// manualHold is the hold a person starts by hand: its badge, and the clock
+// times of the run while it is on.
+func (a *App) manualHold(c *ui.Context, st tool.Status) {
+	p := ds.P(c)
+	tone, text := comp.ToneNeutral, i18n.HoldDisabled()
+	if st.On && st.Active != tool.ActivePlan {
+		tone, text = comp.ToneSuccess, i18n.HoldActive()
+	}
+	ui.Column(c).FillWidth().Padding(ds.Space12).Gap(ds.Space8).
+		Radius(ds.RadiusSm).Background(p.FillControl).Border(ds.LineWidth, p.LineControl).Children(func() {
+		ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			comp.Text(c, i18n.HoldManual(), ds.Label, p.TextStrong).Grow(1)
+			comp.Badge(c, text, tone)
+		})
+		if st.On {
+			a.heroFacts(c, st)
+		}
+	})
+}
+
+// planHolds reports whether the plan holds the tool now, alone or along with
+// a person's run.
+func planHolds(st tool.Status) bool {
+	return st.On && (st.Active == tool.ActivePlan || st.Note != "")
+}
+
+// scheduleHold is the hold the plan keeps: active while it holds the tool,
+// standby while it is armed for its next span, and that span's time.
+func (a *App) scheduleHold(c *ui.Context, t tool.Scheduled, st tool.Status) {
+	p := ds.P(c)
+	sched := t.Schedule()
+	tone, text := comp.ToneNeutral, i18n.HoldDisabled()
+	switch {
+	case planHolds(st):
+		tone, text = comp.ToneSuccess, i18n.HoldActive()
+	case sched.Enabled:
+		tone, text = comp.ToneAccent, i18n.HoldStandby()
+	}
+	ui.Column(c).FillWidth().Padding(ds.Space12).Gap(ds.Space8).
+		Radius(ds.RadiusSm).Background(p.FillControl).Border(ds.LineWidth, p.LineControl).Children(func() {
+		ui.Row(c).FillWidth().Gap(ds.Space8).AlignItems(ui.Center).Children(func() {
+			comp.Text(c, i18n.HoldSchedule(), ds.Label, p.TextStrong).Grow(1)
+			comp.Badge(c, text, tone)
+		})
+		if line, ok := nextRunText(sched, time.Now()); ok && sched.Enabled && !planHolds(st) {
+			comp.Text(c, line, ds.Caption, p.TextInactive)
+		}
+	})
+}
+
+// switchCLI is the omt command that turns a switch tool the other way from
+// how it runs now, for a person who scripts the same thing.
+func switchCLI(id string, st tool.Status) string {
+	if st.On {
+		return "omt " + id + " " + tool.ActionStop
+	}
+	return "omt " + id + " " + tool.ActionStart
 }
 
 // extendBy is how much time the extend button adds to a run.
@@ -257,10 +341,11 @@ func (a *App) presetTile(c *ui.Context, key, title string, active bool, basis fl
 	if b.Clicked() {
 		run()
 	}
-	style, ink, fill, line := ds.Label, p.TextPrimary, p.FillControl, p.LineHairline
+	style, ink, fill, line := ds.Label, p.TextPrimary, p.BgCard, p.LineControl
+	edge := float32(ds.LineWidth)
 	switch {
 	case active:
-		style.Weight, ink, fill, line = ds.Semibold, p.AccentText, p.AccentSoft, p.AccentLine
+		style.Weight, ink, fill, line, edge = ds.Semibold, p.AccentText, p.AccentSoft, p.AccentStrong, ds.FocusRingWidth
 	case b.Hovered():
 		fill = p.FillControlHover
 	}
@@ -270,7 +355,7 @@ func (a *App) presetTile(c *ui.Context, key, title string, active bool, basis fl
 		b.Grow(1)
 	}
 	b.Height(ds.PresetHeight).Padding(0, ds.Space12).Gap(ds.Space8).
-		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, line).AlignItems(ui.Center).Children(func() {
+		Radius(ds.RadiusSm).Background(fill).Border(edge, line).AlignItems(ui.Center).Children(func() {
 		comp.Text(c, title, style, ink).Grow(1).SingleLine().Ellipsis("…")
 		if active {
 			a.kit.Glyph(c, "check", ds.Glyph, p.AccentText)

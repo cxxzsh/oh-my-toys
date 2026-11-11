@@ -147,6 +147,9 @@ func snapKeyBinds() []struct {
 
 func (a *App) registerSnapKeys() {
 	a.unregisterSnapKeys()
+	if a.main == nil {
+		return
+	}
 	typing := a.snap != nil && a.snap.text != nil
 	for _, b := range snapKeyBinds() {
 		if b.typing && typing {

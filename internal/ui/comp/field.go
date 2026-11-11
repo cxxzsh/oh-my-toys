@@ -52,6 +52,8 @@ func fieldInput(c *ui.Context, v *string, o FieldOpts) ui.Element {
 		in.Border(ds.LineWidth, p.Danger)
 	case in.Focused():
 		in.Background(p.BgCard).Border(ds.LineWidth, p.AccentStrong).Shadow(0, 0, 0, ds.FieldHaloWidth, p.AccentSoft)
+	default:
+		in.Border(ds.LineWidth, p.LineControl)
 	}
 	return in
 }
@@ -75,8 +77,8 @@ type SearchFieldOpts struct {
 // reports whether the shortcut hint was clicked.
 func (k *Kit) SearchField(c *ui.Context, q *string, h *ui.Handle, o SearchFieldOpts) (hintClicked bool) {
 	p := ds.P(c)
-	box := ui.Row(c).Height(ds.ControlLg).Padding(0, ds.Space6, 0, ds.Space12).Gap(ds.Space6).
-		Radius(ds.RadiusFull).Background(p.FillControl).Border(ds.LineWidth, p.LineHairline).AlignItems(ui.Center)
+	box := ui.Row(c).Height(ds.ControlLg).Padding(0, ds.Space6, 0, ds.Space10).Gap(ds.Space6).
+		Radius(ds.RadiusSm).Background(p.FillControl).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center)
 	if o.Width > 0 {
 		box.Width(o.Width).MinWidth(ds.SearchMinWidth).Shrink(1)
 	} else {
@@ -121,7 +123,7 @@ func (k *Kit) Select(c *ui.Context, options []string, selected int, choose func(
 		}
 	})
 	b.Height(ds.ControlMd).MinWidth(ds.SelectMinWidth).Padding(0, ds.Space6, 0, ds.Space10).Gap(ds.Space6).
-		Radius(ds.RadiusFull).Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center)
+		Radius(ds.RadiusSm).Background(fill).Border(ds.LineWidth, p.LineControl).AlignItems(ui.Center)
 	ds.ApplyShadow(b, ds.S(c).ShadowXs)
 	return b.Children(func() {
 		sel := ds.Label

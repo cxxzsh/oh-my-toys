@@ -1,6 +1,6 @@
 oh-my-toys is a desktop toolbox for macOS, Windows and Linux: one main window, a tray panel, and many small tools. A tool is either a **switch** (Keep Awake: on, off, a status) or an **action** (Batch Rename, Find Duplicates: plan, preview, apply). One rule shapes the interface: **the application is the box; the tools are the heroes.** The chrome is quiet; colour, data and motion belong to the tool.
 
-The app is written once in Go and drawn by MyGo, so **one design runs everywhere**: the same fonts, sizes, colours, layouts and button order on every computer. The look is a precise workbench: system neutrals in light, ink-black obsidian in dark, Geist for words, JetBrains Mono for every technical value, hairlines instead of heavy shadows, pills for everything you can press. `tokens.json` feeds `dev/gentokens`; every size is in points (MyGo's DIPs, scaled by the display).
+The app is written once in Go and drawn by MyGo, so **one design runs everywhere**: the same fonts, sizes, colours, layouts and button order on every computer. The look is a precision instrument studio: warm alabaster neutrals in light, obsidian carbon in dark, IBM Plex Sans for words, IBM Plex Mono for every technical value, crisp 1pt hairlines, and machined 6pt controls. `tokens.json` feeds `dev/gentokens`; every size is in points (MyGo's DIPs, scaled by the display).
 
 ## One design, every platform
 
@@ -14,7 +14,7 @@ Everything in this system is identical on macOS, Windows and Linux. Only what th
 | Modifier key (⌘ on macOS, Ctrl elsewhere) | Shortcuts are defined once with `Mod`; Kbd labels use the user's key names |
 | Menus (context menus, the macOS menu bar) | Native menus via MyGo; the system sets content and order |
 | Window material (vibrancy, Mica, none) | `Vibrancy` with a solid fallback: `bg-sidebar`, `bg-popover` |
-| Chinese and other scripts not in Geist | Fallback to the system's CJK font (PingFang SC, Microsoft YaHei UI, Noto Sans CJK SC) |
+| Chinese and other scripts not in IBM Plex | Fallback to the system's CJK font (PingFang SC, Microsoft YaHei UI, Noto Sans CJK SC) |
 
 Anything not in this table must not branch on the platform.
 
@@ -57,7 +57,7 @@ Anything not in this table must not branch on the platform.
 - **Text.** `text-strong` headings and values, `text-primary` body, `text-secondary` descriptions, `text-inactive` unselected navigation, `text-muted` hints only.
 
 ### Typography
-- **Two bundled fonts, the same on every computer.** Geist (`--font-sans`) for words; JetBrains Mono (`--font-mono`) for anything a machine produced: ports, pids, paths, hex values, versions, counts, shortcuts, table cells, badges. Both are variable-weight TrueType in `fonts/` (SIL OFL 1.1, licences beside them), embedded with `//go:embed` and registered at start with `ui.RegisterFont(data, "Geist")` and `ui.RegisterFont(data, "JetBrains Mono")`; set Geist as the theme `Font`.
+- **Two bundled fonts, the same on every computer.** IBM Plex Sans (`--font-sans`) for words; IBM Plex Mono (`--font-mono`) for anything a machine produced: ports, pids, paths, hex values, versions, counts, shortcuts, table cells, badges. Both are variable-weight TrueType in `fonts/` (SIL OFL 1.1, licences beside them), embedded with `//go:embed` and registered at start with `ui.RegisterFont(data, "IBM Plex Sans")` and `ui.RegisterFont(data, "IBM Plex Mono")`; set IBM Plex Sans as the theme `Font`.
 - **Chinese** has no glyphs in either font and falls back, character by character, to the system's CJK font listed in the family stacks.
 - **Scale.** Sans: `title` 17/22 bold at -0.025em, `headline` 13/16 semibold, `section` 12/16 bold, `body` 13/18, `label` 12/16 medium, `caption` 11/16, `small` 10/14, `palette-input` 15/20. Mono: `eyebrow` 10/14 semibold caps at 0.05em, `meta` 10/14, `badge` 10/14 semibold, `kbd` 10/14, `numeric` 11/14 semibold.
 - Timers, counters and meters use tabular figures. Nothing below 10pt; people who need bigger text use the system's display scaling, which MyGo applies.
@@ -69,8 +69,8 @@ Anything not in this table must not branch on the platform.
 - Controls: `control-sm` 20pt in panels, `control-md` 24pt for buttons, chips, Select and segmented controls, `control-lg` 28pt for fields. Rows: sidebar 28, table 26, settings 44, tray 32, palette 36.
 
 ### Shape
-- `radius-full` on every pressable pill: sidebar rows, search, chips, buttons, Select, badges, segmented controls, switches.
-- `radius-sm` (8pt) on text fields, tables and palette rows; `radius-md` (12pt) on cards, panels, settings groups and dialogs; `radius-lg` (16pt) on the tray panel and palette; `radius-xs` (4pt) on Kbd, tooltips and in-row Kill buttons.
+- `radius-sm` (6pt) on buttons, segmented controls, sidebar rows, Select, search and text fields; `radius-full` on switches, filter chips and status dots.
+- `radius-md` (8pt) on cards, panels and settings groups; `radius-lg` (12pt) on the tray panel, command palette and dialogs; `radius-xs` (4pt) on badges, Kbd, tooltips and in-row actions.
 - Tool icon tiles: 20/5pt, 28/7pt, 48/11pt.
 
 ### States

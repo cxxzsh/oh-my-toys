@@ -49,7 +49,7 @@ func (st *trafficState) withFacets(f tool.Filter) tool.Filter {
 func (a *App) trafficSidebar(c *ui.Context, t tool.Traffic, st *trafficState) {
 	p := ds.P(c)
 	ui.Column(c).Width(ds.TrafficSourcesWidth).FillHeight().Padding(ds.Space8).Gap(ds.Space4).
-		Background(p.FillControl).Radius(ds.RadiusMd).Clip().Children(func() {
+		Background(p.BgCard).Border(ds.LineWidth, p.Line).Radius(ds.RadiusMd).Clip().Children(func() {
 		a.trafficScope(c, t, st)
 		comp.Eyebrow(c, i18n.TrafficPrograms())
 		if a.trafficAllRow(c, i18n.TrafficAllPrograms()) {
@@ -113,15 +113,19 @@ func (a *App) trafficHostRows(c *ui.Context, st *trafficState) {
 // the right, and a tint while it is the selection.
 func trafficRowButton(c *ui.Context, key, name, count string, active bool) ui.Element {
 	p := ds.P(c)
-	bg := ui.Color{}
-	if active {
-		bg = p.AccentSoft
+	b := ui.ButtonBase(c.Key(key)).Cursor(ui.CursorDefault).Selected(active)
+	bg, ink := ui.Transparent, p.TextPrimary
+	switch {
+	case active:
+		bg, ink = p.AccentSoft, p.TextStrong
+		b.BorderWidth(0, 0, 0, ds.SelectionBarW).BorderColor(p.AccentStrong)
+	case b.Hovered():
+		bg = p.FillControl
 	}
-	b := ui.ButtonBase(c.Key(key)).FillWidth().Height(ds.ControlMd).Padding(ds.Space6).
-		Radius(ds.RadiusSm).Background(bg).Cursor(ui.CursorDefault).Selected(active)
+	b.FillWidth().Height(ds.ControlMd).Padding(0, ds.Space8).Radius(ds.RadiusSm).Background(bg)
 	return b.Children(func() {
 		ui.Row(c).FillWidth().Height(ds.ControlMd).AlignItems(ui.Center).Gap(ds.Space6).Children(func() {
-			comp.Text(c, name, ds.Caption, p.TextPrimary).SingleLine().Ellipsis("…").Grow(1).MinWidth(0)
+			comp.Text(c, name, ds.Caption, ink).SingleLine().Ellipsis("…").Grow(1).MinWidth(0)
 			if count != "" {
 				comp.Value(c, count, p.TextMuted)
 			}

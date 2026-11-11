@@ -1,12 +1,9 @@
 package shell
 
 import (
-	"fmt"
-	"os"
 	"slices"
 	"strconv"
 
-	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/core"
@@ -28,17 +25,18 @@ const (
 )
 
 type navRow struct {
-	kind    navKind
-	key     string
-	page    string
-	glyph   string
-	label   string
-	section string
-	group   string // the drag group of a tool row: sectionPinned or a category
-	cat     tool.Category
-	count   int
-	running bool
-	tool    tool.Tool
+	kind     navKind
+	key      string
+	page     string
+	glyph    string
+	label    string
+	section  string
+	group    string // the drag group of a tool row: sectionPinned or a category
+	cat      tool.Category
+	count    int
+	shortcut string
+	running  bool
+	tool     tool.Tool
 }
 
 // navRows flattens the sidebar into rows of a virtual list: All Tools,
@@ -78,14 +76,37 @@ func (a *App) pinnedSectionRows() []navRow {
 	if a.settings.IsCollapsed(sectionPinned) {
 		return rows
 	}
-	for _, t := range pinned {
-		rows = append(rows, toNavTool("pin:", sectionPinned, t))
+	for i, t := range pinned {
+		r := toNavTool("pin:", sectionPinned, t)
+		if i < ds.SidebarMaxJump {
+			r.shortcut = modKey(strconv.Itoa(i + 1))
+		}
+		rows = append(rows, r)
 	}
 	return rows
 }
 
+// excludePinned drops the tools the pinned section already shows, so a tool
+// with a pin appears once in the sidebar.
+func (a *App) excludePinned(tools []tool.Tool) []tool.Tool {
+	if len(a.settings.Pinned) == 0 {
+		return tools
+	}
+	pinned := make(map[string]bool, len(a.settings.Pinned))
+	for _, id := range a.settings.Pinned {
+		pinned[id] = true
+	}
+	out := make([]tool.Tool, 0, len(tools))
+	for _, t := range tools {
+		if !pinned[t.Manifest().ID] {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
 func (a *App) categorySectionRows(cat tool.Category) []navRow {
-	tools := a.orderedInCategory(cat)
+	tools := a.excludePinned(a.orderedInCategory(cat))
 	if len(tools) == 0 {
 		return nil
 	}
@@ -122,6 +143,18 @@ func (a *App) orderedInCategory(cat tool.Category) []tool.Tool {
 	return out
 }
 
+// pinIndex is where a pinned tool sits in the list, or -1 when it is not
+// pinned.
+func (a *App) pinIndex(t tool.Tool) int {
+	id := t.Manifest().ID
+	for i, p := range a.pinnedTools() {
+		if p.Manifest().ID == id {
+			return i
+		}
+	}
+	return -1
+}
+
 func (a *App) isPinned(t tool.Tool) bool {
 	id := t.Manifest().ID
 	for _, p := range a.settings.Pinned {
@@ -148,6 +181,10 @@ func (a *App) sidebar(c *ui.Context) {
 	fill := p.BgSidebar
 	if c.Vibrancy() {
 		fill = p.BgSidebarMaterial
+	}
+	if a.sideCompact {
+		a.compactRail(c, fill)
+		return
 	}
 	ui.Column(c).Width(ds.SidebarWidth).FillHeight().Padding(ds.Space12).Gap(ds.Space8).Background(fill).
 		BorderWidth(0, ds.LineWidth, 0, 0).BorderColor(p.Line).Role(ui.RoleGroup).Label(i18n.Sidebar()).
@@ -190,7 +227,7 @@ func (a *App) sidebarBody(c *ui.Context) {
 	ui.List(c.Key("side"), &a.sideList, len(rows), func(i int) { a.sideRow(c, rows[i]) }).
 		Grow(1).FillWidth().Gap(ds.Space2).Padding(0, ds.Space10, 0, 0).Label(i18n.Tools())
 	a.navItem(c, navRow{key: pageSettings, page: pageSettings, glyph: glyphSettings, label: i18n.Settings()})
-	a.daemonCard(c)
+	a.activeRuns(c)
 }
 
 func (a *App) sideRow(c *ui.Context, r navRow) {
@@ -214,7 +251,7 @@ func (a *App) navHead(c *ui.Context, r navRow) {
 		fill = p.FillControl
 	}
 	head.FillWidth().Height(ds.SideHeadHeight).Margin(ds.Space8, 0, ds.Space2).Padding(0, ds.Space8).
-		Gap(ds.Space4).Radius(ds.RadiusFull).Background(fill).AlignItems(ui.Center).Children(func() {
+		Gap(ds.Space4).Radius(ds.RadiusSm).Background(fill).AlignItems(ui.Center).Children(func() {
 		g := a.kit.Glyph(c, "expand_more", ds.GlyphSm, p.TextMuted)
 		if !open {
 			g.Rotate(ds.ChevronClosed)
@@ -238,9 +275,19 @@ func (a *App) navItem(c *ui.Context, r navRow) {
 	})
 }
 
+func (a *App) rowSelected(r navRow) bool {
+	if a.page != r.page {
+		return false
+	}
+	if r.tool != nil && a.isPinned(r.tool) && !a.settings.IsCollapsed(sectionPinned) {
+		return r.group == sectionPinned
+	}
+	return true
+}
+
 func (a *App) drawNavPill(c *ui.Context, r navRow) {
 	p := ds.P(c)
-	sel := a.page == r.page
+	sel := a.rowSelected(r)
 	acc := r.label
 	if r.running {
 		acc = r.label + ", " + i18n.Running()
@@ -264,7 +311,7 @@ func (a *App) drawNavPill(c *ui.Context, r navRow) {
 		if !a.active() {
 			glyphInk = p.TextMuted
 		}
-		b.Border(ds.LineWidth, p.LineHairline)
+		b.BorderWidth(0, 0, 0, ds.SelectionBarW).BorderColor(p.AccentStrong)
 		ds.ApplyShadow(b, ds.S(c).ShadowXs)
 	case b.Pressed():
 		fill, ink, glyphInk = p.FillControlPressed, p.TextStrong, p.TextStrong
@@ -272,15 +319,17 @@ func (a *App) drawNavPill(c *ui.Context, r navRow) {
 		fill, ink, glyphInk = p.FillControl, p.TextStrong, p.TextStrong
 	}
 	b.FillWidth().Height(ds.NavRow).Padding(0, ds.Space10, 0, ds.Space6).Gap(ds.Space8).
-		Radius(ds.RadiusFull).Background(fill).AlignItems(ui.Center).Children(func() {
+		Radius(ds.RadiusSm).Background(fill).AlignItems(ui.Center).Children(func() {
 		if r.tool != nil {
 			a.kit.ToolIcon(c, r.tool.Manifest(), comp.ToolIconOpts{Size: comp.IconSmall, Tint: true})
 		} else {
 			a.kit.Glyph(c, r.glyph, ds.Glyph, glyphInk)
 		}
 		comp.Text(c, r.label, style, ink).Grow(1).SingleLine().Ellipsis("…")
-		if r.tool != nil && (a.isPinned(r.tool) || hovered) {
+		if r.tool != nil && hovered {
 			a.pinButton(c, r.tool)
+		} else if r.shortcut != "" {
+			comp.Kbd(c, r.shortcut)
 		}
 		a.navTrailing(c, r, sel)
 	})
@@ -314,19 +363,35 @@ func (a *App) sidebarToolMenu(m *ui.Menu, t tool.Tool) {
 	}
 }
 
-func (a *App) daemonCard(c *ui.Context) {
-	ver := mygo.App.Version()
-	if ver == "" {
-		ver = devVersion
+// activeRuns is the sidebar footer: one row for each switch tool that is
+// on, with its state and a stop button. It is absent when nothing runs.
+func (a *App) activeRuns(c *ui.Context) {
+	running := a.reg.Running()
+	if len(running) == 0 {
+		return
 	}
-	pid := os.Getpid()
-	card := comp.DaemonCard(c, i18n.AppName(), i18n.Running(), "v"+ver, fmt.Sprintf("pid: %d", pid), true)
-	if card.Clicked() {
-		a.open(pageSettings)
-	}
-	card.ContextMenu(func(m *ui.Menu) {
-		if m.Item(i18n.CopyPID()).Chosen() {
-			mygo.Clipboard.WriteText(strconv.Itoa(pid))
+	comp.Card(c).FillWidth().Padding(ds.Space8).Gap(ds.Space6).Children(func() {
+		for _, sw := range running {
+			a.activeRunRow(c, sw)
+		}
+	})
+}
+
+// activeRunRow is one running switch tool in the sidebar footer.
+func (a *App) activeRunRow(c *ui.Context, sw tool.Switch) {
+	p := ds.P(c)
+	m := sw.Manifest()
+	st := sw.Status()
+	ui.Column(c.Key("run:" + m.ID)).FillWidth().Gap(ds.Space2).Children(func() {
+		ui.Row(c).FillWidth().Gap(ds.Space6).AlignItems(ui.Center).Children(func() {
+			comp.StatusDot(c, comp.DotOpts{Tone: comp.DotLive})
+			comp.Text(c, m.Name(msgs()), ds.Caption, p.TextStrong).Grow(1).SingleLine().Ellipsis("…")
+			if a.kit.Button(c.Key("side-stop:"+m.ID), i18n.Stop(), comp.ButtonOpts{Kind: comp.Danger, Small: true, Square: true}).Clicked() {
+				a.setSwitch(sw, false)
+			}
+		})
+		if st.Text != "" {
+			comp.Value(c, st.Text, p.LiveText).Padding(0, 0, 0, ds.Space12).Ellipsis("…")
 		}
 	})
 }

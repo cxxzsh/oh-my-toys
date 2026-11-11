@@ -46,7 +46,7 @@ func buttonLook(p *ds.Palette, k ButtonKind) buttonColors {
 	case Danger:
 		return buttonColors{fill: p.DangerSoft, ink: p.Danger, line: p.DangerLine, weight: ds.Label.Weight}
 	case DangerSolid:
-		return buttonColors{fill: p.Danger, ink: p.OnDanger, weight: ds.Semibold}
+		return buttonColors{fill: p.DangerSolid, ink: p.OnDanger, weight: ds.Semibold}
 	case Secondary:
 	}
 	return buttonColors{fill: p.BgButton, ink: p.TextStrong, line: p.LineControl, weight: ds.Label.Weight, raised: true}
@@ -92,7 +92,7 @@ func (k *Kit) Button(c *ui.Context, label string, o ButtonOpts) ui.Element {
 		height, style = ds.ControlSm, ds.Caption
 	}
 	style.Weight = look.weight
-	radius, padX := float32(ds.RadiusFull), float32(ds.Space10)
+	radius, padX := float32(ds.RadiusSm), float32(ds.Space10)
 	if o.Square {
 		radius, padX = ds.RadiusXs, ds.Space8
 	}

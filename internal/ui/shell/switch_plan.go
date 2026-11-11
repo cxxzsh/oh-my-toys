@@ -175,7 +175,9 @@ func (a *App) planRows(c *ui.Context, f *switchForm) {
 func (a *App) planRow(c *ui.Context, f *switchForm, i int) {
 	r := &f.rows[i]
 	_, read := r.segment()
-	ui.Row(c.Key(i)).FillWidth().Gap(ds.Space4).AlignItems(ui.Center).Children(func() {
+	ui.Row(c.Key(i)).FillWidth().Gap(ds.Space4).AlignItems(ui.Center).
+		Padding(ds.Space8, ds.Space10).Radius(ds.RadiusSm).Background(ds.P(c).BgCanvas).
+		Border(ds.LineWidth, ds.P(c).LineHairline).Children(func() {
 		for _, d := range weekOrder {
 			r.days = a.dayToggle(c, i, d, r.days)
 		}
@@ -183,7 +185,7 @@ func (a *App) planRow(c *ui.Context, f *switchForm, i int) {
 		a.timeField(c, [2]int{i, 0}, &r.from, !read)
 		comp.Text(c, "–", ds.Body, ds.P(c).TextInactive)
 		a.timeField(c, [2]int{i, 1}, &r.to, !read)
-		opts := comp.ButtonOpts{Kind: comp.Plain, Small: true, Tooltip: i18n.SwitchRemoveSpan()}
+		opts := comp.ButtonOpts{Kind: comp.Ghost, Small: true, Square: true, Tooltip: i18n.SwitchRemoveSpan()}
 		if a.kit.Button(c.Key([2]int{i, 2}), removeSpan, opts).Clicked() {
 			f.drop = i + 1
 		}
@@ -204,15 +206,15 @@ func (a *App) dayToggle(c *ui.Context, row int, d time.Weekday, days tool.Weekda
 	if b.Clicked() {
 		days, on = days.With(d, !on), !on
 	}
-	fill, ink := p.FillControl, p.TextInactive
+	fill, ink, line := p.BgButton, p.TextSecondary, p.LineControl
 	switch {
 	case on:
-		fill, ink = p.AccentSoft, p.AccentText
+		fill, ink, line = p.AccentSoft, p.AccentText, p.AccentLine
 	case b.Hovered():
 		fill = p.FillControlHover
 	}
 	b.Width(ds.DayToggleWidth).Height(ds.ControlMd).Radius(ds.RadiusSm).Background(fill).
-		AlignItems(ui.Center).Justify(ui.Center).Children(func() {
+		Border(ds.LineWidth, line).AlignItems(ui.Center).Justify(ui.Center).Children(func() {
 		comp.Text(c, label, ds.Caption, ink).SingleLine()
 	})
 	return days

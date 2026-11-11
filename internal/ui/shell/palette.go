@@ -86,6 +86,9 @@ func (a *App) paletteKeys(c *ui.Context) {
 	if c.Shortcut(0, ui.KeyUp) && len(rs) > 0 {
 		a.pal.chosen = max(a.pal.chosen-1, 0)
 	}
+	if a.tryDirectKey(c) {
+		return
+	}
 	if a.pal.chosen >= len(rs) {
 		return
 	}
@@ -104,8 +107,10 @@ func (a *App) paletteKeys(c *ui.Context) {
 }
 
 func (a *App) paletteOverlay(c *ui.Context) {
+	p := ds.P(c)
 	_, h := c.Size()
-	ui.Box(c).Absolute().Top(h * ds.PaletteTopShare).Left(0).Right(0).AlignItems(ui.Center).Children(func() {
+	ui.Column(c).Absolute().Top(0).Bottom(0).Left(0).Right(0).Background(p.Scrim).
+		Padding(h*ds.PaletteTopShare, 0, 0).AlignItems(ui.Center).Children(func() {
 		a.paletteCard(c)
 	})
 }
@@ -146,9 +151,15 @@ func (a *App) paletteInput(c *ui.Context) {
 
 func (a *App) paletteList(c *ui.Context) {
 	rs := a.pal.results
+	direct, hasDirect := parseDirectCommand(a.reg, a.pal.query, time.Now())
 	ui.Column(c).FillWidth().Padding(ds.Space6).Children(func() {
+		if hasDirect {
+			a.drawDirectCommand(c, direct)
+		}
 		if len(rs) == 0 {
-			a.paletteEmpty(c)
+			if !hasDirect {
+				a.paletteEmpty(c)
+			}
 			return
 		}
 		section := ""
@@ -190,11 +201,15 @@ func (a *App) sectionOf(r core.Result) string {
 
 func (a *App) paletteFoot(c *ui.Context) {
 	p := ds.P(c)
+	count := len(a.pal.results)
+	if _, ok := parseDirectCommand(a.reg, a.pal.query, time.Now()); ok {
+		count++
+	}
 	ui.Row(c).FillWidth().Height(ds.PaletteFootRow).Padding(0, ds.Space16).AlignItems(ui.Center).
 		BorderWidth(ds.LineWidth, 0, 0, 0).BorderColor(p.Line).Children(func() {
 		comp.Hint(c, "↑↓ "+i18n.HintChoose()+"  ·  ↵ "+i18n.Open()+"  ·  "+modKey("↵")+" "+i18n.HintRun())
 		ui.Spacer(c)
-		comp.Hint(c, i18n.ResultsCount(len(a.pal.results)))
+		comp.Hint(c, i18n.ResultsCount(count))
 	})
 }
 

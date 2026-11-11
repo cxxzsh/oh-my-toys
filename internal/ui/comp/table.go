@@ -72,6 +72,17 @@ func (s *TableState) selected(pos int) bool {
 	return pos >= min(s.anchor, s.cursor) && pos <= max(s.anchor, s.cursor)
 }
 
+// ActiveRow returns the source row index at the table's cursor, or -1 when
+// text is empty.
+func (s *TableState) ActiveRow(text [][]string) int {
+	if len(text) == 0 {
+		return -1
+	}
+	order := s.order(text)
+	pos := max(0, min(s.cursor, len(order)-1))
+	return order[pos]
+}
+
 // DataTable draws the table: a header over a virtual list of rows. ↑↓ move
 // the selection, Shift extends it, Mod+A selects all, Mod+C copies the
 // selected rows as tab-separated text, Delete runs the row's destructive
@@ -92,7 +103,7 @@ func (k *Kit) DataTable(c *ui.Context, st *TableState, t Table) {
 func (k *Kit) tableHeader(c *ui.Context, st *TableState, cols []Column) {
 	p := ds.P(c)
 	ui.Row(c).FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).AlignItems(ui.Center).
-		BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).Children(func() {
+		Background(p.BgTitlebar).BorderWidth(0, 0, ds.LineWidth, 0).BorderColor(p.Line).Children(func() {
 		for i, col := range cols {
 			h := ui.ButtonBase(c.Key(i)).Label(col.Label).Cursor(ui.CursorDefault)
 			if h.Clicked() {
@@ -155,7 +166,10 @@ func (k *Kit) tableRow(c *ui.Context, st *TableState, t Table, order []int, pos 
 		b.ContextMenu(func(m *ui.Menu) { t.Menu(m, row) })
 	}
 	b.FillWidth().Height(ds.TableRow).Padding(0, ds.TableCellPad).Background(fill).AlignItems(ui.Center)
-	if pos > 0 {
+	switch {
+	case st.selected(pos):
+		b.BorderWidth(0, 0, 0, ds.SelectionBarW).BorderColor(p.AccentStrong)
+	case pos > 0:
 		b.BorderWidth(ds.LineWidth, 0, 0, 0).BorderColor(p.LineHairline)
 	}
 	b.Children(func() {

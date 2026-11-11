@@ -88,6 +88,13 @@ signs, makes the installers and the update archives and uploads them to the
 draft; the CLI job builds `omt` with `go build` and uploads its archives with
 `gh`.
 
+The Windows job's primary output is the NSIS setup installer,
+`oh-my-toys-setup-<version>-<arch>.exe`: it is what a person downloads and
+runs. A draft assembled by hand must therefore be built with
+`go tool mygo build -platform windows/amd64,windows/arm64` and include those
+`.exe` files, never only the plain `go build` `.zip`; the portable `.zip`
+stays as a secondary option.
+
 Signing is configured in a copy of `mygo.json` made on the runner, so a build
 on a developer's machine and a release without the secrets stay ad hoc
 signed. Without the Apple certificate, Gatekeeper blocks the app on other

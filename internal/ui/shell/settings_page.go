@@ -8,9 +8,12 @@ import (
 	"github.com/egoist/mygo/ui"
 
 	"github.com/cxxzsh/oh-my-toys/internal/i18n"
+	"github.com/cxxzsh/oh-my-toys/internal/tool"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/comp"
 	"github.com/cxxzsh/oh-my-toys/internal/ui/ds"
 )
+
+const mcpSnippet = `{"mcpServers":{"oh-my-toys":{"command":"omt","args":["mcp"]}}}`
 
 // devVersion is the version of a build that mygo build did not stamp.
 const devVersion = "dev"
@@ -19,7 +22,7 @@ const devVersion = "dev"
 func msgsLang() string { return mygoi18n.Locale() }
 
 func (a *App) settingsPage(c *ui.Context) {
-	comp.PageHeader(c, comp.Header{Title: i18n.Settings(), Description: i18n.AppearanceDesc()})
+	comp.PageHeader(c, comp.Header{Title: i18n.Settings(), Description: i18n.SettingsDesc()})
 	a.kit.SettingsList(c, []comp.SettingsRow{
 		{
 			Glyph:   "contrast",
@@ -36,7 +39,7 @@ func (a *App) settingsPage(c *ui.Context) {
 		{
 			Glyph:   "keyboard",
 			Title:   i18n.GlobalShortcut(),
-			Desc:    a.shortcutTakenDesc(),
+			Desc:    a.shortcutDesc(),
 			Control: func() { a.shortcutBadge(c) },
 		},
 		{
@@ -50,6 +53,7 @@ func (a *App) settingsPage(c *ui.Context) {
 			},
 		},
 	})
+	a.agentsSection(c)
 	a.aboutSection(c)
 	if a.opt.Dev {
 		a.section(c, i18n.Measurements(), func() { a.measurements(c) })
@@ -105,6 +109,13 @@ func (a *App) shortcutTakenDesc() string {
 	return i18n.ShortcutTaken(strings.Join(taken, i18n.ListSeparator()))
 }
 
+func (a *App) shortcutDesc() string {
+	if d := a.shortcutTakenDesc(); d != "" {
+		return d
+	}
+	return i18n.SettingsShortcutDesc()
+}
+
 func (a *App) aboutSection(c *ui.Context) {
 	version := mygo.App.Version()
 	if version == "" {
@@ -113,8 +124,53 @@ func (a *App) aboutSection(c *ui.Context) {
 	if a.opt.Portable {
 		version = i18n.VersionPortable(version)
 	}
-	a.section(c, i18n.About(), func() {
-		a.valueRow(c, i18n.Version(), version)
+	ui.Column(c).FillWidth().Gap(ds.Space8).Children(func() {
+		comp.Eyebrow(c, i18n.About())
+		a.kit.SettingsList(c, []comp.SettingsRow{
+			{
+				Glyph:   "memory",
+				Title:   i18n.Version(),
+				Control: func() { comp.BadgeRimmed(c, version) },
+			},
+		})
+	})
+}
+
+func (a *App) agentsSection(c *ui.Context) {
+	ui.Column(c).FillWidth().Gap(ds.Space8).Children(func() {
+		comp.Eyebrow(c, i18n.AgentsSection())
+		a.kit.SettingsList(c, []comp.SettingsRow{
+			{
+				Glyph: "smart_toy",
+				Title: i18n.AgentsMcpTitle(),
+				Desc:  i18n.AgentsMcpDesc(),
+				Control: func() {
+					if a.kit.Button(c.Key("copy-mcp"), i18n.CopyConfig(), comp.ButtonOpts{Kind: comp.Secondary, Small: true, Glyph: "content_copy"}).Clicked() {
+						mygo.Clipboard.WriteText(mcpSnippet)
+						c.Toast(i18n.Copied("omt mcp"))
+					}
+				},
+			},
+			{
+				Glyph:   "terminal",
+				Title:   i18n.AgentsCliTitle(),
+				Desc:    i18n.AgentsCliDesc(),
+				Control: func() { a.kit.CLICopyPill(c.Key("cli-help"), "omt --help", "omt --help", i18n.Copied("omt --help")) },
+			},
+			{
+				Glyph: "lock",
+				Title: i18n.AgentsRiskTitle(),
+				Desc:  i18n.AgentsRiskDesc(),
+				Control: func() {
+					ui.Row(c).Gap(ds.Space4).AlignItems(ui.Center).Children(func() {
+						comp.RiskBadge(c, tool.RiskRead)
+						comp.RiskBadge(c, tool.RiskSystem)
+						comp.RiskBadge(c, tool.RiskWrite)
+						comp.RiskBadge(c, tool.RiskProcess)
+					})
+				},
+			},
+		})
 	})
 }
 
