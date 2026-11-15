@@ -197,7 +197,7 @@ jobs:
           cat e2e-result.json || true
           tail -30 app.log || true
           exit $status
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: e2e-${{ matrix.os }}
